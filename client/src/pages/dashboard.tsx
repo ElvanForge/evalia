@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth.tsx";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/ui/sidebar";
 import { StatsCard } from "@/components/dashboard/stats-card";

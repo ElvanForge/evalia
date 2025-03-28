@@ -19,7 +19,7 @@ import Quizzes from "@/pages/quizzes";
 import NewQuiz from "@/pages/quizzes/new";
 import QuizDetail from "@/pages/quizzes/[id]";
 import QuizPreview from "@/pages/quizzes/[id]/preview";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 function Router() {
   return (

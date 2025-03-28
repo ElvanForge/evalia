@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -25,16 +25,18 @@ const AuthContext = createContext<AuthContextType>({
   isLoggingIn: false,
 });
 
-export function AuthProvider(props: { children: React.ReactNode }) {
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const children = props.children;
 
   // Get current authenticated user
   const {
     data: user,
     isLoading,
-    refetch,
   } = useQuery<Teacher | null>({
     queryKey: ["/api/auth/me"],
     queryFn: async ({ queryKey }) => {
@@ -64,8 +66,7 @@ export function AuthProvider(props: { children: React.ReactNode }) {
   const loginMutation = useMutation({
     mutationFn: async (credentials: TeacherLogin) => {
       const res = await apiRequest("POST", "/api/auth/login", credentials);
-      const data = await res.json();
-      return data;
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -88,8 +89,7 @@ export function AuthProvider(props: { children: React.ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: async (teacherData: any) => {
       const res = await apiRequest("POST", "/api/auth/register", teacherData);
-      const data = await res.json();
-      return data;
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
@@ -112,8 +112,7 @@ export function AuthProvider(props: { children: React.ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/auth/logout", {});
-      const data = await res.json();
-      return data;
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.clear();
@@ -155,10 +154,11 @@ export function AuthProvider(props: { children: React.ReactNode }) {
     isLoggingIn: loginMutation.isPending,
   };
 
-  return AuthContext.Provider({
-    value: value, 
-    children: children
-  });
-}
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
 export const useAuth = () => useContext(AuthContext);
