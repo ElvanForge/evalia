@@ -1,17 +1,251 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, decimal, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
+// Teachers table
+export const teachers = pgTable("teachers", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  subject: text("subject"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertTeacherSchema = createInsertSchema(teachers).omit({
+  id: true,
+  createdAt: true,
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+// Classes/Courses table
+export const classes = pgTable("classes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  teacherId: integer("teacher_id").notNull().references(() => teachers.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertClassSchema = createInsertSchema(classes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Students table
+export const students = pgTable("students", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email"),
+  gradeLevel: text("grade_level"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertStudentSchema = createInsertSchema(students).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Student-Class relationship (many-to-many)
+export const studentClasses = pgTable("student_classes", {
+  studentId: integer("student_id").notNull().references(() => students.id),
+  classId: integer("class_id").notNull().references(() => classes.id),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.studentId, t.classId] }),
+}));
+
+export const insertStudentClassSchema = createInsertSchema(studentClasses);
+
+// Assignments table
+export const assignments = pgTable("assignments", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // quiz, test, homework, project, etc.
+  maxScore: decimal("max_score").notNull(), // maximum possible score
+  weight: decimal("weight").notNull(), // weight in final grade calculation
+  classId: integer("class_id").notNull().references(() => classes.id),
+  dueDate: timestamp("due_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertAssignmentSchema = createInsertSchema(assignments).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Grades table
+export const grades = pgTable("grades", {
+  id: serial("id").primaryKey(),
+  assignmentId: integer("assignment_id").notNull().references(() => assignments.id),
+  studentId: integer("student_id").notNull().references(() => students.id),
+  score: decimal("score").notNull(),
+  comments: text("comments"),
+  submittedAt: timestamp("submitted_at"),
+  gradedAt: timestamp("graded_at").defaultNow().notNull(),
+});
+
+export const insertGradeSchema = createInsertSchema(grades).omit({
+  id: true,
+  gradedAt: true,
+});
+
+// GradeScale table for letter grade conversion
+export const gradeScales = pgTable("grade_scales", {
+  id: serial("id").primaryKey(),
+  teacherId: integer("teacher_id").notNull().references(() => teachers.id),
+  name: text("name").notNull(),
+  isDefault: boolean("is_default").default(false),
+});
+
+export const insertGradeScaleSchema = createInsertSchema(gradeScales).omit({
+  id: true,
+});
+
+// GradeScaleEntries for the specific thresholds
+export const gradeScaleEntries = pgTable("grade_scale_entries", {
+  id: serial("id").primaryKey(),
+  scaleId: integer("scale_id").notNull().references(() => gradeScales.id),
+  minScore: decimal("min_score").notNull(),
+  maxScore: decimal("max_score").notNull(),
+  letter: text("letter").notNull(),
+});
+
+export const insertGradeScaleEntrySchema = createInsertSchema(gradeScaleEntries).omit({
+  id: true,
+});
+
+// Export types
+export type Teacher = typeof teachers.$inferSelect;
+export type InsertTeacher = z.infer<typeof insertTeacherSchema>;
+
+export type Class = typeof classes.$inferSelect;
+export type InsertClass = z.infer<typeof insertClassSchema>;
+
+export type Student = typeof students.$inferSelect;
+export type InsertStudent = z.infer<typeof insertStudentSchema>;
+
+export type StudentClass = typeof studentClasses.$inferSelect;
+export type InsertStudentClass = z.infer<typeof insertStudentClassSchema>;
+
+export type Assignment = typeof assignments.$inferSelect;
+export type InsertAssignment = z.infer<typeof insertAssignmentSchema>;
+
+export type Grade = typeof grades.$inferSelect;
+export type InsertGrade = z.infer<typeof insertGradeSchema>;
+
+export type GradeScale = typeof gradeScales.$inferSelect;
+export type InsertGradeScale = z.infer<typeof insertGradeScaleSchema>;
+
+export type GradeScaleEntry = typeof gradeScaleEntries.$inferSelect;
+export type InsertGradeScaleEntry = z.infer<typeof insertGradeScaleEntrySchema>;
+
+// Authentication schemas for login validation
+export const teacherLoginSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export type TeacherLogin = z.infer<typeof teacherLoginSchema>;
+
+// Extended schemas with validation
+export const extendedTeacherSchema = insertTeacherSchema.extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+export type ExtendedTeacher = z.infer<typeof extendedTeacherSchema>;
+
+// Quiz Models
+export const quizzes = pgTable("quizzes", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  teacherId: integer("teacher_id").notNull().references(() => teachers.id),
+  classId: integer("class_id").references(() => classes.id),
+  isActive: boolean("is_active").default(false),
+  timeLimit: integer("time_limit"), // in minutes
+});
+
+export const insertQuizSchema = createInsertSchema(quizzes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const quizQuestions = pgTable("quiz_questions", {
+  id: serial("id").primaryKey(),
+  quizId: integer("quiz_id").notNull().references(() => quizzes.id),
+  question: text("question").notNull(),
+  imageUrl: text("image_url"),
+  type: text("type").default("multiple_choice"), // multiple_choice, true_false, or speaking
+  createdAt: timestamp("created_at").defaultNow(),
+  order: integer("order").default(0),
+});
+
+export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const quizOptions = pgTable("quiz_options", {
+  id: serial("id").primaryKey(),
+  questionId: integer("question_id").notNull().references(() => quizQuestions.id),
+  text: text("text").notNull(),
+  isCorrect: boolean("is_correct").default(false),
+  order: integer("order").default(0),
+});
+
+export const insertQuizOptionSchema = createInsertSchema(quizOptions).omit({
+  id: true,
+});
+
+export const quizSubmissions = pgTable("quiz_submissions", {
+  id: serial("id").primaryKey(),
+  quizId: integer("quiz_id").notNull().references(() => quizzes.id),
+  studentId: integer("student_id").notNull().references(() => students.id),
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  score: decimal("score", { precision: 5, scale: 2 }),
+  maxScore: decimal("max_score", { precision: 5, scale: 2 }),
+});
+
+export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).omit({
+  id: true,
+  completedAt: true,
+  score: true,
+});
+
+export const quizAnswers = pgTable("quiz_answers", {
+  id: serial("id").primaryKey(),
+  submissionId: integer("submission_id").notNull().references(() => quizSubmissions.id),
+  questionId: integer("question_id").notNull().references(() => quizQuestions.id),
+  selectedOptionId: integer("selected_option_id").references(() => quizOptions.id),
+  isCorrect: boolean("is_correct").default(false),
+  speakingAnswer: text("speaking_answer"),
+  teacherFeedback: text("teacher_feedback"),
+});
+
+export const insertQuizAnswerSchema = createInsertSchema(quizAnswers).omit({
+  id: true,
+});
+
+export type Quiz = typeof quizzes.$inferSelect;
+export type InsertQuiz = z.infer<typeof insertQuizSchema>;
+
+export type QuizQuestion = typeof quizQuestions.$inferSelect;
+export type InsertQuizQuestion = z.infer<typeof insertQuizQuestionSchema>;
+
+export type QuizOption = typeof quizOptions.$inferSelect;
+export type InsertQuizOption = z.infer<typeof insertQuizOptionSchema>;
+
+export type QuizSubmission = typeof quizSubmissions.$inferSelect;
+export type InsertQuizSubmission = z.infer<typeof insertQuizSubmissionSchema>;
+
+export type QuizAnswer = typeof quizAnswers.$inferSelect;
+export type InsertQuizAnswer = z.infer<typeof insertQuizAnswerSchema>;

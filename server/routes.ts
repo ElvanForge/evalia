@@ -1,15 +1,1380 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import {
+  teacherLoginSchema,
+  insertTeacherSchema,
+  insertClassSchema,
+  insertStudentSchema,
+  insertAssignmentSchema,
+  insertGradeSchema,
+  insertGradeScaleSchema,
+  insertGradeScaleEntrySchema,
+  insertStudentClassSchema,
+  insertQuizSchema,
+  insertQuizQuestionSchema,
+  insertQuizOptionSchema,
+  insertQuizSubmissionSchema,
+  insertQuizAnswerSchema,
+} from "@shared/schema";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
+import express from "express";
+import session from "express-session";
+import MemoryStore from "memorystore";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  // Setup session middleware
+  const SessionStore = MemoryStore(session);
+  
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "gradetracker-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      store: new SessionStore({
+        checkPeriod: 86400000, // prune expired entries every 24h
+      }),
+      cookie: {
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        secure: process.env.NODE_ENV === "production",
+      },
+    })
+  );
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  // Authentication middleware
+  const requireAuth = (req: Request, res: Response, next: express.NextFunction) => {
+    if (!req.session.teacherId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    next();
+  };
+
+  // Error handling middleware for Zod validation
+  const validateRequest = (schema: any) => {
+    return (req: Request, res: Response, next: express.NextFunction) => {
+      try {
+        schema.parse(req.body);
+        next();
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const validationError = fromZodError(error);
+          return res.status(400).json({ 
+            message: "Validation error", 
+            errors: validationError.details 
+          });
+        }
+        next(error);
+      }
+    };
+  };
+
+  // Authentication routes
+  app.post("/api/auth/login", validateRequest(teacherLoginSchema), async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const teacher = await storage.getTeacherByUsername(username);
+
+      if (!teacher || teacher.password !== password) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Store teacher ID in session
+      req.session.teacherId = teacher.id;
+
+      // Remove password from response
+      const { password: _, ...teacherWithoutPassword } = teacher;
+      res.status(200).json({ 
+        message: "Login successful", 
+        teacher: teacherWithoutPassword 
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Server error during login" });
+    }
+  });
+
+  app.post("/api/auth/register", validateRequest(insertTeacherSchema), async (req, res) => {
+    try {
+      const { username, email } = req.body;
+      
+      // Check if username or email already exists
+      const existingTeacherByUsername = await storage.getTeacherByUsername(username);
+      if (existingTeacherByUsername) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const existingTeacherByEmail = await storage.getAllTeachers().then(
+        teachers => teachers.find(t => t.email === email)
+      );
+      if (existingTeacherByEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      const newTeacher = await storage.createTeacher(req.body);
+      
+      // Store teacher ID in session
+      req.session.teacherId = newTeacher.id;
+
+      // Remove password from response
+      const { password: _, ...teacherWithoutPassword } = newTeacher;
+      res.status(201).json({ 
+        message: "Registration successful", 
+        teacher: teacherWithoutPassword 
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Server error during registration" });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Failed to logout" });
+      }
+      res.status(200).json({ message: "Logout successful" });
+    });
+  });
+
+  app.get("/api/auth/me", async (req, res) => {
+    try {
+      if (!req.session.teacherId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const teacher = await storage.getTeacher(req.session.teacherId);
+      if (!teacher) {
+        return res.status(404).json({ message: "Teacher not found" });
+      }
+
+      // Remove password from response
+      const { password: _, ...teacherWithoutPassword } = teacher;
+      res.status(200).json(teacherWithoutPassword);
+    } catch (error) {
+      console.error("Auth check error:", error);
+      res.status(500).json({ message: "Server error during auth check" });
+    }
+  });
+
+  // Teacher routes
+  app.get("/api/teachers", requireAuth, async (req, res) => {
+    try {
+      const teachers = await storage.getAllTeachers();
+      // Remove passwords from response
+      const teachersWithoutPasswords = teachers.map(({ password: _, ...teacher }) => teacher);
+      res.status(200).json(teachersWithoutPasswords);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+      res.status(500).json({ message: "Server error fetching teachers" });
+    }
+  });
+
+  // Class routes
+  app.get("/api/classes", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const classes = await storage.getClassesByTeacher(teacherId);
+      res.status(200).json(classes);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+      res.status(500).json({ message: "Server error fetching classes" });
+    }
+  });
+
+  app.post("/api/classes", requireAuth, validateRequest(insertClassSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const newClass = await storage.createClass({
+        ...req.body,
+        teacherId
+      });
+      res.status(201).json(newClass);
+    } catch (error) {
+      console.error("Error creating class:", error);
+      res.status(500).json({ message: "Server error creating class" });
+    }
+  });
+
+  app.get("/api/classes/:id", requireAuth, async (req, res) => {
+    try {
+      const classId = Number(req.params.id);
+      const class_ = await storage.getClass(classId);
+      
+      if (!class_) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+
+      const teacherId = Number(req.session.teacherId);
+      if (class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view this class" });
+      }
+
+      res.status(200).json(class_);
+    } catch (error) {
+      console.error("Error fetching class:", error);
+      res.status(500).json({ message: "Server error fetching class" });
+    }
+  });
+
+  app.put("/api/classes/:id", requireAuth, validateRequest(insertClassSchema.partial()), async (req, res) => {
+    try {
+      const classId = Number(req.params.id);
+      const teacherId = Number(req.session.teacherId);
+      
+      const class_ = await storage.getClass(classId);
+      if (!class_) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this class" });
+      }
+
+      const updatedClass = await storage.updateClass(classId, req.body);
+      res.status(200).json(updatedClass);
+    } catch (error) {
+      console.error("Error updating class:", error);
+      res.status(500).json({ message: "Server error updating class" });
+    }
+  });
+
+  app.delete("/api/classes/:id", requireAuth, async (req, res) => {
+    try {
+      const classId = Number(req.params.id);
+      const teacherId = Number(req.session.teacherId);
+      
+      const class_ = await storage.getClass(classId);
+      if (!class_) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this class" });
+      }
+
+      await storage.deleteClass(classId);
+      res.status(200).json({ message: "Class deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting class:", error);
+      res.status(500).json({ message: "Server error deleting class" });
+    }
+  });
+
+  // Student routes
+  app.get("/api/students", requireAuth, async (req, res) => {
+    try {
+      const students = await storage.getAllStudents();
+      res.status(200).json(students);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      res.status(500).json({ message: "Server error fetching students" });
+    }
+  });
+
+  app.post("/api/students", requireAuth, validateRequest(insertStudentSchema), async (req, res) => {
+    try {
+      const newStudent = await storage.createStudent(req.body);
+      res.status(201).json(newStudent);
+    } catch (error) {
+      console.error("Error creating student:", error);
+      res.status(500).json({ message: "Server error creating student" });
+    }
+  });
+
+  app.get("/api/students/:id", requireAuth, async (req, res) => {
+    try {
+      const studentId = Number(req.params.id);
+      const student = await storage.getStudent(studentId);
+      
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      res.status(200).json(student);
+    } catch (error) {
+      console.error("Error fetching student:", error);
+      res.status(500).json({ message: "Server error fetching student" });
+    }
+  });
+
+  app.put("/api/students/:id", requireAuth, validateRequest(insertStudentSchema.partial()), async (req, res) => {
+    try {
+      const studentId = Number(req.params.id);
+      const student = await storage.getStudent(studentId);
+      
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const updatedStudent = await storage.updateStudent(studentId, req.body);
+      res.status(200).json(updatedStudent);
+    } catch (error) {
+      console.error("Error updating student:", error);
+      res.status(500).json({ message: "Server error updating student" });
+    }
+  });
+
+  app.delete("/api/students/:id", requireAuth, async (req, res) => {
+    try {
+      const studentId = Number(req.params.id);
+      const student = await storage.getStudent(studentId);
+      
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      await storage.deleteStudent(studentId);
+      res.status(200).json({ message: "Student deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      res.status(500).json({ message: "Server error deleting student" });
+    }
+  });
+
+  // Class enrollment routes
+  app.post("/api/enrollments", requireAuth, validateRequest(insertStudentClassSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const classId = Number(req.body.classId);
+      
+      // Verify the class belongs to the teacher
+      const class_ = await storage.getClass(classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to enroll students in this class" });
+      }
+
+      const enrollment = await storage.enrollStudent(req.body);
+      res.status(201).json(enrollment);
+    } catch (error) {
+      console.error("Error enrolling student:", error);
+      res.status(500).json({ message: "Server error enrolling student" });
+    }
+  });
+
+  app.delete("/api/enrollments/:studentId/:classId", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const studentId = Number(req.params.studentId);
+      const classId = Number(req.params.classId);
+      
+      // Verify the class belongs to the teacher
+      const class_ = await storage.getClass(classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to unenroll students from this class" });
+      }
+
+      await storage.unenrollStudent(studentId, classId);
+      res.status(200).json({ message: "Student unenrolled successfully" });
+    } catch (error) {
+      console.error("Error unenrolling student:", error);
+      res.status(500).json({ message: "Server error unenrolling student" });
+    }
+  });
+
+  app.get("/api/classes/:id/students", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const classId = Number(req.params.id);
+      
+      // Verify the class belongs to the teacher
+      const class_ = await storage.getClass(classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view students in this class" });
+      }
+
+      const students = await storage.getStudentsByClass(classId);
+      res.status(200).json(students);
+    } catch (error) {
+      console.error("Error fetching class students:", error);
+      res.status(500).json({ message: "Server error fetching class students" });
+    }
+  });
+
+  // Assignment routes
+  app.get("/api/assignments", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const classId = req.query.classId ? Number(req.query.classId) : undefined;
+      
+      if (classId) {
+        // Verify the class belongs to the teacher
+        const class_ = await storage.getClass(classId);
+        if (!class_ || class_.teacherId !== teacherId) {
+          return res.status(403).json({ message: "Not authorized to view assignments for this class" });
+        }
+        
+        const assignments = await storage.getAssignmentsByClass(classId);
+        return res.status(200).json(assignments);
+      }
+      
+      // If no classId is provided, return all assignments for all classes belonging to the teacher
+      const classes = await storage.getClassesByTeacher(teacherId);
+      const classIds = classes.map(c => c.id);
+      
+      const assignments = [];
+      for (const classId of classIds) {
+        const classAssignments = await storage.getAssignmentsByClass(classId);
+        assignments.push(...classAssignments);
+      }
+      
+      res.status(200).json(assignments);
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+      res.status(500).json({ message: "Server error fetching assignments" });
+    }
+  });
+
+  app.post("/api/assignments", requireAuth, validateRequest(insertAssignmentSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const classId = Number(req.body.classId);
+      
+      // Verify the class belongs to the teacher
+      const class_ = await storage.getClass(classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to create assignments for this class" });
+      }
+
+      const newAssignment = await storage.createAssignment(req.body);
+      res.status(201).json(newAssignment);
+    } catch (error) {
+      console.error("Error creating assignment:", error);
+      res.status(500).json({ message: "Server error creating assignment" });
+    }
+  });
+
+  app.get("/api/assignments/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const assignmentId = Number(req.params.id);
+      
+      const assignment = await storage.getAssignment(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      // Verify the assignment's class belongs to the teacher
+      const class_ = await storage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view this assignment" });
+      }
+
+      res.status(200).json(assignment);
+    } catch (error) {
+      console.error("Error fetching assignment:", error);
+      res.status(500).json({ message: "Server error fetching assignment" });
+    }
+  });
+
+  app.put("/api/assignments/:id", requireAuth, validateRequest(insertAssignmentSchema.partial()), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const assignmentId = Number(req.params.id);
+      
+      const assignment = await storage.getAssignment(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      // Verify the assignment's class belongs to the teacher
+      const class_ = await storage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this assignment" });
+      }
+
+      const updatedAssignment = await storage.updateAssignment(assignmentId, req.body);
+      res.status(200).json(updatedAssignment);
+    } catch (error) {
+      console.error("Error updating assignment:", error);
+      res.status(500).json({ message: "Server error updating assignment" });
+    }
+  });
+
+  app.delete("/api/assignments/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const assignmentId = Number(req.params.id);
+      
+      const assignment = await storage.getAssignment(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      // Verify the assignment's class belongs to the teacher
+      const class_ = await storage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this assignment" });
+      }
+
+      await storage.deleteAssignment(assignmentId);
+      res.status(200).json({ message: "Assignment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting assignment:", error);
+      res.status(500).json({ message: "Server error deleting assignment" });
+    }
+  });
+
+  // Grade routes
+  app.get("/api/grades", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const studentId = req.query.studentId ? Number(req.query.studentId) : undefined;
+      const assignmentId = req.query.assignmentId ? Number(req.query.assignmentId) : undefined;
+      const classId = req.query.classId ? Number(req.query.classId) : undefined;
+      
+      // If assignmentId is provided, verify the assignment's class belongs to the teacher
+      if (assignmentId) {
+        const assignment = await storage.getAssignment(assignmentId);
+        if (!assignment) {
+          return res.status(404).json({ message: "Assignment not found" });
+        }
+        
+        const class_ = await storage.getClass(assignment.classId);
+        if (!class_ || class_.teacherId !== teacherId) {
+          return res.status(403).json({ message: "Not authorized to view grades for this assignment" });
+        }
+        
+        const grades = await storage.getGradesByAssignment(assignmentId);
+        return res.status(200).json(grades);
+      }
+      
+      // If classId and studentId are provided, verify the class belongs to the teacher
+      if (classId && studentId) {
+        const class_ = await storage.getClass(classId);
+        if (!class_ || class_.teacherId !== teacherId) {
+          return res.status(403).json({ message: "Not authorized to view grades for this class" });
+        }
+        
+        const grades = await storage.getGradesByStudentAndClass(studentId, classId);
+        return res.status(200).json(grades);
+      }
+      
+      // If only studentId is provided, verify the student is in one of the teacher's classes
+      if (studentId) {
+        const classes = await storage.getClassesByTeacher(teacherId);
+        const classIds = classes.map(c => c.id);
+        
+        const grades = [];
+        for (const classId of classIds) {
+          const classGrades = await storage.getGradesByStudentAndClass(studentId, classId);
+          grades.push(...classGrades);
+        }
+        
+        return res.status(200).json(grades);
+      }
+      
+      // If only classId is provided, verify the class belongs to the teacher
+      if (classId) {
+        const class_ = await storage.getClass(classId);
+        if (!class_ || class_.teacherId !== teacherId) {
+          return res.status(403).json({ message: "Not authorized to view grades for this class" });
+        }
+        
+        const assignments = await storage.getAssignmentsByClass(classId);
+        const assignmentIds = assignments.map(a => a.id);
+        
+        const grades = [];
+        for (const assignmentId of assignmentIds) {
+          const assignmentGrades = await storage.getGradesByAssignment(assignmentId);
+          grades.push(...assignmentGrades);
+        }
+        
+        return res.status(200).json(grades);
+      }
+      
+      // If no specific parameters, return recent grades for all classes
+      const limit = req.query.limit ? Number(req.query.limit) : 10;
+      const offset = req.query.offset ? Number(req.query.offset) : 0;
+      
+      const recentGrades = await storage.getRecentGrades(limit, offset);
+      res.status(200).json(recentGrades);
+    } catch (error) {
+      console.error("Error fetching grades:", error);
+      res.status(500).json({ message: "Server error fetching grades" });
+    }
+  });
+
+  app.post("/api/grades", requireAuth, validateRequest(insertGradeSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const assignmentId = Number(req.body.assignmentId);
+      
+      // Verify the assignment's class belongs to the teacher
+      const assignment = await storage.getAssignment(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      const class_ = await storage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to create grades for this assignment" });
+      }
+
+      const newGrade = await storage.createGrade(req.body);
+      res.status(201).json(newGrade);
+    } catch (error) {
+      console.error("Error creating grade:", error);
+      res.status(500).json({ message: "Server error creating grade" });
+    }
+  });
+
+  app.put("/api/grades/:id", requireAuth, validateRequest(insertGradeSchema.partial()), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const gradeId = Number(req.params.id);
+      
+      const grade = await storage.getGrade(gradeId);
+      if (!grade) {
+        return res.status(404).json({ message: "Grade not found" });
+      }
+      
+      // Verify the grade's assignment's class belongs to the teacher
+      const assignment = await storage.getAssignment(grade.assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      const class_ = await storage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this grade" });
+      }
+
+      const updatedGrade = await storage.updateGrade(gradeId, req.body);
+      res.status(200).json(updatedGrade);
+    } catch (error) {
+      console.error("Error updating grade:", error);
+      res.status(500).json({ message: "Server error updating grade" });
+    }
+  });
+
+  app.delete("/api/grades/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const gradeId = Number(req.params.id);
+      
+      const grade = await storage.getGrade(gradeId);
+      if (!grade) {
+        return res.status(404).json({ message: "Grade not found" });
+      }
+      
+      // Verify the grade's assignment's class belongs to the teacher
+      const assignment = await storage.getAssignment(grade.assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      const class_ = await storage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this grade" });
+      }
+
+      await storage.deleteGrade(gradeId);
+      res.status(200).json({ message: "Grade deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting grade:", error);
+      res.status(500).json({ message: "Server error deleting grade" });
+    }
+  });
+
+  // Grade Scale routes
+  app.get("/api/grade-scales", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const gradeScales = await storage.getGradeScalesByTeacher(teacherId);
+      res.status(200).json(gradeScales);
+    } catch (error) {
+      console.error("Error fetching grade scales:", error);
+      res.status(500).json({ message: "Server error fetching grade scales" });
+    }
+  });
+
+  app.post("/api/grade-scales", requireAuth, validateRequest(insertGradeScaleSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const newGradeScale = await storage.createGradeScale({
+        ...req.body,
+        teacherId
+      });
+      res.status(201).json(newGradeScale);
+    } catch (error) {
+      console.error("Error creating grade scale:", error);
+      res.status(500).json({ message: "Server error creating grade scale" });
+    }
+  });
+
+  app.get("/api/grade-scales/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const scaleId = Number(req.params.id);
+      
+      const gradeScale = await storage.getGradeScale(scaleId);
+      if (!gradeScale) {
+        return res.status(404).json({ message: "Grade scale not found" });
+      }
+      
+      if (gradeScale.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view this grade scale" });
+      }
+
+      res.status(200).json(gradeScale);
+    } catch (error) {
+      console.error("Error fetching grade scale:", error);
+      res.status(500).json({ message: "Server error fetching grade scale" });
+    }
+  });
+
+  app.put("/api/grade-scales/:id", requireAuth, validateRequest(insertGradeScaleSchema.partial()), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const scaleId = Number(req.params.id);
+      
+      const gradeScale = await storage.getGradeScale(scaleId);
+      if (!gradeScale) {
+        return res.status(404).json({ message: "Grade scale not found" });
+      }
+      
+      if (gradeScale.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this grade scale" });
+      }
+
+      const updatedGradeScale = await storage.updateGradeScale(scaleId, req.body);
+      res.status(200).json(updatedGradeScale);
+    } catch (error) {
+      console.error("Error updating grade scale:", error);
+      res.status(500).json({ message: "Server error updating grade scale" });
+    }
+  });
+
+  app.delete("/api/grade-scales/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const scaleId = Number(req.params.id);
+      
+      const gradeScale = await storage.getGradeScale(scaleId);
+      if (!gradeScale) {
+        return res.status(404).json({ message: "Grade scale not found" });
+      }
+      
+      if (gradeScale.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this grade scale" });
+      }
+
+      await storage.deleteGradeScale(scaleId);
+      res.status(200).json({ message: "Grade scale deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting grade scale:", error);
+      res.status(500).json({ message: "Server error deleting grade scale" });
+    }
+  });
+
+  // Grade Scale Entry routes
+  app.get("/api/grade-scales/:id/entries", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const scaleId = Number(req.params.id);
+      
+      const gradeScale = await storage.getGradeScale(scaleId);
+      if (!gradeScale) {
+        return res.status(404).json({ message: "Grade scale not found" });
+      }
+      
+      if (gradeScale.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view entries for this grade scale" });
+      }
+
+      const entries = await storage.getGradeScaleEntries(scaleId);
+      res.status(200).json(entries);
+    } catch (error) {
+      console.error("Error fetching grade scale entries:", error);
+      res.status(500).json({ message: "Server error fetching grade scale entries" });
+    }
+  });
+
+  app.post("/api/grade-scale-entries", requireAuth, validateRequest(insertGradeScaleEntrySchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const scaleId = Number(req.body.scaleId);
+      
+      const gradeScale = await storage.getGradeScale(scaleId);
+      if (!gradeScale) {
+        return res.status(404).json({ message: "Grade scale not found" });
+      }
+      
+      if (gradeScale.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to create entries for this grade scale" });
+      }
+
+      const newEntry = await storage.createGradeScaleEntry(req.body);
+      res.status(201).json(newEntry);
+    } catch (error) {
+      console.error("Error creating grade scale entry:", error);
+      res.status(500).json({ message: "Server error creating grade scale entry" });
+    }
+  });
+
+  app.put("/api/grade-scale-entries/:id", requireAuth, validateRequest(insertGradeScaleEntrySchema.partial()), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const entryId = Number(req.params.id);
+      
+      const entry = await storage.getGradeScaleEntries(0).then(
+        entries => entries.find(e => e.id === entryId)
+      );
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Grade scale entry not found" });
+      }
+      
+      const gradeScale = await storage.getGradeScale(entry.scaleId);
+      if (!gradeScale || gradeScale.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this grade scale entry" });
+      }
+
+      const updatedEntry = await storage.updateGradeScaleEntry(entryId, req.body);
+      res.status(200).json(updatedEntry);
+    } catch (error) {
+      console.error("Error updating grade scale entry:", error);
+      res.status(500).json({ message: "Server error updating grade scale entry" });
+    }
+  });
+
+  app.delete("/api/grade-scale-entries/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const entryId = Number(req.params.id);
+      
+      const entry = await storage.getGradeScaleEntries(0).then(
+        entries => entries.find(e => e.id === entryId)
+      );
+      
+      if (!entry) {
+        return res.status(404).json({ message: "Grade scale entry not found" });
+      }
+      
+      const gradeScale = await storage.getGradeScale(entry.scaleId);
+      if (!gradeScale || gradeScale.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this grade scale entry" });
+      }
+
+      await storage.deleteGradeScaleEntry(entryId);
+      res.status(200).json({ message: "Grade scale entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting grade scale entry:", error);
+      res.status(500).json({ message: "Server error deleting grade scale entry" });
+    }
+  });
+
+  // Dashboard stats route
+  app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const stats = await storage.getDashboardStats(teacherId);
+      res.status(200).json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ message: "Server error fetching dashboard stats" });
+    }
+  });
+
+  // Quiz routes
+  app.get("/api/quizzes", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const classId = req.query.classId ? Number(req.query.classId) : undefined;
+      
+      let quizzes;
+      if (classId) {
+        // Verify the class belongs to the teacher
+        const class_ = await storage.getClass(classId);
+        if (!class_ || class_.teacherId !== teacherId) {
+          return res.status(403).json({ message: "Not authorized to view quizzes for this class" });
+        }
+        quizzes = await storage.getQuizzesByClass(classId);
+      } else {
+        quizzes = await storage.getQuizzesByTeacher(teacherId);
+      }
+      
+      res.status(200).json(quizzes);
+    } catch (error) {
+      console.error("Error fetching quizzes:", error);
+      res.status(500).json({ message: "Server error fetching quizzes" });
+    }
+  });
+
+  app.post("/api/quizzes", requireAuth, validateRequest(insertQuizSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      
+      // If a classId is provided, verify it belongs to the teacher
+      if (req.body.classId) {
+        const classId = Number(req.body.classId);
+        const class_ = await storage.getClass(classId);
+        if (!class_ || class_.teacherId !== teacherId) {
+          return res.status(403).json({ message: "Not authorized to create quizzes for this class" });
+        }
+      }
+      
+      const newQuiz = await storage.createQuiz({
+        ...req.body,
+        teacherId
+      });
+      
+      res.status(201).json(newQuiz);
+    } catch (error) {
+      console.error("Error creating quiz:", error);
+      res.status(500).json({ message: "Server error creating quiz" });
+    }
+  });
+
+  app.get("/api/quizzes/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const quizId = Number(req.params.id);
+      
+      const quiz = await storage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view this quiz" });
+      }
+      
+      res.status(200).json(quiz);
+    } catch (error) {
+      console.error("Error fetching quiz:", error);
+      res.status(500).json({ message: "Server error fetching quiz" });
+    }
+  });
+
+  app.put("/api/quizzes/:id", requireAuth, validateRequest(insertQuizSchema.partial()), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const quizId = Number(req.params.id);
+      
+      const quiz = await storage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this quiz" });
+      }
+      
+      const updatedQuiz = await storage.updateQuiz(quizId, req.body);
+      res.status(200).json(updatedQuiz);
+    } catch (error) {
+      console.error("Error updating quiz:", error);
+      res.status(500).json({ message: "Server error updating quiz" });
+    }
+  });
+
+  app.delete("/api/quizzes/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const quizId = Number(req.params.id);
+      
+      const quiz = await storage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this quiz" });
+      }
+      
+      await storage.deleteQuiz(quizId);
+      res.status(200).json({ message: "Quiz deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting quiz:", error);
+      res.status(500).json({ message: "Server error deleting quiz" });
+    }
+  });
+
+  // Quiz Question routes
+  app.get("/api/quizzes/:quizId/questions", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const quizId = Number(req.params.quizId);
+      
+      const quiz = await storage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view questions for this quiz" });
+      }
+      
+      const questions = await storage.getQuizQuestionsByQuiz(quizId);
+      res.status(200).json(questions);
+    } catch (error) {
+      console.error("Error fetching quiz questions:", error);
+      res.status(500).json({ message: "Server error fetching quiz questions" });
+    }
+  });
+
+  app.post("/api/quizzes/:quizId/questions", requireAuth, validateRequest(insertQuizQuestionSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const quizId = Number(req.params.quizId);
+      
+      const quiz = await storage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to add questions to this quiz" });
+      }
+      
+      const newQuestion = await storage.createQuizQuestion({
+        ...req.body,
+        quizId
+      });
+      
+      res.status(201).json(newQuestion);
+    } catch (error) {
+      console.error("Error creating quiz question:", error);
+      res.status(500).json({ message: "Server error creating quiz question" });
+    }
+  });
+
+  app.put("/api/quiz-questions/:id", requireAuth, validateRequest(insertQuizQuestionSchema.partial()), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const questionId = Number(req.params.id);
+      
+      const question = await storage.getQuizQuestion(questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      const quiz = await storage.getQuiz(question.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this question" });
+      }
+      
+      const updatedQuestion = await storage.updateQuizQuestion(questionId, req.body);
+      res.status(200).json(updatedQuestion);
+    } catch (error) {
+      console.error("Error updating quiz question:", error);
+      res.status(500).json({ message: "Server error updating quiz question" });
+    }
+  });
+
+  app.delete("/api/quiz-questions/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const questionId = Number(req.params.id);
+      
+      const question = await storage.getQuizQuestion(questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      const quiz = await storage.getQuiz(question.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this question" });
+      }
+      
+      await storage.deleteQuizQuestion(questionId);
+      res.status(200).json({ message: "Question deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting quiz question:", error);
+      res.status(500).json({ message: "Server error deleting quiz question" });
+    }
+  });
+
+  // Quiz Option routes
+  app.get("/api/quiz-questions/:questionId/options", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const questionId = Number(req.params.questionId);
+      
+      const question = await storage.getQuizQuestion(questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      const quiz = await storage.getQuiz(question.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view options for this question" });
+      }
+      
+      const options = await storage.getQuizOptionsByQuestion(questionId);
+      res.status(200).json(options);
+    } catch (error) {
+      console.error("Error fetching quiz options:", error);
+      res.status(500).json({ message: "Server error fetching quiz options" });
+    }
+  });
+
+  app.post("/api/quiz-questions/:questionId/options", requireAuth, validateRequest(insertQuizOptionSchema), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const questionId = Number(req.params.questionId);
+      
+      const question = await storage.getQuizQuestion(questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      const quiz = await storage.getQuiz(question.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to add options to this question" });
+      }
+      
+      const newOption = await storage.createQuizOption({
+        ...req.body,
+        questionId
+      });
+      
+      res.status(201).json(newOption);
+    } catch (error) {
+      console.error("Error creating quiz option:", error);
+      res.status(500).json({ message: "Server error creating quiz option" });
+    }
+  });
+
+  app.put("/api/quiz-options/:id", requireAuth, validateRequest(insertQuizOptionSchema.partial()), async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const optionId = Number(req.params.id);
+      
+      const option = await storage.getQuizOption(optionId);
+      if (!option) {
+        return res.status(404).json({ message: "Option not found" });
+      }
+      
+      const question = await storage.getQuizQuestion(option.questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      const quiz = await storage.getQuiz(question.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this option" });
+      }
+      
+      const updatedOption = await storage.updateQuizOption(optionId, req.body);
+      res.status(200).json(updatedOption);
+    } catch (error) {
+      console.error("Error updating quiz option:", error);
+      res.status(500).json({ message: "Server error updating quiz option" });
+    }
+  });
+
+  app.delete("/api/quiz-options/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const optionId = Number(req.params.id);
+      
+      const option = await storage.getQuizOption(optionId);
+      if (!option) {
+        return res.status(404).json({ message: "Option not found" });
+      }
+      
+      const question = await storage.getQuizQuestion(option.questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      const quiz = await storage.getQuiz(question.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this option" });
+      }
+      
+      await storage.deleteQuizOption(optionId);
+      res.status(200).json({ message: "Option deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting quiz option:", error);
+      res.status(500).json({ message: "Server error deleting quiz option" });
+    }
+  });
+
+  // Quiz Submission routes
+  app.get("/api/quizzes/:quizId/submissions", requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const quizId = Number(req.params.quizId);
+      
+      const quiz = await storage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view submissions for this quiz" });
+      }
+      
+      const submissions = await storage.getQuizSubmissionsByQuiz(quizId);
+      res.status(200).json(submissions);
+    } catch (error) {
+      console.error("Error fetching quiz submissions:", error);
+      res.status(500).json({ message: "Server error fetching quiz submissions" });
+    }
+  });
+
+  app.post("/api/quizzes/:quizId/submissions", validateRequest(insertQuizSubmissionSchema), async (req, res) => {
+    // This endpoint is public, students can submit quizzes
+    try {
+      const quizId = Number(req.params.quizId);
+      const studentId = Number(req.body.studentId);
+      
+      const quiz = await storage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      // Check if the quiz is active
+      if (!quiz.isActive) {
+        return res.status(403).json({ message: "This quiz is not currently active" });
+      }
+      
+      // Create the submission
+      const newSubmission = await storage.createQuizSubmission({
+        quizId,
+        studentId,
+        startedAt: new Date()
+      });
+      
+      res.status(201).json(newSubmission);
+    } catch (error) {
+      console.error("Error creating quiz submission:", error);
+      res.status(500).json({ message: "Server error creating quiz submission" });
+    }
+  });
+
+  app.put("/api/quiz-submissions/:id", validateRequest(insertQuizSubmissionSchema.partial()), async (req, res) => {
+    // This endpoint is public too, for student to complete their submission
+    try {
+      const submissionId = Number(req.params.id);
+      
+      const submission = await storage.getQuizSubmission(submissionId);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      // Only allow updating the submission if it's not completed yet
+      if (submission.completedAt) {
+        return res.status(403).json({ message: "This submission is already completed" });
+      }
+      
+      const updatedSubmission = await storage.updateQuizSubmission(submissionId, {
+        ...req.body,
+        completedAt: new Date() // Set completion time
+      });
+      
+      res.status(200).json(updatedSubmission);
+    } catch (error) {
+      console.error("Error updating quiz submission:", error);
+      res.status(500).json({ message: "Server error updating quiz submission" });
+    }
+  });
+
+  // Quiz Answer routes
+  app.post("/api/quiz-submissions/:submissionId/answers", validateRequest(insertQuizAnswerSchema), async (req, res) => {
+    // This endpoint is public, for students to submit their answers
+    try {
+      const submissionId = Number(req.params.submissionId);
+      
+      const submission = await storage.getQuizSubmission(submissionId);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      // Only allow adding answers if the submission is not completed yet
+      if (submission.completedAt) {
+        return res.status(403).json({ message: "This submission is already completed" });
+      }
+      
+      const questionId = Number(req.body.questionId);
+      const question = await storage.getQuizQuestion(questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      // For multiple choice questions, check if the answer is correct
+      let isCorrect = false;
+      if (req.body.selectedOptionId) {
+        const option = await storage.getQuizOption(Number(req.body.selectedOptionId));
+        if (option && option.isCorrect) {
+          isCorrect = true;
+        }
+      }
+      
+      const newAnswer = await storage.createQuizAnswer({
+        ...req.body,
+        submissionId,
+        isCorrect
+      });
+      
+      res.status(201).json(newAnswer);
+    } catch (error) {
+      console.error("Error creating quiz answer:", error);
+      res.status(500).json({ message: "Server error creating quiz answer" });
+    }
+  });
+
+  app.get("/api/quiz-submissions/:submissionId/answers", async (req, res) => {
+    // This endpoint can be used by both students and teachers
+    try {
+      const submissionId = Number(req.params.submissionId);
+      
+      const submission = await storage.getQuizSubmission(submissionId);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      // If a teacher is requesting, check authorization
+      if (req.session.teacherId) {
+        const teacherId = Number(req.session.teacherId);
+        const quiz = await storage.getQuiz(submission.quizId);
+        
+        if (quiz && quiz.teacherId !== teacherId) {
+          return res.status(403).json({ message: "Not authorized to view answers for this submission" });
+        }
+      }
+      
+      const answers = await storage.getQuizAnswersBySubmission(submissionId);
+      res.status(200).json(answers);
+    } catch (error) {
+      console.error("Error fetching quiz answers:", error);
+      res.status(500).json({ message: "Server error fetching quiz answers" });
+    }
+  });
+
+  app.put("/api/quiz-answers/:id", requireAuth, validateRequest(insertQuizAnswerSchema.partial()), async (req, res) => {
+    // This endpoint is for teachers to grade speaking answers
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const answerId = Number(req.params.id);
+      
+      const answer = await storage.getQuizAnswer(answerId);
+      if (!answer) {
+        return res.status(404).json({ message: "Answer not found" });
+      }
+      
+      const submission = await storage.getQuizSubmission(answer.submissionId);
+      if (!submission) {
+        return res.status(404).json({ message: "Submission not found" });
+      }
+      
+      const quiz = await storage.getQuiz(submission.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this answer" });
+      }
+      
+      const updatedAnswer = await storage.updateQuizAnswer(answerId, req.body);
+      res.status(200).json(updatedAnswer);
+    } catch (error) {
+      console.error("Error updating quiz answer:", error);
+      res.status(500).json({ message: "Server error updating quiz answer" });
+    }
+  });
 
   const httpServer = createServer(app);
-
   return httpServer;
 }
