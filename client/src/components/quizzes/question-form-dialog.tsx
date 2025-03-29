@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -58,6 +58,8 @@ export function QuestionFormDialog({
   const [imagePreview, setImagePreview] = useState<string | null>(questionToEdit?.imageUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [options, setOptions] = useState<Array<{ text: string, isCorrect: boolean }>>([]);
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(QuestionFormSchema),
     defaultValues: {
@@ -65,14 +67,39 @@ export function QuestionFormDialog({
       question: questionToEdit?.question || "",
       type: questionToEdit?.type || "multiple_choice",
       imageUrl: questionToEdit?.imageUrl || null,
-      questionOptions: questionToEdit ? 
-        [] // We would need to fetch options for the question to edit
-        : [
-          { text: "", isCorrect: true },
-          { text: "", isCorrect: false },
-        ],
+      questionOptions: [
+        { text: "", isCorrect: true },
+        { text: "", isCorrect: false },
+      ],
     },
   });
+
+  // Fetch options for the question when editing
+  useEffect(() => {
+    const fetchOptions = async () => {
+      if (questionToEdit) {
+        try {
+          const response = await fetch(`/api/quizzes/${quizId}/questions/${questionToEdit.id}/options`);
+          if (response.ok) {
+            const data = await response.json();
+            const formattedOptions = data.map((option: any) => ({
+              text: option.text,
+              isCorrect: option.isCorrect
+            }));
+            
+            if (formattedOptions.length > 0) {
+              setOptions(formattedOptions);
+              form.setValue("questionOptions", formattedOptions);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching question options:", error);
+        }
+      }
+    };
+    
+    fetchOptions();
+  }, [questionToEdit?.id, form, quizId]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -117,10 +144,10 @@ export function QuestionFormDialog({
       // Create or update the question
       const response = await fetch(
         questionToEdit 
-          ? `/api/quizzes/${quizId}/questions/${questionToEdit.id}` 
+          ? `/api/quiz-questions/${questionToEdit.id}` 
           : `/api/quizzes/${quizId}/questions`,
         {
-          method: questionToEdit ? "PATCH" : "POST",
+          method: questionToEdit ? "PUT" : "POST",
           headers: {
             "Content-Type": "application/json",
           },
@@ -134,8 +161,29 @@ export function QuestionFormDialog({
 
       const question = await response.json();
 
-      // Now create the options for the question
+      // Now handle the options for the question
       if (data.questionOptions && data.questionOptions.length > 0) {
+        // For editing questions, first delete all existing options
+        if (questionToEdit) {
+          try {
+            // Fetch current options
+            const optionsResponse = await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`);
+            if (optionsResponse.ok) {
+              const existingOptions = await optionsResponse.json();
+              
+              // Delete each existing option
+              for (const option of existingOptions) {
+                await fetch(`/api/quiz-options/${option.id}`, {
+                  method: "DELETE",
+                });
+              }
+            }
+          } catch (error) {
+            console.error("Error deleting existing options:", error);
+          }
+        }
+        
+        // Now create all new options
         for (const option of data.questionOptions) {
           await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`, {
             method: "POST",
