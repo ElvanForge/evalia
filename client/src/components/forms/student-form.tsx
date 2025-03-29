@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -50,9 +50,16 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
   // Create form for student enrollment
   const enrollmentForm = useForm<{ studentId: number }>({
     defaultValues: {
-      studentId: 0,
+      studentId: existingStudents && existingStudents.length > 0 ? existingStudents[0].id : 0,
     },
   });
+  
+  // Set default student when the data loads
+  useEffect(() => {
+    if (existingStudents && existingStudents.length > 0 && !enrollmentForm.getValues().studentId) {
+      enrollmentForm.setValue('studentId', existingStudents[0].id);
+    }
+  }, [existingStudents, enrollmentForm]);
 
   // Create or update student mutation
   const studentMutation = useMutation({
@@ -353,7 +360,7 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
                     <FormLabel>Select Student</FormLabel>
                     <Select 
                       onValueChange={(value) => field.onChange(parseInt(value))}
-                      defaultValue={field.value.toString()}
+                      value={field.value ? field.value.toString() : existingStudents && existingStudents.length > 0 ? existingStudents[0].id.toString() : undefined}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -373,15 +380,52 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
                 )}
               />
 
-              <div className="flex justify-end pt-4">
-                <Button
-                  type="submit"
-                  disabled={enrollmentMutation.isPending || !enrollmentForm.getValues().studentId}
-                >
-                  {enrollmentMutation.isPending
-                    ? "Enrolling..."
-                    : "Enroll Student"}
-                </Button>
+              <div className="space-y-4 pt-4">
+                <div className="text-xs text-muted-foreground p-2 border rounded">
+                  <p>Selected Student ID: {enrollmentForm.getValues().studentId || "None"}</p>
+                  <p>Available Students: {existingStudents?.length || 0}</p>
+                  <p>Class ID: {classId}</p>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={enrollmentMutation.isPending}
+                    onClick={() => {
+                      console.log("Enroll button clicked, form state:", enrollmentForm.formState);
+                      console.log("Current studentId value:", enrollmentForm.getValues().studentId);
+                      // The actual submission is handled by form.handleSubmit(onSubmitEnrollment)
+                    }}
+                  >
+                    {enrollmentMutation.isPending
+                      ? "Enrolling..."
+                      : "Enroll Student"}
+                  </Button>
+                </div>
+                
+                <div className="flex justify-center pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      console.log("Manual enrollment button clicked");
+                      if (existingStudents && existingStudents.length > 0) {
+                        const studentId = existingStudents[0].id;
+                        console.log("Manually enrolling student ID:", studentId);
+                        enrollStudent({ studentId });
+                      } else {
+                        toast({
+                          title: "Error",
+                          description: "No students available to enroll",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                  >
+                    Enroll First Student (Manual)
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
