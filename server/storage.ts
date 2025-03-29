@@ -234,6 +234,19 @@ export class MemStorage implements IStorage {
     };
     this.createTeacher(defaultTeacher);
     
+    // Create a second teacher
+    const secondTeacher: InsertTeacher = {
+      username: "michael.davis",
+      password: "password123",
+      firstName: "Michael",
+      lastName: "Davis",
+      email: "michael.davis@example.com",
+      subject: "Science",
+      schoolId: 1,
+      role: USER_ROLES.TEACHER
+    };
+    this.createTeacher(secondTeacher);
+    
     // Create a manager account
     const managerTeacher: InsertTeacher = {
       username: "john.manager",
@@ -276,12 +289,235 @@ export class MemStorage implements IStorage {
     
     // Create some sample classes
     const classes = [
-      { name: "Algebra II", description: "Advanced algebra concepts", teacherId: 1 },
-      { name: "Geometry", description: "Geometry fundamentals", teacherId: 1 },
-      { name: "Pre-Calculus", description: "Preparation for calculus", teacherId: 1 }
+      { name: "Algebra II", description: "Advanced algebra concepts", teacherId: 1, gradeLevel: "10th" },
+      { name: "Geometry", description: "Geometry fundamentals", teacherId: 1, gradeLevel: "9th" },
+      { name: "Pre-Calculus", description: "Preparation for calculus", teacherId: 1, gradeLevel: "11th" },
+      { name: "Physics", description: "Introduction to physics", teacherId: 2, gradeLevel: "11th" },
+      { name: "Chemistry", description: "Basic chemistry principles", teacherId: 2, gradeLevel: "10th" }
     ];
     
     classes.forEach(c => this.createClass(c));
+    
+    // Create sample students
+    const students = [
+      { firstName: "Emma", lastName: "Miller", email: "emma.miller@example.com", schoolId: 1, gradeLevel: "10th" },
+      { firstName: "Noah", lastName: "Anderson", email: "noah.anderson@example.com", schoolId: 1, gradeLevel: "9th" },
+      { firstName: "Olivia", lastName: "Williams", email: "olivia.williams@example.com", schoolId: 1, gradeLevel: "11th" },
+      { firstName: "Liam", lastName: "Brown", email: "liam.brown@example.com", schoolId: 1, gradeLevel: "10th" },
+      { firstName: "Sophia", lastName: "Jones", email: "sophia.jones@example.com", schoolId: 1, gradeLevel: "9th" },
+      { firstName: "Mason", lastName: "Garcia", email: "mason.garcia@example.com", schoolId: 1, gradeLevel: "11th" },
+      { firstName: "Isabella", lastName: "Martinez", email: "isabella.martinez@example.com", schoolId: 1, gradeLevel: "10th" },
+      { firstName: "Jacob", lastName: "Lee", email: "jacob.lee@example.com", schoolId: 1, gradeLevel: "9th" }
+    ];
+    
+    // Add students
+    const createdStudents = students.map(async student => {
+      return await this.createStudent(student);
+    });
+    
+    // Enroll students in classes
+    Promise.all(createdStudents).then(students => {
+      // Enroll students in Algebra II
+      this.enrollStudent({ studentId: 1, classId: 1 });
+      this.enrollStudent({ studentId: 4, classId: 1 });
+      this.enrollStudent({ studentId: 7, classId: 1 });
+      
+      // Enroll students in Geometry
+      this.enrollStudent({ studentId: 2, classId: 2 });
+      this.enrollStudent({ studentId: 5, classId: 2 });
+      this.enrollStudent({ studentId: 8, classId: 2 });
+      
+      // Enroll students in Pre-Calculus
+      this.enrollStudent({ studentId: 3, classId: 3 });
+      this.enrollStudent({ studentId: 6, classId: 3 });
+      
+      // Enroll students in Physics
+      this.enrollStudent({ studentId: 3, classId: 4 });
+      this.enrollStudent({ studentId: 6, classId: 4 });
+      
+      // Enroll students in Chemistry
+      this.enrollStudent({ studentId: 1, classId: 5 });
+      this.enrollStudent({ studentId: 4, classId: 5 });
+      this.enrollStudent({ studentId: 7, classId: 5 });
+    });
+    
+    // Create sample assignments for Algebra II
+    const algebraAssignments = [
+      { 
+        name: "Quadratic Equations Quiz", 
+        classId: 1, 
+        type: "Quiz", 
+        maxScore: "100", 
+        weight: "15",
+        description: "Quiz covering quadratic equations and factoring",
+        dueDate: new Date("2025-04-10")
+      },
+      { 
+        name: "Matrix Operations", 
+        classId: 1, 
+        type: "Homework", 
+        maxScore: "50", 
+        weight: "10",
+        description: "Homework on matrix addition, subtraction, and multiplication",
+        dueDate: new Date("2025-04-15")
+      },
+      { 
+        name: "Midterm Exam", 
+        classId: 1, 
+        type: "Exam", 
+        maxScore: "100", 
+        weight: "25",
+        description: "Comprehensive exam covering first half of the semester",
+        dueDate: new Date("2025-05-01")
+      }
+    ];
+    
+    // Create assignments
+    const createdAlgebraAssignments = algebraAssignments.map(async assignment => {
+      return await this.createAssignment(assignment);
+    });
+    
+    // Add grades for the assignments
+    Promise.all(createdAlgebraAssignments).then(assignments => {
+      // Add grades for student 1
+      this.createGrade({
+        studentId: 1,
+        assignmentId: 1,
+        score: "87",
+        comments: "Good work, but review factoring methods",
+        gradedAt: new Date("2025-04-12")
+      });
+      
+      this.createGrade({
+        studentId: 1,
+        assignmentId: 2,
+        score: "45",
+        comments: "Excellent understanding of matrix operations",
+        gradedAt: new Date("2025-04-17")
+      });
+      
+      this.createGrade({
+        studentId: 1,
+        assignmentId: 3,
+        score: "92",
+        comments: "Strong performance on the midterm",
+        gradedAt: new Date("2025-05-03")
+      });
+      
+      // Add grades for student 4
+      this.createGrade({
+        studentId: 4,
+        assignmentId: 1,
+        score: "78",
+        comments: "Need to work on factoring complex expressions",
+        gradedAt: new Date("2025-04-12")
+      });
+      
+      this.createGrade({
+        studentId: 4,
+        assignmentId: 2,
+        score: "40",
+        comments: "Good work on matrix addition and subtraction",
+        gradedAt: new Date("2025-04-17")
+      });
+      
+      this.createGrade({
+        studentId: 4,
+        assignmentId: 3,
+        score: "81",
+        comments: "Solid understanding of core concepts",
+        gradedAt: new Date("2025-05-03")
+      });
+      
+      // Add grades for student 7
+      this.createGrade({
+        studentId: 7,
+        assignmentId: 1,
+        score: "95",
+        comments: "Excellent work on the quadratics quiz",
+        gradedAt: new Date("2025-04-12")
+      });
+      
+      this.createGrade({
+        studentId: 7,
+        assignmentId: 2,
+        score: "48",
+        comments: "Near perfect matrix operations",
+        gradedAt: new Date("2025-04-17")
+      });
+      
+      this.createGrade({
+        studentId: 7,
+        assignmentId: 3,
+        score: "94",
+        comments: "Outstanding performance on the midterm",
+        gradedAt: new Date("2025-05-03")
+      });
+    });
+    
+    // Create sample assignments for Physics
+    const physicsAssignments = [
+      { 
+        name: "Newton's Laws Lab", 
+        classId: 4, 
+        type: "Lab", 
+        maxScore: "100", 
+        weight: "20",
+        description: "Lab experiment on Newton's three laws of motion",
+        dueDate: new Date("2025-04-08")
+      },
+      { 
+        name: "Energy Conservation Quiz", 
+        classId: 4, 
+        type: "Quiz", 
+        maxScore: "50", 
+        weight: "15",
+        description: "Quiz on conservation of energy and work-energy theorem",
+        dueDate: new Date("2025-04-20")
+      }
+    ];
+    
+    // Create physics assignments
+    const createdPhysicsAssignments = physicsAssignments.map(async assignment => {
+      return await this.createAssignment(assignment);
+    });
+    
+    // Add grades for physics assignments
+    Promise.all(createdPhysicsAssignments).then(assignments => {
+      // Add grades for student 3
+      this.createGrade({
+        studentId: 3,
+        assignmentId: 4,
+        score: "88",
+        comments: "Good lab work, well-written report",
+        gradedAt: new Date("2025-04-10")
+      });
+      
+      this.createGrade({
+        studentId: 3,
+        assignmentId: 5,
+        score: "42",
+        comments: "Strong understanding of energy concepts",
+        gradedAt: new Date("2025-04-22")
+      });
+      
+      // Add grades for student 6
+      this.createGrade({
+        studentId: 6,
+        assignmentId: 4,
+        score: "95",
+        comments: "Excellent lab work and analysis",
+        gradedAt: new Date("2025-04-10")
+      });
+      
+      this.createGrade({
+        studentId: 6,
+        assignmentId: 5,
+        score: "47",
+        comments: "Near perfect score, great work",
+        gradedAt: new Date("2025-04-22")
+      });
+    });
     
     // Create a sample quiz
     const sampleQuiz: InsertQuiz = {

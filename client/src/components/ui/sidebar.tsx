@@ -38,11 +38,11 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
         className={cn(
           "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
-            ? "bg-gray-900 text-white"
-            : "text-gray-300 hover:bg-gray-700 hover:text-white"
+            ? "bg-[#085a60] text-white" // Darker teal for selection
+            : "text-gray-700 hover:bg-[#0ba2b0]/20 hover:text-gray-900"
         )}
       >
-        <span className={cn("mr-3 h-5 w-5", isActive ? "text-gray-300" : "text-gray-400")}>
+        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-gray-600")}>
           {icon}
         </span>
         {children}
@@ -68,10 +68,10 @@ export function Sidebar() {
     <>
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
-          <svg className="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-8 w-8 text-[#0ba2b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          <span className="ml-2 text-xl font-bold text-white">GradeTrack</span>
+          <span className="ml-2 text-xl font-bold text-[#0ba2b0]">GradeTrack</span>
           {isMobile && (
             <Button
               variant="ghost"
@@ -154,22 +154,22 @@ export function Sidebar() {
       </div>
 
       {user ? (
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-gray-400">
           <div className="flex items-center">
             <Avatar className="h-10 w-10">
               <AvatarImage src="" alt={`${user.firstName} ${user.lastName}`} />
-              <AvatarFallback className="bg-blue-500 text-white">
+              <AvatarFallback className="bg-[#0ba2b0] text-white">
                 {user.firstName.charAt(0)}{user.lastName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium text-white">{user.firstName} {user.lastName}</p>
-              <p className="text-xs font-medium text-gray-300">{user.subject || "Teacher"}</p>
+              <p className="text-sm font-medium text-gray-800">{user.firstName} {user.lastName}</p>
+              <p className="text-xs font-medium text-gray-600">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
             </div>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="ml-auto text-gray-400 hover:text-white"
+              className="ml-auto text-gray-600 hover:text-[#0ba2b0]"
               onClick={logout}
               title="Logout"
             >
@@ -178,9 +178,9 @@ export function Sidebar() {
           </div>
         </div>
       ) : (
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-gray-400">
           <Link href="/auth/login">
-            <div className="flex items-center text-sm font-medium text-white cursor-pointer">
+            <div className="flex items-center text-sm font-medium text-gray-800 cursor-pointer">
               <LogIn className="h-5 w-5 mr-2" />
               Login
             </div>
@@ -210,7 +210,7 @@ export function Sidebar() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-800">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#a6dde0]">
             {sidebarContent}
           </div>
         </div>
@@ -220,7 +220,7 @@ export function Sidebar() {
       {!isMobile && (
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-64">
-            <div className="flex flex-col h-0 flex-1 bg-gray-800">
+            <div className="flex flex-col h-0 flex-1 bg-[#a6dde0]">
               {sidebarContent}
             </div>
           </div>
