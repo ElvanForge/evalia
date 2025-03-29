@@ -198,7 +198,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/students", requireAuth, validateRequest(insertStudentSchema), async (req, res) => {
     try {
-      const newStudent = await dbStorage.createStudent(req.body);
+      // Extract classId from the request if provided
+      const { classId, ...studentData } = req.body;
+      
+      // Create the student
+      const newStudent = await dbStorage.createStudent(studentData);
+      
+      // If a classId is provided, enroll the student in that class
+      if (classId) {
+        try {
+          await dbStorage.enrollStudent({
+            studentId: newStudent.id,
+            classId: Number(classId)
+          });
+          console.log(`Enrolled student ${newStudent.id} in class ${classId}`);
+        } catch (enrollError) {
+          console.error("Error enrolling student:", enrollError);
+          // Continue even if enrollment fails, as student was created
+        }
+      }
+      
       res.status(201).json(newStudent);
     } catch (error) {
       console.error("Error creating student:", error);
@@ -259,7 +278,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Class enrollment routes
   app.post("/api/enrollments", requireAuth, validateRequest(insertStudentClassSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const classId = Number(req.body.classId);
       
       // Verify the class belongs to the teacher
@@ -278,7 +303,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/enrollments/:studentId/:classId", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const studentId = Number(req.params.studentId);
       const classId = Number(req.params.classId);
       
@@ -298,7 +329,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/classes/:id/students", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const classId = Number(req.params.id);
       
       // Verify the class belongs to the teacher

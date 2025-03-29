@@ -60,7 +60,9 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
         const res = await apiRequest("PUT", `/api/students/${student.id}`, values);
         return res.json();
       } else {
-        const res = await apiRequest("POST", "/api/students", values);
+        // If classId is provided, add it to the request payload
+        const dataToSend = classId ? { ...values, classId } : values;
+        const res = await apiRequest("POST", "/api/students", dataToSend);
         return res.json();
       }
     },
@@ -71,10 +73,12 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/students"] });
       
-      // If a classId is provided, enroll the student in the class
+      // Also invalidate the class students if a classId was provided
       if (classId) {
-        enrollStudent({ studentId: data.id, classId });
-      } else if (onSuccess) {
+        queryClient.invalidateQueries({ queryKey: [`/api/classes/${classId}/students`] });
+      }
+      
+      if (onSuccess) {
         onSuccess(data);
       }
     },
