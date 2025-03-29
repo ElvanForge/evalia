@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
@@ -21,6 +21,11 @@ import { ClipboardCheck } from "lucide-react";
 export default function Login() {
   const { login, isLoggingIn } = useAuth();
   const [, navigate] = useLocation();
+  
+  // Set page title
+  useEffect(() => {
+    document.title = "Evalia - Teacher Dashboard";
+  }, []);
 
   // Create form
   const form = useForm<z.infer<typeof teacherLoginSchema>>({
@@ -51,7 +56,7 @@ export default function Login() {
           </div>
           <CardTitle className="text-2xl font-bold">Evalia</CardTitle>
           <CardDescription>
-            Enter your credentials to sign in to your teacher account
+            Enter your credentials to sign in to your Evalia teacher account
           </CardDescription>
         </CardHeader>
         <CardContent>
