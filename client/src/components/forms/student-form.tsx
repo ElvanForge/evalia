@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { putRequest } from "@/lib/api-helpers";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import {
@@ -69,8 +70,8 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
           // Only send student schema fields
           const { classId, ...studentData } = values;
           
-          // Use apiRequest helper for consistency
-          return await apiRequest.post(`/api/students/${student.id}`, studentData, { responseType: 'json' });
+          // Use our putRequest helper to avoid TypeScript issues
+          return await putRequest(`/api/students/${student.id}`, studentData, { responseType: 'json' });
         } else {
           // If classId is provided, add it to the request payload
           const classIdToUse = selectedClassId || classId;
@@ -118,14 +119,24 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
     onSuccess: (data) => {
       toast({
         title: `Student ${isEditing ? "updated" : "created"} successfully`,
-        description: `${data.firstName} ${data.lastName} has been ${isEditing ? "updated" : "created"}.`,
+        description: `${data.firstName} ${data.lastName || ''} has been ${isEditing ? "updated" : "created"}.`,
       });
+      
+      // Force refetch all student data
       queryClient.invalidateQueries({ queryKey: ["/api/students"] });
+      
+      // If we're editing a student, also invalidate that specific student's data
+      if (isEditing && student) {
+        queryClient.invalidateQueries({ queryKey: [`/api/students/${student.id}`] });
+      }
       
       // Also invalidate the class students if a classId was provided
       if (classId) {
         queryClient.invalidateQueries({ queryKey: [`/api/classes/${classId}/students`] });
       }
+      
+      // Invalidate dashboard stats that might include student counts
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       
       if (onSuccess) {
         onSuccess(data);

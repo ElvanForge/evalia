@@ -7,8 +7,8 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Base request function
-export async function apiRequest(
+// Define base apiRequest function
+const baseApiRequest = async function(
   method: string,
   url: string,
   data?: unknown | undefined,
@@ -22,9 +22,16 @@ export async function apiRequest(
 
   await throwIfResNotOk(res);
   return res;
-}
+};
 
-// Add a post method for convenience
+// Define the apiRequest object with methods
+export const apiRequest = baseApiRequest as {
+  (method: string, url: string, data?: unknown): Promise<Response>;
+  post: (url: string, data?: unknown, options?: { responseType?: string }) => Promise<any>;
+  put: (url: string, data?: unknown, options?: { responseType?: string }) => Promise<any>;
+};
+
+// Add convenience methods for common HTTP verbs
 apiRequest.post = async function(
   url: string, 
   data?: unknown, 
@@ -33,6 +40,38 @@ apiRequest.post = async function(
   // Create fetch options
   const fetchOptions: RequestInit = {
     method: 'POST',
+    headers: data ? { "Content-Type": "application/json" } : {},
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: "include"
+  };
+  
+  const res = await fetch(url, fetchOptions);
+  await throwIfResNotOk(res);
+  
+  // Handle different response types
+  if (options?.responseType === 'blob') {
+    return res;
+  }
+  
+  // For regular JSON responses
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const json = await res.json();
+    return json;
+  }
+  
+  return res;
+}
+
+// Add PUT method
+apiRequest.put = async function(
+  url: string, 
+  data?: unknown, 
+  options?: { responseType?: string }
+): Promise<any> {
+  // Create fetch options
+  const fetchOptions: RequestInit = {
+    method: 'PUT',
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include"
