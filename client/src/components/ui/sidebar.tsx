@@ -16,7 +16,9 @@ import {
   LogOut,
   LogIn,
   BookText,
-  ClipboardCheck
+  ClipboardCheck,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -39,10 +41,10 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
           "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
             ? "bg-[#0ba2b0] text-white" // Primary button color for selection
-            : "text-white hover:bg-white/10 hover:text-white"
+            : "text-gray-700 hover:bg-[#0ba2b0]/20 hover:text-gray-900"
         )}
       >
-        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-white/80")}>
+        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-gray-600")}>
           {icon}
         </span>
         {children}
@@ -54,6 +56,7 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
 export function Sidebar() {
   const { isMobile } = useMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [isSidebarHidden, setIsSidebarHidden] = useState(false);
   const { user, logout } = useAuth();
   const [location] = useLocation();
 
@@ -154,7 +157,7 @@ export function Sidebar() {
       </div>
 
       {user ? (
-        <div className="p-4 border-t border-white/20">
+        <div className="p-4 border-t border-gray-200">
           <div className="flex items-center">
             <Avatar className="h-10 w-10">
               <AvatarImage src="" alt={`${user.firstName} ${user.lastName}`} />
@@ -163,13 +166,13 @@ export function Sidebar() {
               </AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium text-white">{user.firstName} {user.lastName}</p>
-              <p className="text-xs font-medium text-white/70">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
+              <p className="text-sm font-medium text-gray-800">{user.firstName} {user.lastName}</p>
+              <p className="text-xs font-medium text-gray-600">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
             </div>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="ml-auto text-white/70 hover:text-white"
+              className="ml-auto text-gray-600 hover:text-gray-900"
               onClick={logout}
               title="Logout"
             >
@@ -178,9 +181,9 @@ export function Sidebar() {
           </div>
         </div>
       ) : (
-        <div className="p-4 border-t border-white/20">
+        <div className="p-4 border-t border-gray-200">
           <Link href="/auth/login">
-            <div className="flex items-center text-sm font-medium text-white cursor-pointer">
+            <div className="flex items-center text-sm font-medium text-gray-800 cursor-pointer">
               <LogIn className="h-5 w-5 mr-2" />
               Login
             </div>
@@ -210,7 +213,7 @@ export function Sidebar() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#085a60]">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#f5f2e8]">
             {sidebarContent}
           </div>
         </div>
@@ -218,13 +221,38 @@ export function Sidebar() {
 
       {/* Desktop sidebar */}
       {!isMobile && (
-        <div className="hidden md:flex md:flex-shrink-0">
-          <div className="flex flex-col w-64">
-            <div className="flex flex-col h-0 flex-1 bg-[#085a60]">
-              {sidebarContent}
+        <>
+          {!isSidebarHidden ? (
+            <div className="hidden md:flex md:flex-shrink-0 transition-all duration-300">
+              <div className="flex flex-col w-64 relative">
+                <div className="flex flex-col h-0 flex-1 bg-[#f5f2e8]">
+                  {sidebarContent}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-200 rounded-full p-1 shadow-md text-gray-600 hover:text-gray-900"
+                    onClick={() => setIsSidebarHidden(true)}
+                    title="Hide Sidebar"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          ) : (
+            <div className="hidden md:flex md:flex-shrink-0 transition-all duration-300">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="fixed left-4 top-1/2 transform -translate-y-1/2 bg-white border border-gray-200 rounded-full p-1 shadow-md text-gray-600 hover:text-gray-900 z-10"
+                onClick={() => setIsSidebarHidden(false)}
+                title="Show Sidebar"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </>
   );
