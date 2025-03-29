@@ -195,6 +195,7 @@ export function QuestionFormDialog({
             const optionsResponse = await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`);
             if (optionsResponse.ok) {
               const existingOptions = await optionsResponse.json();
+              console.log("Existing options:", existingOptions);
               
               // Delete each existing option
               for (const option of existingOptions) {
@@ -208,9 +209,17 @@ export function QuestionFormDialog({
           }
         }
         
+        console.log("Creating options:", data.questionOptions);
+        
         // Now create all new options
         for (const option of data.questionOptions) {
-          await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`, {
+          // Skip empty options
+          if (!option.text.trim()) {
+            console.log("Skipping empty option");
+            continue;
+          }
+          
+          const response = await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -221,6 +230,12 @@ export function QuestionFormDialog({
               isCorrect: option.isCorrect,
             }),
           });
+          
+          if (!response.ok) {
+            console.error("Failed to create option:", await response.text());
+          } else {
+            console.log("Successfully created option:", option.text);
+          }
         }
       }
 

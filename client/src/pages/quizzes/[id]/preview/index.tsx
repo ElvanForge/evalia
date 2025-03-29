@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ArrowLeft, UserCircle } from "lucide-react";
+import { Loader2, ArrowLeft, UserCircle, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuizRunner } from "@/components/quizzes/quiz-runner";
 import { PageHeader } from "@/components/page-header";
 import { useAuth } from "@/hooks/use-auth";
 import Layout from "@/components/layout";
-import { Quiz, QuizQuestion, QuizOption, Student } from "@shared/schema";
+import QuizLayout from "@/components/quiz-layout";
+import { Quiz, QuizQuestion, QuizOption, Student, Class } from "@shared/schema";
 import { 
   Select,
   SelectContent,
@@ -98,6 +99,7 @@ const QuizPreview = () => {
     });
   };
 
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || (quiz?.classId && isLoadingClass);
   const error = quizError || questionsError || optionsError;
 
@@ -139,83 +141,105 @@ const QuizPreview = () => {
     return quiz?.title || "Quiz Preview";
   };
 
+  // Choose the layout based on fullscreen state
+  const LayoutComponent = isFullscreen ? QuizLayout : Layout;
+
   return (
-    <Layout title={`Preview: ${getFormattedTitle()}`}>
-      <div className="space-y-6">
-        <PageHeader
-          title={getFormattedTitle()}
-          description={previewMode ? "Preview mode - results will not be saved" : "Administering quiz"}
-          actions={
-            <Button 
-              variant="outline" 
-              onClick={() => setLocation(`/quizzes/${id}`)}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Quiz Details
-            </Button>
-          }
-        />
-        
-        {/* Mode toggle */}
-        <div className="flex items-center space-x-4 px-4 py-3 bg-muted rounded-lg">
-          <div className="flex-1">
-            <h3 className="text-sm font-medium">Mode</h3>
-            <p className="text-sm text-muted-foreground">
-              {previewMode ? "Preview only" : "Administer quiz to students"}
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Label htmlFor="mode-toggle" className={previewMode ? "text-muted-foreground" : "font-medium"}>Grade Students</Label>
-            <Switch
-              id="mode-toggle"
-              checked={!previewMode}
-              onCheckedChange={(checked) => {
-                setPreviewMode(!checked);
-                // Reset selected student when switching modes
-                if (!checked) setSelectedStudentId(null);
-              }}
+    <LayoutComponent 
+      title={`Preview: ${getFormattedTitle()}`} 
+      isFullscreen={isFullscreen}
+    >
+      <div className={`${isFullscreen ? 'h-full' : 'space-y-6'}`}>
+        {/* Only show header when not in fullscreen mode */}
+        {!isFullscreen && (
+          <>
+            <PageHeader
+              title={getFormattedTitle()}
+              description={previewMode ? "Preview mode - results will not be saved" : "Administering quiz"}
+              actions={
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setLocation(`/quizzes/${id}`)}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Quiz Details
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    onClick={() => setIsFullscreen(true)}
+                  >
+                    <Maximize2 className="mr-2 h-4 w-4" />
+                    Fullscreen
+                  </Button>
+                </div>
+              }
             />
-          </div>
-        </div>
-        
-        {/* Student selector - only show if not in preview mode and we have students */}
-        {!previewMode && students && students.length > 0 && (
-          <div className="bg-white p-4 rounded-lg shadow">
-            <label className="block text-sm font-medium mb-2 flex items-center">
-              <UserCircle className="mr-2 h-4 w-4" />
-              Select student to grade
-            </label>
-            <Select value={selectedStudentId?.toString()} onValueChange={(value) => setSelectedStudentId(Number(value))}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a student" />
-              </SelectTrigger>
-              <SelectContent>
-                {students.map((student) => (
-                  <SelectItem key={student.id} value={student.id.toString()}>
-                    {student.firstName} {student.lastName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             
-            {!selectedStudentId && (
-              <p className="mt-2 text-sm text-amber-600">
-                Please select a student before starting the quiz
-              </p>
+            {/* Mode toggle */}
+            <div className="flex items-center space-x-4 px-4 py-3 bg-muted rounded-lg">
+              <div className="flex-1">
+                <h3 className="text-sm font-medium">Mode</h3>
+                <p className="text-sm text-muted-foreground">
+                  {previewMode ? "Preview only" : "Administer quiz to students"}
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="mode-toggle" className={previewMode ? "text-muted-foreground" : "font-medium"}>Grade Students</Label>
+                <Switch
+                  id="mode-toggle"
+                  checked={!previewMode}
+                  onCheckedChange={(checked) => {
+                    setPreviewMode(!checked);
+                    // Reset selected student when switching modes
+                    if (!checked) setSelectedStudentId(null);
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Student selector - only show if not in preview mode and we have students */}
+            {!previewMode && students && students.length > 0 && (
+              <div className="bg-white p-4 rounded-lg shadow">
+                <label className="block text-sm font-medium mb-2 flex items-center">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  Select student to grade
+                </label>
+                <Select value={selectedStudentId?.toString()} onValueChange={(value) => setSelectedStudentId(Number(value))}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a student" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((student) => (
+                      <SelectItem key={student.id} value={student.id.toString()}>
+                        {student.firstName} {student.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {!selectedStudentId && (
+                  <p className="mt-2 text-sm text-amber-600">
+                    Please select a student before starting the quiz
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
 
         {/* Only show quiz if in preview mode or a student is selected */}
         {(previewMode || selectedStudentId) ? (
-          <QuizRunner
-            quiz={quiz}
-            questions={questions}
-            options={options}
-            onComplete={handleComplete}
-            previewMode={previewMode}
-            classInfo={classInfo}
-          />
+          <div className={isFullscreen ? "h-full" : ""}>
+            <QuizRunner
+              quiz={quiz}
+              questions={questions}
+              options={options}
+              onComplete={handleComplete}
+              previewMode={previewMode}
+              classInfo={classInfo}
+            />
+          </div>
         ) : (
           <div className="bg-muted p-6 rounded-lg text-center">
             <h3 className="text-lg font-medium mb-2">Student Selection Required</h3>
@@ -225,7 +249,7 @@ const QuizPreview = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </LayoutComponent>
   );
 };
 

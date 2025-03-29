@@ -148,7 +148,7 @@ export function QuizRunner({
   const correctOption = currentOptions.find(option => option.isCorrect);
 
   return (
-    <div className="bg-card rounded-xl border p-6 shadow-sm">
+    <div className="bg-card rounded-xl border p-6 shadow-sm h-full flex flex-col">
       <div className="flex flex-col items-center mb-8">
         <h2 className="text-2xl font-semibold text-center mb-2">{getFormattedTitle()}</h2>
         
@@ -160,14 +160,14 @@ export function QuizRunner({
         )}
       </div>
       
-      <div className="mb-8">
+      <div className="mb-8 flex-grow">
         <div className="flex items-center mb-2">
           <div className="bg-primary/10 text-primary text-sm font-medium rounded-full px-3 py-1">
             Question {currentQuestionIndex + 1} of {questions.length}
           </div>
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-6 h-full flex flex-col">
           {currentQuestion.imageUrl && (
             <div className="flex justify-center p-4 bg-muted/50 rounded-lg">
               <img 
@@ -179,7 +179,7 @@ export function QuizRunner({
               />
             </div>
           )}
-          <div className="text-lg font-medium">{currentQuestion.question}</div>
+          <div className="text-lg font-medium flex-grow">{currentQuestion.question}</div>
         </div>
       </div>
       
