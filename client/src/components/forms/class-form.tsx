@@ -19,19 +19,24 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
   const { toast } = useToast();
   const isEditing = !!class_;
 
-  // Create form
-  const form = useForm<z.infer<typeof insertClassSchema>>({
-    resolver: zodResolver(insertClassSchema),
+  // Create a custom schema without teacherId field
+  const formSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    description: z.string().optional().nullable()
+  });
+  
+  // Create form with custom schema
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: class_?.name || "",
       description: class_?.description || "",
-      teacherId: class_?.teacherId,
     },
   });
 
   // Create or update class mutation
   const mutation = useMutation({
-    mutationFn: async (values: z.infer<typeof insertClassSchema>) => {
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
       // Simplified approach - just use a direct fetch request
       try {
         const dataToSubmit = {
@@ -97,7 +102,7 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
   });
 
   // Form submission handler
-  const onSubmit = async (values: z.infer<typeof insertClassSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       console.log("Form submitted with values:", values);
       const result = await mutation.mutateAsync(values);
@@ -144,7 +149,37 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
           )}
         />
 
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-4 space-x-4">
+          <Button
+            type="button"
+            disabled={mutation.isPending}
+            variant="outline"
+            onClick={async () => {
+              console.log("Manual submit button clicked");
+              // Get current form values
+              const values = form.getValues();
+              console.log("Form values:", values);
+              
+              if (!values.name) {
+                toast({
+                  title: "Error",
+                  description: "Class name is required",
+                  variant: "destructive"
+                });
+                return;
+              }
+              
+              // Manually submit
+              try {
+                await mutation.mutateAsync(values);
+              } catch (error) {
+                console.error("Manual submission error:", error);
+              }
+            }}
+          >
+            Create Class (Manual)
+          </Button>
+        
           <Button
             type="submit"
             disabled={mutation.isPending}
