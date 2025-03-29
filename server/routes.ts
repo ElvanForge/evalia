@@ -68,7 +68,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Class routes
   app.get("/api/classes", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const classes = await dbStorage.getClassesByTeacher(teacherId);
       res.status(200).json(classes);
     } catch (error) {
@@ -79,7 +85,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/classes", requireAuth, validateRequest(insertClassSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const newClass = await dbStorage.createClass({
         ...req.body,
         teacherId
@@ -100,7 +112,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Class not found" });
       }
 
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
       if (class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to view this class" });
       }
@@ -775,7 +793,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quiz routes
   app.get("/api/quizzes", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const classId = req.query.classId ? Number(req.query.classId) : undefined;
       
       let quizzes;
