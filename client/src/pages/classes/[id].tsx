@@ -111,14 +111,34 @@ export default function ClassDetail() {
     {
       header: "Last Name",
       accessorKey: "lastName",
+      cell: ({ row }) => {
+        const student = row.original as Student;
+        return student.lastName || "—";
+      }
+    },
+    {
+      header: "Student #",
+      accessorKey: "studentNumber",
+      cell: ({ row }) => {
+        const student = row.original as Student;
+        return student.studentNumber || "—";
+      }
     },
     {
       header: "Email",
       accessorKey: "email",
+      cell: ({ row }) => {
+        const student = row.original as Student;
+        return student.email || "—";
+      }
     },
     {
       header: "Grade Level",
       accessorKey: "gradeLevel",
+      cell: ({ row }) => {
+        const student = row.original as Student;
+        return student.gradeLevel || "—";
+      }
     },
   ];
 
@@ -194,7 +214,7 @@ export default function ClassDetail() {
       accessorKey: "studentId",
       cell: (grade: Grade) => {
         const student = students?.find(s => s.id === grade.studentId);
-        return student ? `${student.firstName} ${student.lastName}` : `Student ID: ${grade.studentId}`;
+        return student ? `${student.firstName}${student.lastName ? ' ' + student.lastName : ''}` : `Student ID: ${grade.studentId}`;
       }
     },
     {
