@@ -60,11 +60,13 @@ export function QuestionFormDialog({
   // Set the image preview when the question changes
   useEffect(() => {
     if (questionToEdit?.imageUrl) {
+      console.log("Setting image preview from questionToEdit.imageUrl:", questionToEdit.imageUrl);
       setImagePreview(questionToEdit.imageUrl);
     } else {
+      console.log("No image URL in questionToEdit, clearing preview");
       setImagePreview(null);
     }
-  }, [questionToEdit]);
+  }, [questionToEdit?.id, questionToEdit?.imageUrl]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [options, setOptions] = useState<Array<{ text: string, isCorrect: boolean }>>([]);
@@ -140,12 +142,18 @@ export function QuestionFormDialog({
         const uploadResult = await uploadResponse.json();
         console.log("Image upload result:", uploadResult);
         imageUrl = uploadResult.imageUrl;
-      } else if (imagePreview) {
-        // If there's a preview image but no new file uploaded, keep the existing image URL
-        console.log("Keeping existing image URL:", questionToEdit?.imageUrl);
-        imageUrl = questionToEdit?.imageUrl || null;
+      } else if (imagePreview && imagePreview.startsWith('/uploads/')) {
+        // If we still have an image preview that's an actual file path and not a data URL
+        // (from a previously uploaded file), keep it
+        console.log("Keeping existing image URL from uploads:", imagePreview);
+        imageUrl = imagePreview;
+      } else if (questionToEdit?.imageUrl) {
+        // If editing a question that already has an image URL
+        console.log("Keeping existing image URL from question:", questionToEdit.imageUrl);
+        imageUrl = questionToEdit.imageUrl;
       } else {
         // No image preview and no file uploaded, set to null
+        console.log("No image to use");
         imageUrl = null;
       }
 

@@ -1413,16 +1413,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Ensure upload directory exists
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
+    console.log('Created upload directory:', path.resolve(uploadDir));
+  } else {
+    console.log('Upload directory exists:', path.resolve(uploadDir));
+    // Make sure directory permissions are correct
+    fs.chmodSync(uploadDir, 0o777);
   }
   
   const multerStorage = multer.diskStorage({
     destination: function (req, file, cb) {
+      console.log('Setting destination for uploaded file:', path.resolve(uploadDir));
       cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       const fileExt = path.extname(file.originalname);
-      cb(null, 'image-' + uniqueSuffix + fileExt);
+      const filename = 'image-' + uniqueSuffix + fileExt;
+      console.log('Generated filename for upload:', filename);
+      cb(null, filename);
     }
   });
   
@@ -1452,12 +1460,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'No file uploaded' });
       }
       
-      console.log('File uploaded successfully:', req.file);
+      // Log detailed file information
+      console.log('File uploaded successfully:', {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+        destination: req.file.destination
+      });
+      
+      // Double-check file exists on disk
+      const filePath = path.join(uploadDir, req.file.filename);
+      if (!fs.existsSync(filePath)) {
+        console.error('File does not exist at expected path:', filePath);
+        return res.status(500).json({ message: 'File upload failed: file not saved to disk' });
+      }
       
       // Return the file path that can be used in the frontend
       const imageUrl = `/uploads/images/${req.file.filename}`;
       
       console.log('Image URL:', imageUrl);
+      console.log('Full file path:', path.resolve(filePath));
+      
+      // Set appropriate file permissions
+      fs.chmodSync(filePath, 0o666);
       
       res.status(200).json({ 
         message: 'File uploaded successfully',
