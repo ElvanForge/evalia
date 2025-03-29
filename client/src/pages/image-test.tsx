@@ -9,8 +9,7 @@ export default function ImageTest() {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [processedUrl, setProcessedUrl] = useState<string>('');
   const [testImages] = useState([
-    '/uploads/images/test-image.jpg',
-    '/uploads/images/question-image.png',
+    '/uploads/images/test-image.svg',
     'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzBiYTJiMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIyMHB4Ij5UZXN0PC90ZXh0Pjwvc3ZnPg==',
     'https://via.placeholder.com/300x200?text=External+Image'
   ]);
