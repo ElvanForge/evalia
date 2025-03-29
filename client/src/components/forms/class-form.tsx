@@ -32,8 +32,12 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
   // Create or update class mutation
   const mutation = useMutation({
     mutationFn: async (values: z.infer<typeof insertClassSchema>) => {
-      // Strip teacherId before submitting - the server will set it from the authenticated user
-      const { teacherId, ...dataToSubmit } = values;
+      // The server will set the teacherId from the authenticated user
+      // Just send the name and description
+      const dataToSubmit = {
+        name: values.name,
+        description: values.description
+      };
       
       if (isEditing) {
         const res = await apiRequest("PUT", `/api/classes/${class_.id}`, dataToSubmit);

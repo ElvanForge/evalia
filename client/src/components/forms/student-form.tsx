@@ -41,6 +41,7 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
     defaultValues: {
       firstName: student?.firstName || "",
       lastName: student?.lastName || "",
+      studentNumber: student?.studentNumber || "",
       email: student?.email || "",
       gradeLevel: student?.gradeLevel || "",
     },
@@ -55,13 +56,17 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
 
   // Create or update student mutation
   const studentMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof insertStudentSchema>) => {
+    mutationFn: async (values: any) => {
       if (isEditing) {
-        const res = await apiRequest("PUT", `/api/students/${student.id}`, values);
+        // Only send student schema fields
+        const { classId, ...studentData } = values;
+        const res = await apiRequest("PUT", `/api/students/${student.id}`, studentData);
         return res.json();
       } else {
         // If classId is provided, add it to the request payload
-        const dataToSend = classId ? { ...values, classId } : values;
+        const dataToSend = values.classId || classId 
+          ? { ...values, classId: values.classId || classId } 
+          : values;
         const res = await apiRequest("POST", "/api/students", dataToSend);
         return res.json();
       }
@@ -116,7 +121,15 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
 
   // Form submission handlers
   const onSubmitNewStudent = (values: z.infer<typeof insertStudentSchema>) => {
-    studentMutation.mutate(values);
+    // Add the selected class ID to the mutation data if it's selected
+    if (selectedClassId) {
+      studentMutation.mutate({
+        ...values,
+        classId: selectedClassId
+      });
+    } else {
+      studentMutation.mutate(values);
+    }
   };
 
   const onSubmitEnrollment = (values: { studentId: number }) => {
@@ -182,9 +195,27 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>Last Name (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter last name" {...field} />
+                      <Input placeholder="Enter last name" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={newStudentForm.control}
+                name="studentNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Student Number (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Enter student number" 
+                        {...field} 
+                        value={field.value || ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -319,9 +350,27 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
           name="lastName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Last Name</FormLabel>
+              <FormLabel>Last Name (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="Enter last name" {...field} />
+                <Input placeholder="Enter last name" {...field} value={field.value || ""} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={newStudentForm.control}
+          name="studentNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Student Number (Optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Enter student number" 
+                  {...field} 
+                  value={field.value || ""}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -392,10 +441,8 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
             type="submit"
             disabled={studentMutation.isPending}
             onClick={() => {
-              // If a class is selected, add it to the request
-              if (selectedClassId) {
-                newStudentForm.setValue('classId', selectedClassId, { shouldValidate: true });
-              }
+              // Do nothing here, we'll handle the classId in the mutation function
+              // The field doesn't need to be in the form as it's not part of the schema
             }}
           >
             {studentMutation.isPending

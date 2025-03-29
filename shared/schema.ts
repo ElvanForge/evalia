@@ -64,7 +64,8 @@ export const insertClassSchema = createInsertSchema(classes).omit({
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
   firstName: text("firstName").notNull(),
-  lastName: text("lastName").notNull(),
+  lastName: text("lastName"), // Made optional
+  studentNumber: text("studentNumber"), // Added student number field
   email: text("email"),
   gradeLevel: text("gradeLevel"),
   schoolId: integer("schoolId").references(() => schools.id),
