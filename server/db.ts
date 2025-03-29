@@ -233,7 +233,7 @@ export async function initializeDatabase() {
       // Create a default manager account using direct SQL query to match column names
       await pool.query(`
         INSERT INTO teachers (
-          username, password, first_name, last_name, email, role, subject
+          username, password, "firstName", "lastName", email, role, subject
         ) VALUES (
           'john.manager', 
           '$2a$10$wnpllA8H8LPp5aIJ88XYkOdEGDACLAM09/YvtXETZt7.VLCvzIgD2', 

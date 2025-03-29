@@ -9,9 +9,9 @@ export const schools = pgTable("schools", {
   address: text("address"),
   city: text("city"),
   state: text("state"),
-  zipCode: text("zip_code"),
-  phoneNumber: text("phone_number"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  zipCode: text("zipCode"),
+  phoneNumber: text("phoneNumber"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const insertSchoolSchema = createInsertSchema(schools).omit({
@@ -31,13 +31,13 @@ export const teachers = pgTable("teachers", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
+  firstName: text("firstName").notNull(),
+  lastName: text("lastName").notNull(),
   email: text("email").notNull().unique(),
   subject: text("subject"),
   role: text("role").default(USER_ROLES.TEACHER),
-  schoolId: integer("school_id").references(() => schools.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  schoolId: integer("schoolId").references(() => schools.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const insertTeacherSchema = createInsertSchema(teachers).omit({
@@ -50,9 +50,9 @@ export const classes = pgTable("classes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  gradeLevel: text("grade_level"),
-  teacherId: integer("teacher_id").notNull().references(() => teachers.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  gradeLevel: text("gradeLevel"),
+  teacherId: integer("teacherId").notNull().references(() => teachers.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const insertClassSchema = createInsertSchema(classes).omit({
@@ -63,12 +63,12 @@ export const insertClassSchema = createInsertSchema(classes).omit({
 // Students table
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
+  firstName: text("firstName").notNull(),
+  lastName: text("lastName").notNull(),
   email: text("email"),
-  gradeLevel: text("grade_level"),
-  schoolId: integer("school_id").references(() => schools.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  gradeLevel: text("gradeLevel"),
+  schoolId: integer("schoolId").references(() => schools.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const insertStudentSchema = createInsertSchema(students).omit({
@@ -78,8 +78,8 @@ export const insertStudentSchema = createInsertSchema(students).omit({
 
 // Student-Class relationship (many-to-many)
 export const studentClasses = pgTable("student_classes", {
-  studentId: integer("student_id").notNull().references(() => students.id),
-  classId: integer("class_id").notNull().references(() => classes.id),
+  studentId: integer("studentId").notNull().references(() => students.id),
+  classId: integer("classId").notNull().references(() => classes.id),
 }, (t) => ({
   pk: primaryKey({ columns: [t.studentId, t.classId] }),
 }));
@@ -92,11 +92,11 @@ export const assignments = pgTable("assignments", {
   name: text("name").notNull(),
   description: text("description"),
   type: text("type").notNull(), // quiz, test, homework, project, etc.
-  maxScore: decimal("max_score").notNull(), // maximum possible score
+  maxScore: decimal("maxScore").notNull(), // maximum possible score
   weight: decimal("weight").notNull(), // weight in final grade calculation
-  classId: integer("class_id").notNull().references(() => classes.id),
-  dueDate: timestamp("due_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  classId: integer("classId").notNull().references(() => classes.id),
+  dueDate: timestamp("dueDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const insertAssignmentSchema = createInsertSchema(assignments).omit({
@@ -107,12 +107,12 @@ export const insertAssignmentSchema = createInsertSchema(assignments).omit({
 // Grades table
 export const grades = pgTable("grades", {
   id: serial("id").primaryKey(),
-  assignmentId: integer("assignment_id").notNull().references(() => assignments.id),
-  studentId: integer("student_id").notNull().references(() => students.id),
+  assignmentId: integer("assignmentId").notNull().references(() => assignments.id),
+  studentId: integer("studentId").notNull().references(() => students.id),
   score: decimal("score").notNull(),
   comments: text("comments"),
-  submittedAt: timestamp("submitted_at"),
-  gradedAt: timestamp("graded_at").defaultNow().notNull(),
+  submittedAt: timestamp("submittedAt"),
+  gradedAt: timestamp("gradedAt").defaultNow().notNull(),
 });
 
 export const insertGradeSchema = createInsertSchema(grades).omit({
@@ -123,9 +123,9 @@ export const insertGradeSchema = createInsertSchema(grades).omit({
 // GradeScale table for letter grade conversion
 export const gradeScales = pgTable("grade_scales", {
   id: serial("id").primaryKey(),
-  teacherId: integer("teacher_id").notNull().references(() => teachers.id),
+  teacherId: integer("teacherId").notNull().references(() => teachers.id),
   name: text("name").notNull(),
-  isDefault: boolean("is_default").default(false),
+  isDefault: boolean("isDefault").default(false),
 });
 
 export const insertGradeScaleSchema = createInsertSchema(gradeScales).omit({
@@ -135,9 +135,9 @@ export const insertGradeScaleSchema = createInsertSchema(gradeScales).omit({
 // GradeScaleEntries for the specific thresholds
 export const gradeScaleEntries = pgTable("grade_scale_entries", {
   id: serial("id").primaryKey(),
-  scaleId: integer("scale_id").notNull().references(() => gradeScales.id),
-  minScore: decimal("min_score").notNull(),
-  maxScore: decimal("max_score").notNull(),
+  scaleId: integer("scaleId").notNull().references(() => gradeScales.id),
+  minScore: decimal("minScore").notNull(),
+  maxScore: decimal("maxScore").notNull(),
   letter: text("letter").notNull(),
 });
 
@@ -197,11 +197,11 @@ export const quizzes = pgTable("quizzes", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  createdAt: timestamp("created_at").defaultNow(),
-  teacherId: integer("teacher_id").notNull().references(() => teachers.id),
-  classId: integer("class_id").references(() => classes.id),
-  isActive: boolean("is_active").default(false),
-  timeLimit: integer("time_limit"), // in minutes
+  createdAt: timestamp("createdAt").defaultNow(),
+  teacherId: integer("teacherId").notNull().references(() => teachers.id),
+  classId: integer("classId").references(() => classes.id),
+  isActive: boolean("isActive").default(false),
+  timeLimit: integer("timeLimit"), // in minutes
 });
 
 export const insertQuizSchema = createInsertSchema(quizzes).omit({
@@ -211,11 +211,11 @@ export const insertQuizSchema = createInsertSchema(quizzes).omit({
 
 export const quizQuestions = pgTable("quiz_questions", {
   id: serial("id").primaryKey(),
-  quizId: integer("quiz_id").notNull().references(() => quizzes.id),
+  quizId: integer("quizId").notNull().references(() => quizzes.id),
   question: text("question").notNull(),
-  imageUrl: text("image_url"),
+  imageUrl: text("imageUrl"),
   type: text("type").default("multiple_choice"), // multiple_choice, true_false, or speaking
-  createdAt: timestamp("created_at").defaultNow(),
+  createdAt: timestamp("createdAt").defaultNow(),
   order: integer("order").default(0),
 });
 
@@ -226,9 +226,9 @@ export const insertQuizQuestionSchema = createInsertSchema(quizQuestions).omit({
 
 export const quizOptions = pgTable("quiz_options", {
   id: serial("id").primaryKey(),
-  questionId: integer("question_id").notNull().references(() => quizQuestions.id),
+  questionId: integer("questionId").notNull().references(() => quizQuestions.id),
   text: text("text").notNull(),
-  isCorrect: boolean("is_correct").default(false),
+  isCorrect: boolean("isCorrect").default(false),
   order: integer("order").default(0),
 });
 
@@ -238,12 +238,12 @@ export const insertQuizOptionSchema = createInsertSchema(quizOptions).omit({
 
 export const quizSubmissions = pgTable("quiz_submissions", {
   id: serial("id").primaryKey(),
-  quizId: integer("quiz_id").notNull().references(() => quizzes.id),
-  studentId: integer("student_id").notNull().references(() => students.id),
-  startedAt: timestamp("started_at").defaultNow(),
-  completedAt: timestamp("completed_at"),
+  quizId: integer("quizId").notNull().references(() => quizzes.id),
+  studentId: integer("studentId").notNull().references(() => students.id),
+  startedAt: timestamp("startedAt").defaultNow(),
+  completedAt: timestamp("completedAt"),
   score: decimal("score", { precision: 5, scale: 2 }),
-  maxScore: decimal("max_score", { precision: 5, scale: 2 }),
+  maxScore: decimal("maxScore", { precision: 5, scale: 2 }),
 });
 
 export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).omit({
@@ -254,12 +254,12 @@ export const insertQuizSubmissionSchema = createInsertSchema(quizSubmissions).om
 
 export const quizAnswers = pgTable("quiz_answers", {
   id: serial("id").primaryKey(),
-  submissionId: integer("submission_id").notNull().references(() => quizSubmissions.id),
-  questionId: integer("question_id").notNull().references(() => quizQuestions.id),
-  selectedOptionId: integer("selected_option_id").references(() => quizOptions.id),
-  isCorrect: boolean("is_correct").default(false),
-  speakingAnswer: text("speaking_answer"),
-  teacherFeedback: text("teacher_feedback"),
+  submissionId: integer("submissionId").notNull().references(() => quizSubmissions.id),
+  questionId: integer("questionId").notNull().references(() => quizQuestions.id),
+  selectedOptionId: integer("selectedOptionId").references(() => quizOptions.id),
+  isCorrect: boolean("isCorrect").default(false),
+  speakingAnswer: text("speakingAnswer"),
+  teacherFeedback: text("teacherFeedback"),
 });
 
 export const insertQuizAnswerSchema = createInsertSchema(quizAnswers).omit({
