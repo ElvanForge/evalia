@@ -32,25 +32,51 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
   // Create or update class mutation
   const mutation = useMutation({
     mutationFn: async (values: z.infer<typeof insertClassSchema>) => {
-      // The server will set the teacherId from the authenticated user
-      // Just send the name and description
-      const dataToSubmit = {
-        name: values.name,
-        description: values.description
-      };
-      
-      console.log("Submitting class data:", dataToSubmit);
-      
-      if (isEditing) {
-        const res = await apiRequest("PUT", `/api/classes/${class_.id}`, dataToSubmit);
-        const data = await res.json();
-        console.log("Class update response:", data);
-        return data;
-      } else {
-        const res = await apiRequest("POST", "/api/classes", dataToSubmit);
-        const data = await res.json();
-        console.log("Class creation response:", data);
-        return data;
+      // Simplified approach - just use a direct fetch request
+      try {
+        const dataToSubmit = {
+          name: values.name,
+          description: values.description || null
+        };
+        
+        console.log("Submitting class data:", dataToSubmit);
+        
+        if (isEditing) {
+          const response = await fetch(`/api/classes/${class_.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSubmit),
+            credentials: 'include'
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to update class: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          console.log("Class update response:", data);
+          return data;
+        } else {
+          const response = await fetch('/api/classes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSubmit),
+            credentials: 'include'
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to create class: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          console.log("Class creation response:", data);
+          return data;
+        }
+      } catch (error) {
+        console.error("Error in class mutation:", error);
+        throw error;
       }
     },
     onSuccess: (data) => {

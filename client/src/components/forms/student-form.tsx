@@ -57,18 +57,69 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
   // Create or update student mutation
   const studentMutation = useMutation({
     mutationFn: async (values: any) => {
-      if (isEditing) {
-        // Only send student schema fields
-        const { classId, ...studentData } = values;
-        const res = await apiRequest("PUT", `/api/students/${student.id}`, studentData);
-        return res.json();
-      } else {
-        // If classId is provided, add it to the request payload
-        const dataToSend = values.classId || classId 
-          ? { ...values, classId: values.classId || classId } 
-          : values;
-        const res = await apiRequest("POST", "/api/students", dataToSend);
-        return res.json();
+      try {
+        if (isEditing) {
+          // Only send student schema fields
+          const { classId, ...studentData } = values;
+          
+          // Use direct fetch for better error handling
+          const response = await fetch(`/api/students/${student.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(studentData),
+            credentials: 'include'
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to update student: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          console.log("Student update response:", data);
+          return data;
+        } else {
+          // If classId is provided, add it to the request payload
+          const classIdToUse = selectedClassId || classId;
+          const dataToSend = classIdToUse 
+            ? { 
+                firstName: values.firstName,
+                lastName: values.lastName || null,
+                studentNumber: values.studentNumber || null,
+                email: values.email || null,
+                gradeLevel: values.gradeLevel || null,
+                classId: classIdToUse
+              } 
+            : { 
+                firstName: values.firstName,
+                lastName: values.lastName || null,
+                studentNumber: values.studentNumber || null,
+                email: values.email || null,
+                gradeLevel: values.gradeLevel || null
+              };
+              
+          console.log("Submitting student data:", dataToSend);
+          
+          // Use direct fetch for better error handling
+          const response = await fetch('/api/students', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend),
+            credentials: 'include'
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to create student: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          console.log("Student creation response:", data);
+          return data;
+        }
+      } catch (error) {
+        console.error("Error in student mutation:", error);
+        throw error;
       }
     },
     onSuccess: (data) => {
@@ -99,8 +150,28 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
   // Enroll student mutation
   const enrollmentMutation = useMutation({
     mutationFn: async (values: z.infer<typeof insertStudentClassSchema>) => {
-      const res = await apiRequest("POST", "/api/enrollments", values);
-      return res.json();
+      try {
+        console.log("Submitting enrollment data:", values);
+        
+        const response = await fetch('/api/enrollments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values),
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to enroll student: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Enrollment response:", data);
+        return data;
+      } catch (error) {
+        console.error("Error in enrollment mutation:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({
