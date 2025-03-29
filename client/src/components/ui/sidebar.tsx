@@ -213,7 +213,7 @@ export function Sidebar() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-r from-[#0ba2b0] to-[#085a60]">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-r from-[#8dd9d2] to-[#0ba2b0]">
             {sidebarContent}
           </div>
         </div>
@@ -225,7 +225,7 @@ export function Sidebar() {
           {!isSidebarHidden ? (
             <div className="hidden md:flex md:flex-shrink-0 transition-all duration-300">
               <div className="flex flex-col w-64 relative">
-                <div className="flex flex-col h-0 flex-1 bg-gradient-to-r from-[#0ba2b0] to-[#085a60]">
+                <div className="flex flex-col h-0 flex-1 bg-gradient-to-r from-[#8dd9d2] to-[#0ba2b0]">
                   {sidebarContent}
                   <Button 
                     variant="ghost" 
