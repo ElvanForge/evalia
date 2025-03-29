@@ -164,10 +164,11 @@ export class DBStorage implements IStorage {
   async getStudentsByClass(classId: number): Promise<Student[]> {
     try {
       // Use a more direct SQL approach with a subquery
+      // IMPORTANT: The table name in schema.ts is "student_classes" with an underscore
       const result = await pool.query(
         `SELECT s.* FROM students s 
          WHERE s.id IN (
-           SELECT sc."studentId" FROM "studentClasses" sc 
+           SELECT sc."studentId" FROM "student_classes" sc 
            WHERE sc."classId" = $1
          )`,
         [classId]
