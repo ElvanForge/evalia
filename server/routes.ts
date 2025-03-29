@@ -427,6 +427,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error fetching assignments" });
     }
   });
+  
+  // Get recent assignments endpoint for the dashboard
+  app.get("/api/assignments/recent", requireAuth, async (req, res) => {
+    try {
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // Get all assignments for this teacher
+      const classes = await dbStorage.getClassesByTeacher(teacherId);
+      const classIds = classes.map(c => c.id);
+      
+      const allAssignments = [];
+      for (const classId of classIds) {
+        const classAssignments = await dbStorage.getAssignmentsByClass(classId);
+        allAssignments.push(...classAssignments);
+      }
+      
+      // Sort by due date, with most recent first
+      const recentAssignments = allAssignments
+        .sort((a, b) => {
+          const dateA = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+          const dateB = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+          return dateB - dateA;
+        })
+        .slice(0, 5); // Get only the 5 most recent assignments
+      
+      res.status(200).json(recentAssignments);
+    } catch (error) {
+      console.error("Error fetching recent assignments:", error);
+      res.status(500).json({ message: "Server error fetching recent assignments" });
+    }
+  });
 
   app.post("/api/assignments", requireAuth, validateRequest(insertAssignmentSchema), async (req, res) => {
     try {
