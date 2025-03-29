@@ -18,20 +18,20 @@ export default function Landing() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation */}
-      <nav className="bg-white px-6 py-4 shadow">
+      <nav className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4 shadow">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8" />
-            <span className="ml-2 text-xl font-bold text-gray-900">Evalia</span>
+            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8 bg-white rounded-full p-1" />
+            <span className="ml-2 text-xl font-bold text-white">Evalia</span>
           </div>
           <div className="flex space-x-4">
             <Link href="/auth/login">
-              <Button variant="ghost" className="hover:text-primary">
+              <Button variant="ghost" className="text-white hover:bg-teal-700 hover:text-white">
                 Log in
               </Button>
             </Link>
             <Link href="/auth/register">
-              <Button>Get Started</Button>
+              <Button className="bg-white text-teal-600 hover:bg-gray-100">Get Started</Button>
             </Link>
           </div>
         </div>
@@ -360,6 +360,164 @@ export default function Landing() {
         </div>
       </section>
       
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900">Simple, Transparent Pricing</h2>
+            <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+              Choose the plan that's right for your classroom or school
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Free Tier */}
+            <Card className="border-0 shadow-lg transition-shadow relative overflow-hidden flex flex-col">
+              <div className="absolute top-0 right-0 bg-gray-200 text-gray-700 px-3 py-1 text-sm font-medium rounded-bl-lg">
+                BETA
+              </div>
+              <CardContent className="pt-8 pb-6 flex-grow">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                <div className="flex items-baseline my-4">
+                  <span className="text-4xl font-extrabold">$0</span>
+                  <span className="text-gray-500 ml-1">/month</span>
+                </div>
+                <p className="text-gray-600 mb-6">Perfect for individual teachers just getting started.</p>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Up to 30 students</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>5 classes</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Basic analytics</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Quiz builder (10 quizzes)</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <div className="p-6 bg-gray-50 border-t border-gray-100">
+                <Link href="/auth/register?plan=free">
+                  <Button className="w-full">Get Started Free</Button>
+                </Link>
+              </div>
+            </Card>
+            
+            {/* Pro Tier */}
+            <Card className="border-0 shadow-2xl transition-shadow relative overflow-hidden flex flex-col scale-105 border-2 border-teal-500 z-10">
+              <div className="absolute top-0 right-0 bg-teal-500 text-white px-3 py-1 text-sm font-medium rounded-bl-lg">
+                POPULAR
+              </div>
+              <CardContent className="pt-8 pb-6 flex-grow">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
+                <div className="flex items-baseline my-4">
+                  <span className="text-4xl font-extrabold">$12</span>
+                  <span className="text-gray-500 ml-1">/month</span>
+                </div>
+                <p className="text-gray-600 mb-6">For dedicated teachers who want deeper insights.</p>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Unlimited students</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Unlimited classes</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Advanced analytics & insights</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Unlimited quizzes</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>XML grade exports</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Priority email support</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <div className="p-6 bg-teal-50 border-t border-teal-100">
+                <Link href="/auth/register?plan=pro">
+                  <Button className="w-full bg-teal-600 hover:bg-teal-700">Subscribe Now</Button>
+                </Link>
+                <p className="text-center text-xs text-gray-500 mt-2">30-day free trial, cancel anytime</p>
+              </div>
+            </Card>
+            
+            {/* School Tier */}
+            <Card className="border-0 shadow-lg transition-shadow relative overflow-hidden flex flex-col">
+              <div className="absolute top-0 right-0 bg-blue-500 text-white px-3 py-1 text-sm font-medium rounded-bl-lg">
+                ENTERPRISE
+              </div>
+              <CardContent className="pt-8 pb-6 flex-grow">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">School</h3>
+                <div className="flex items-baseline my-4">
+                  <span className="text-4xl font-extrabold">$299</span>
+                  <span className="text-gray-500 ml-1">/month</span>
+                </div>
+                <p className="text-gray-600 mb-6">For entire schools with advanced management needs.</p>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>All Professional features</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Unlimited teachers</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>School-wide analytics</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Manager accounts</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>SIS integration</span>
+                  </li>
+                  <li className="flex items-start">
+                    <Check className="h-5 w-5 text-teal-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>Dedicated support</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <div className="p-6 bg-gray-50 border-t border-gray-100">
+                <Link href="/auth/register?plan=school">
+                  <Button variant="outline" className="w-full">Contact Sales</Button>
+                </Link>
+                <p className="text-center text-xs text-gray-500 mt-2">Custom implementation available</p>
+              </div>
+            </Card>
+          </div>
+          
+          <div className="mt-12 text-center">
+            <h3 className="text-xl font-semibold mb-2">Beta Tester Program</h3>
+            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+              We're looking for educators to help us improve Evalia. Join our beta program for free access to all Professional features and the opportunity to shape the future of education analytics.
+            </p>
+            <Link href="/auth/register?plan=beta">
+              <Button variant="outline" className="border-teal-500 text-teal-600 hover:bg-teal-50">
+                Apply for Beta Program
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+      
       {/* CTA Section */}
       <section className="py-20 px-6 bg-gradient-to-r from-teal-600 to-teal-400">
         <div className="max-w-4xl mx-auto text-center">
@@ -368,9 +526,9 @@ export default function Landing() {
             Join thousands of educators who are saving time and improving outcomes with Evalia.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/auth/register">
+            <Link href="#pricing">
               <Button size="lg" className="bg-white text-teal-600 hover:bg-gray-100 px-8">
-                Start Free Trial
+                View Pricing
               </Button>
             </Link>
             <Link href="/auth/login">
@@ -380,7 +538,7 @@ export default function Landing() {
             </Link>
           </div>
           <p className="mt-6 text-sm text-white text-opacity-80">
-            No credit card required • Free 30-day trial • Cancel anytime
+            No credit card required for trial • Cancel anytime
           </p>
         </div>
       </section>

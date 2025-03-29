@@ -22,6 +22,8 @@ import QuizPreview from "@/pages/quizzes/[id]/preview";
 import QuizDemo from "@/pages/quiz-demo";
 import Manager from "@/pages/manager";
 import Landing from "@/pages/landing";
+import Checkout from "@/pages/checkout";
+import BetaApplication from "@/pages/beta-application";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 function Router() {
@@ -46,6 +48,8 @@ function Router() {
       <Route path="/quizzes/:id/preview" component={QuizPreview} />
       <Route path="/quiz-demo" component={QuizDemo} />
       <Route path="/manager" component={Manager} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/beta-application" component={BetaApplication} />
       <Route component={NotFound} />
     </Switch>
   );

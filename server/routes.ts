@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage as dbStorage } from "./storage";
 import builder from "xmlbuilder";
+import Stripe from "stripe";
 import {
   teacherLoginSchema,
   insertTeacherSchema,
@@ -1900,6 +1901,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error exporting grades" });
     }
   });
+
+  // Stripe payment routes
+  // Initialize Stripe with API key
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.warn('STRIPE_SECRET_KEY environment variable not set. Stripe payment features will be disabled.');
+  } else {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2023-10-16",
+    });
+
+    // Route for creating a payment intent for one-time payments
+    app.post("/api/create-payment-intent", requireAuth, async (req, res) => {
+      try {
+        const { amount, plan } = req.body;
+        
+        // Determine amount based on plan if not provided
+        let paymentAmount = amount;
+        if (!paymentAmount) {
+          paymentAmount = plan === 'school' ? 29900 : 1200; // School plan: $299, Pro plan: $12
+        } else {
+          // Convert to cents if provided as dollars
+          paymentAmount = Math.round(amount * 100);
+        }
+        
+        // Create a payment intent
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: paymentAmount,
+          currency: "usd",
+          // Add metadata for tracking
+          metadata: {
+            plan: plan || 'pro',
+            userId: req.session.user?.id?.toString() || 'unknown'
+          }
+        });
+        
+        res.status(200).json({ 
+          clientSecret: paymentIntent.client_secret,
+          amount: paymentAmount / 100, // Send back the dollar amount
+          plan: plan || 'pro'
+        });
+      } catch (error: any) {
+        console.error("Error creating payment intent:", error);
+        res.status(500).json({ 
+          message: "Error creating payment intent",
+          error: error.message 
+        });
+      }
+    });
+
+    // Route for processing beta applications
+    app.post("/api/beta-application", requireAuth, async (req, res) => {
+      try {
+        const userId = req.session.user?.id;
+        if (!userId) {
+          return res.status(401).json({ message: "Authentication required" });
+        }
+        
+        // Store the beta application (in a real app, this would be stored in a database)
+        // For this demo, we'll just return success
+        console.log(`Beta application received for user ${userId}:`, req.body);
+        
+        res.status(200).json({ 
+          message: "Beta application received successfully",
+          status: "pending_review"
+        });
+      } catch (error: any) {
+        console.error("Error processing beta application:", error);
+        res.status(500).json({ 
+          message: "Error processing beta application",
+          error: error.message 
+        });
+      }
+    });
+
+    // Route for handling webhook events from Stripe (for production use)
+    app.post("/api/webhook", express.raw({type: 'application/json'}), async (req, res) => {
+      try {
+        const sig = req.headers['stripe-signature'] as string;
+        
+        // In production, you would verify the webhook signature
+        // const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+        
+        // For demo purposes, just parse the event
+        const event = JSON.parse(req.body.toString());
+        
+        // Handle the event
+        switch (event.type) {
+          case 'payment_intent.succeeded':
+            // Payment was successful, update the user's subscription status
+            console.log('Payment succeeded:', event.data.object);
+            break;
+          case 'payment_intent.payment_failed':
+            // Payment failed, maybe notify the user
+            console.log('Payment failed:', event.data.object);
+            break;
+          default:
+            console.log(`Unhandled event type ${event.type}`);
+        }
+        
+        res.status(200).json({received: true});
+      } catch (error: any) {
+        console.error('Webhook error:', error.message);
+        res.status(400).send(`Webhook Error: ${error.message}`);
+      }
+    });
+  }
 
   const httpServer = createServer(app);
   return httpServer;
