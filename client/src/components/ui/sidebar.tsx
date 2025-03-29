@@ -40,8 +40,8 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
         className={cn(
           "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
-            ? "bg-[#085a60] text-white" // Darker teal for selection
-            : "text-white hover:bg-white/20 hover:text-white"
+            ? "bg-white/15 text-white" // Lighter selection highlight
+            : "text-white hover:bg-white/10 hover:text-white"
         )}
       >
         <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-white")}>
@@ -213,7 +213,7 @@ export function Sidebar() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2]">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-r from-[#8dd9d2] to-[#0ba2b0]">
             {sidebarContent}
           </div>
         </div>
@@ -225,7 +225,7 @@ export function Sidebar() {
           {!isSidebarHidden ? (
             <div className="hidden md:flex md:flex-shrink-0 transition-all duration-300">
               <div className="flex flex-col w-64 relative">
-                <div className="flex flex-col h-0 flex-1 bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2]">
+                <div className="flex flex-col h-0 flex-1 bg-gradient-to-r from-[#8dd9d2] to-[#0ba2b0]">
                   {sidebarContent}
                   <Button 
                     variant="ghost" 
