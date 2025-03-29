@@ -21,12 +21,14 @@ import QuizDetail from "@/pages/quizzes/[id]";
 import QuizPreview from "@/pages/quizzes/[id]/preview";
 import QuizDemo from "@/pages/quiz-demo";
 import Manager from "@/pages/manager";
+import Landing from "@/pages/landing";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
+      <Route path="/" component={Landing} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/students" component={Students} />
       <Route path="/classes" component={Classes} />
       <Route path="/classes/new" component={NewClass} />

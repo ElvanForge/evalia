@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <!-- Background -->
+  <rect x="50" y="50" width="300" height="200" rx="20" fill="#f8f9fa" />
+  
+  <!-- Quiz elements -->
+  <rect x="80" y="70" width="240" height="160" rx="8" fill="#ffffff" stroke="#0ba2b0" stroke-width="2" />
+  
+  <!-- Quiz title -->
+  <rect x="100" y="90" width="200" height="12" rx="2" fill="#0ba2b0" opacity="0.7" />
+  
+  <!-- Question 1 -->
+  <rect x="100" y="120" width="180" height="8" rx="2" fill="#0ba2b0" opacity="0.6" />
+  
+  <!-- Multiple choice options -->
+  <circle cx="110" cy="145" r="6" fill="none" stroke="#0ba2b0" stroke-width="2" />
+  <rect x="125" y="141" width="120" height="8" rx="2" fill="#0ba2b0" opacity="0.5" />
+  
+  <circle cx="110" cy="165" r="6" fill="#0ba2b0" />
+  <path d="M106,165 L110,169 L115,161" stroke="white" stroke-width="2" fill="none" />
+  <rect x="125" y="161" width="120" height="8" rx="2" fill="#0ba2b0" opacity="0.5" />
+  
+  <circle cx="110" cy="185" r="6" fill="none" stroke="#0ba2b0" stroke-width="2" />
+  <rect x="125" y="181" width="120" height="8" rx="2" fill="#0ba2b0" opacity="0.5" />
+  
+  <!-- Quiz controls -->
+  <rect x="240" y="200" width="60" height="20" rx="4" fill="#0ba2b0" />
+  <text x="254" y="214" font-family="Arial" font-size="12" fill="white">Next</text>
+</svg>

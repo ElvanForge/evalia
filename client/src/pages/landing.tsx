@@ -1,0 +1,439 @@
+import { useEffect } from "react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Check, ArrowRight, Award, BarChart2, BookOpen, Users } from "lucide-react";
+
+// Import the custom illustrations
+import teacherIllustration from "@assets/images/teacher-illustration.svg";
+import analyticsIllustration from "@assets/images/analytics-illustration.svg";
+import quizIllustration from "@assets/images/quiz-illustration.svg";
+
+export default function Landing() {
+  // Set page title
+  useEffect(() => {
+    document.title = "Evalia - Intelligent Education Analytics";
+  }, []);
+  
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Navigation */}
+      <nav className="bg-white px-6 py-4 shadow">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center">
+            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8" />
+            <span className="ml-2 text-xl font-bold text-gray-900">Evalia</span>
+          </div>
+          <div className="flex space-x-4">
+            <Link href="/auth/login">
+              <Button variant="ghost" className="hover:text-primary">
+                Log in
+              </Button>
+            </Link>
+            <Link href="/auth/register">
+              <Button>Get Started</Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+      
+      {/* Hero Section */}
+      <section className="bg-gradient-to-b from-gray-50 to-white px-6 py-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900">
+                Track, Analyze, and <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-teal-400">Elevate</span> Student Performance
+              </h1>
+              <p className="mt-4 text-xl text-gray-600">
+                Empower your teaching with Evalia's intelligent grade tracking and analytics platform.
+              </p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <Link href="/auth/register">
+                  <Button size="lg" className="px-8">
+                    Start Free Trial
+                  </Button>
+                </Link>
+                <Link href="/auth/login">
+                  <Button size="lg" variant="outline" className="px-8">
+                    Log In
+                  </Button>
+                </Link>
+              </div>
+              <div className="mt-6">
+                <p className="text-sm text-gray-500">No credit card required • Free 30-day trial</p>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <img 
+                src="/src/assets/images/teacher-illustration.svg" 
+                alt="Teacher with analytics" 
+                className="max-w-full h-auto"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Features Section */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900">Everything You Need to Succeed</h2>
+            <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+              Evalia brings all the tools educators need into one seamless platform
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="pt-6">
+                <div className="h-12 w-12 rounded-full bg-teal-100 flex items-center justify-center mb-5">
+                  <BookOpen className="h-6 w-6 text-teal-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  Intelligent Grading
+                </h3>
+                <p className="text-gray-600">
+                  Automatically calculate and assign letter grades based on customizable grading scales.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-teal-500 mr-2" />
+                    <span className="text-gray-600">Custom grading scales</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-teal-500 mr-2" />
+                    <span className="text-gray-600">Letter grade automation</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-teal-500 mr-2" />
+                    <span className="text-gray-600">Weighted assignments</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+            
+            {/* Feature 2 */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="pt-6">
+                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-5">
+                  <BarChart2 className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  Comprehensive Analytics
+                </h3>
+                <p className="text-gray-600">
+                  Gain valuable insights into student performance with detailed analytics and visual reports.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-blue-500 mr-2" />
+                    <span className="text-gray-600">Performance trends</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-blue-500 mr-2" />
+                    <span className="text-gray-600">Class comparisons</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-blue-500 mr-2" />
+                    <span className="text-gray-600">Exportable reports</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+            
+            {/* Feature 3 */}
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardContent className="pt-6">
+                <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mb-5">
+                  <Award className="h-6 w-6 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  Interactive Quizzes
+                </h3>
+                <p className="text-gray-600">
+                  Create, distribute, and grade quizzes with automatic scoring and detailed feedback.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-purple-500 mr-2" />
+                    <span className="text-gray-600">Multiple question types</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-purple-500 mr-2" />
+                    <span className="text-gray-600">Image uploads</span>
+                  </li>
+                  <li className="flex items-center">
+                    <Check className="h-5 w-5 text-purple-500 mr-2" />
+                    <span className="text-gray-600">Automatic grading</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+      
+      {/* Showcase Sections */}
+      <section className="py-20 px-6 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          {/* Showcase 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center mb-20">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900">Intelligent Analytics at Your Fingertips</h2>
+              <p className="mt-4 text-lg text-gray-600">
+                Visualize student performance, identify trends, and make data-driven decisions to enhance teaching methodologies and improve student outcomes.
+              </p>
+              <ul className="mt-6 space-y-4">
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center mt-1">
+                    <Check className="h-4 w-4 text-teal-600" />
+                  </div>
+                  <p className="ml-3 text-gray-600">Track progress across multiple classes and assignments</p>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center mt-1">
+                    <Check className="h-4 w-4 text-teal-600" />
+                  </div>
+                  <p className="ml-3 text-gray-600">Identify struggling students early with at-risk indicators</p>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center mt-1">
+                    <Check className="h-4 w-4 text-teal-600" />
+                  </div>
+                  <p className="ml-3 text-gray-600">Generate comprehensive reports for parent-teacher conferences</p>
+                </li>
+              </ul>
+              <div className="mt-8">
+                <Link href="/auth/register">
+                  <Button className="group">
+                    Start Analyzing
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <img 
+                src="/src/assets/images/analytics-illustration.svg" 
+                alt="Analytics dashboard" 
+                className="max-w-full h-auto shadow-lg rounded-lg" 
+              />
+            </div>
+          </div>
+          
+          {/* Showcase 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center md:flex-row-reverse">
+            <div className="md:order-2">
+              <h2 className="text-3xl font-bold text-gray-900">Interactive Quiz Management</h2>
+              <p className="mt-4 text-lg text-gray-600">
+                Create engaging assessments with our intuitive quiz builder. Support for multiple question types, image uploads, and automated grading saves valuable teaching time.
+              </p>
+              <ul className="mt-6 space-y-4">
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center mt-1">
+                    <Check className="h-4 w-4 text-teal-600" />
+                  </div>
+                  <p className="ml-3 text-gray-600">Multiple choice, fill-in-the-blank, and short answer formats</p>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center mt-1">
+                    <Check className="h-4 w-4 text-teal-600" />
+                  </div>
+                  <p className="ml-3 text-gray-600">Include images and rich media in questions</p>
+                </li>
+                <li className="flex items-start">
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-teal-100 flex items-center justify-center mt-1">
+                    <Check className="h-4 w-4 text-teal-600" />
+                  </div>
+                  <p className="ml-3 text-gray-600">Immediately integrate quiz results into the grade book</p>
+                </li>
+              </ul>
+              <div className="mt-8">
+                <Link href="/auth/register">
+                  <Button className="group">
+                    Create Quizzes
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="flex justify-center md:order-1">
+              <img 
+                src="/src/assets/images/quiz-illustration.svg" 
+                alt="Quiz builder" 
+                className="max-w-full h-auto shadow-lg rounded-lg" 
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Testimonials Section */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900">Trusted by Educators</h2>
+            <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+              Join thousands of teachers who are transforming their classrooms with Evalia
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Testimonial 1 */}
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} className="h-5 w-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-gray-600 italic mb-4">
+                  "Evalia has transformed how I manage my classroom. The analytics help me identify which students need extra attention before it's too late."
+                </p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-teal-600" />
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-gray-900">Math Teacher</h4>
+                    <p className="text-sm text-gray-500">High School</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Testimonial 2 */}
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} className="h-5 w-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-gray-600 italic mb-4">
+                  "The quiz feature alone has saved me hours of grading time each week. My students love getting immediate feedback on their work."
+                </p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-gray-900">Science Teacher</h4>
+                    <p className="text-sm text-gray-500">Middle School</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Testimonial 3 */}
+            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-center mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <svg key={star} className="h-5 w-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-gray-600 italic mb-4">
+                  "As a department head, the school-wide analytics have been invaluable for tracking performance across different classes and identifying best practices."
+                </p>
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-gray-900">Department Head</h4>
+                    <p className="text-sm text-gray-500">High School</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="py-20 px-6 bg-gradient-to-r from-teal-600 to-teal-400">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white">Ready to transform your teaching?</h2>
+          <p className="mt-4 text-xl text-white text-opacity-90">
+            Join thousands of educators who are saving time and improving outcomes with Evalia.
+          </p>
+          <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/auth/register">
+              <Button size="lg" className="bg-white text-teal-600 hover:bg-gray-100 px-8">
+                Start Free Trial
+              </Button>
+            </Link>
+            <Link href="/auth/login">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8">
+                Log In
+              </Button>
+            </Link>
+          </div>
+          <p className="mt-6 text-sm text-white text-opacity-80">
+            No credit card required • Free 30-day trial • Cancel anytime
+          </p>
+        </div>
+      </section>
+      
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center">
+                <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8 bg-white rounded-full p-1" />
+                <span className="ml-2 text-xl font-bold">Evalia</span>
+              </div>
+              <p className="mt-2 text-gray-400">
+                Intelligent education analytics for the modern classroom.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Product</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Testimonials</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Company</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
+            <p>&copy; {new Date().getFullYear()} Evalia. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

@@ -74,7 +74,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         title: "Success",
         description: "You have been logged in",
       });
-      navigate("/");
+      navigate("/dashboard");
     },
     onError: (error: any) => {
       toast({
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         title: "Account Created",
         description: "Your account has been created successfully",
       });
-      navigate("/");
+      navigate("/dashboard");
     },
     onError: (error: any) => {
       toast({
