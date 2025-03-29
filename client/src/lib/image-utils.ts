@@ -44,19 +44,31 @@ export interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImag
 export function getImageProps(props: ImageWithFallbackProps): React.ImgHTMLAttributes<HTMLImageElement> {
   const { src, alt, fallbackSrc, ...rest } = props;
   
+  // Process the URL before setting it
+  const processedSrc = getFullImageUrl(src);
+  console.log("Image processing:", { 
+    original: src, 
+    processed: processedSrc,
+    origin: window.location.origin
+  });
+  
   return {
-    src: getFullImageUrl(src),
+    src: processedSrc,
     alt,
+    onLoad: (e) => {
+      console.log("Image loaded successfully:", processedSrc);
+    },
     onError: (e) => {
-      console.error("Image failed to load:", src);
+      console.error("Image failed to load:", processedSrc, "Original:", src);
       const target = e.target as HTMLImageElement;
       
-      // Try correcting the URL first
+      // Try correcting the URL first with absolute path
       if (src && !src.startsWith('data:') && !src.startsWith('http')) {
-        const correctedUrl = getFullImageUrl(src);
-        if (correctedUrl !== target.src) {
-          console.log("Trying corrected URL:", correctedUrl);
-          target.src = correctedUrl;
+        // Try a different URL format - this is for debugging only
+        const absoluteUrl = `${window.location.origin}${src.startsWith('/') ? src : '/' + src}`;
+        if (absoluteUrl !== target.src) {
+          console.log("Trying absolute URL:", absoluteUrl);
+          target.src = absoluteUrl;
           return;
         }
       }
