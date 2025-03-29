@@ -131,6 +131,9 @@ export function QuestionFormDialog({
         const uploadResult = await uploadResponse.json();
         console.log("Image upload result:", uploadResult);
         imageUrl = uploadResult.imageUrl;
+      } else if (imagePreview && !data.imageFile) {
+        // If there's a preview but no new file uploaded, keep the existing image URL
+        imageUrl = questionToEdit?.imageUrl || null;
       }
 
       // Prepare the question data
@@ -419,7 +422,11 @@ export function QuestionFormDialog({
                     form.setValue("questionOptions", [
                       ...options,
                       { text: "", isCorrect: false },
-                    ]);
+                    ], {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true
+                    });
                   }}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -432,7 +439,12 @@ export function QuestionFormDialog({
                     className="w-full"
                     onClick={() => {
                       const options = form.getValues("questionOptions");
-                      form.setValue("questionOptions", options.slice(0, -1));
+                      // Make sure we don't overwrite other form values
+                      form.setValue("questionOptions", options.slice(0, -1), {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: true
+                      });
                     }}
                   >
                     <X className="mr-2 h-4 w-4" />
