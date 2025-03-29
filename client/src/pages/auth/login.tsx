@@ -51,7 +51,7 @@ export default function Login() {
               <ClipboardCheck className="h-8 w-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">GradeTrack</CardTitle>
+          <CardTitle className="text-2xl font-bold">Evalia</CardTitle>
           <CardDescription>
             Enter your credentials to sign in to your teacher account
           </CardDescription>
