@@ -15,7 +15,8 @@ import {
   X,
   LogOut,
   LogIn,
-  BookText
+  BookText,
+  ClipboardCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -139,6 +140,16 @@ export function Sidebar() {
           >
             Settings
           </SidebarLink>
+          
+          {user?.role === 'manager' && (
+            <SidebarLink 
+              href="/manager" 
+              icon={<ClipboardCheck />}
+              onClick={() => isMobile && setIsOpen(false)}
+            >
+              Manager Portal
+            </SidebarLink>
+          )}
         </nav>
       </div>
 
