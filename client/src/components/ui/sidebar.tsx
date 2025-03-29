@@ -38,11 +38,11 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
         className={cn(
           "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
-            ? "bg-[#085a60] text-white" // Darker teal for selection
-            : "text-gray-700 hover:bg-[#0ba2b0]/20 hover:text-gray-900"
+            ? "bg-[#0ba2b0] text-white" // Primary button color for selection
+            : "text-white hover:bg-white/10 hover:text-white"
         )}
       >
-        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-gray-600")}>
+        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-white/80")}>
           {icon}
         </span>
         {children}
@@ -154,7 +154,7 @@ export function Sidebar() {
       </div>
 
       {user ? (
-        <div className="p-4 border-t border-gray-400">
+        <div className="p-4 border-t border-white/20">
           <div className="flex items-center">
             <Avatar className="h-10 w-10">
               <AvatarImage src="" alt={`${user.firstName} ${user.lastName}`} />
@@ -163,13 +163,13 @@ export function Sidebar() {
               </AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-800">{user.firstName} {user.lastName}</p>
-              <p className="text-xs font-medium text-gray-600">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
+              <p className="text-sm font-medium text-white">{user.firstName} {user.lastName}</p>
+              <p className="text-xs font-medium text-white/70">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
             </div>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="ml-auto text-gray-600 hover:text-[#0ba2b0]"
+              className="ml-auto text-white/70 hover:text-white"
               onClick={logout}
               title="Logout"
             >
@@ -178,9 +178,9 @@ export function Sidebar() {
           </div>
         </div>
       ) : (
-        <div className="p-4 border-t border-gray-400">
+        <div className="p-4 border-t border-white/20">
           <Link href="/auth/login">
-            <div className="flex items-center text-sm font-medium text-gray-800 cursor-pointer">
+            <div className="flex items-center text-sm font-medium text-white cursor-pointer">
               <LogIn className="h-5 w-5 mr-2" />
               Login
             </div>
@@ -210,7 +210,7 @@ export function Sidebar() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#a6dde0]">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#085a60]">
             {sidebarContent}
           </div>
         </div>
@@ -220,7 +220,7 @@ export function Sidebar() {
       {!isMobile && (
         <div className="hidden md:flex md:flex-shrink-0">
           <div className="flex flex-col w-64">
-            <div className="flex flex-col h-0 flex-1 bg-[#a6dde0]">
+            <div className="flex flex-col h-0 flex-1 bg-[#085a60]">
               {sidebarContent}
             </div>
           </div>
