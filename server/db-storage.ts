@@ -591,11 +591,12 @@ export class DBStorage implements IStorage {
       const { rows: classIdsRows } = await pool.query(classIdsQuery, [teacherId]);
       const classIds = classIdsRows.map(row => row.id);
       
-      // Count distinct students in teacher's classes
+      // Count distinct students in teacher's classes, but only count students that still exist
       const studentCountQuery = `
-        SELECT COUNT(DISTINCT "studentId") as count
-        FROM student_classes
-        WHERE "classId" IN (${classIds.join(',')})
+        SELECT COUNT(DISTINCT sc."studentId") as count
+        FROM student_classes sc
+        JOIN students s ON sc."studentId" = s.id
+        WHERE sc."classId" IN (${classIds.join(',')})
       `;
       const { rows: studentRows } = await pool.query(studentCountQuery);
       const totalStudents = parseInt(studentRows[0]?.count || '0', 10) || 0;

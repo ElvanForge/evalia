@@ -3,6 +3,15 @@ import { createServer, type Server } from "http";
 import { storage as dbStorage } from "./storage";
 import builder from "xmlbuilder";
 import Stripe from "stripe";
+
+// Helper function to convert numerical score to letter grade
+function getLetterGrade(score: number): string {
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  return "F";
+}
 import {
   teacherLoginSchema,
   insertTeacherSchema,
@@ -886,6 +895,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
       res.status(500).json({ message: "Server error fetching dashboard stats" });
+    }
+  });
+  
+  app.get("/api/dashboard", requireAuth, async (req, res) => {
+    try {
+      const teacherId = req.user?.id;
+      const classId = req.query.classId ? parseInt(req.query.classId as string) : undefined;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // Get main dashboard stats
+      const stats = await dbStorage.getDashboardStats(teacherId);
+      
+      // Get classes with additional information (studentCount, openAssignments, avgGrade)
+      const classes = await dbStorage.getClassesByTeacher(teacherId);
+      const classCards = await Promise.all(classes.map(async (cls) => {
+        const students = await dbStorage.getStudentsByClass(cls.id);
+        const assignments = await dbStorage.getAssignmentsByClass(cls.id);
+        
+        // Calculate average grade if there are grades
+        let averageGrade = "N/A";
+        if (students.length > 0) {
+          let totalGrades = 0;
+          let gradeCount = 0;
+          
+          for (const student of students) {
+            const grades = await dbStorage.getGradesByStudentAndClass(student.id, cls.id);
+            // Convert string scores to numbers before summing
+            totalGrades += grades.reduce((sum, grade) => sum + parseFloat(grade.score), 0);
+            gradeCount += grades.length;
+          }
+          
+          if (gradeCount > 0) {
+            const avgScore = totalGrades / gradeCount;
+            averageGrade = avgScore.toFixed(1) + "%";
+          }
+        }
+        
+        return {
+          id: cls.id,
+          name: cls.name,
+          studentCount: students.length,
+          openAssignments: assignments.length,
+          averageGrade: averageGrade
+        };
+      }));
+      
+      // Get recent activities (simplified version)
+      const recentActivities = [];
+      
+      // Get grade distribution (simplified)
+      const gradeDistribution = {
+        A: 0,
+        B: 0,
+        C: 0,
+        D: 0,
+        F: 0
+      };
+      
+      // Format stats for frontend
+      const formattedStats = {
+        students: { total: stats.totalStudents, change: 0 },
+        classes: { total: stats.activeClasses, change: 0 },
+        avgGrade: { 
+          value: stats.averageGrade ? stats.averageGrade.toFixed(1) : "N/A", 
+          letter: getLetterGrade(stats.averageGrade || 0),
+          change: 0 
+        },
+        pendingGrades: { total: stats.openAssignments || 0, dueToday: 0 }
+      };
+      
+      res.status(200).json({
+        stats: formattedStats,
+        classCards: classCards,
+        gradeDistribution: gradeDistribution,
+        recentActivities: recentActivities
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.status(500).json({ message: "Server error fetching dashboard data" });
     }
   });
 

@@ -5,6 +5,7 @@ import StatCard from "./stats/StatCard";
 import GradeDistribution from "./stats/GradeDistribution";
 import RecentActivity from "./RecentActivity";
 import GradeTable from "./GradeTable";
+import { ClassCard } from "./dashboard/class-card";
 import { Button } from "@/components/ui/button";
 import { 
   Select,
@@ -34,7 +35,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery({
-    queryKey: ['/api/dashboard', selectedClass],
+    queryKey: ['/api/dashboard', selectedClass !== 'all' ? selectedClass : undefined],
   });
 
   // Fetch classes
@@ -79,6 +80,8 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   };
 
   const recentActivities = dashboardData?.recentActivities || [];
+  
+  const classCards = dashboardData?.classCards || [];
 
   return (
     <div>
@@ -192,6 +195,23 @@ export default function Dashboard({ currentUser }: DashboardProps) {
           iconColorClass="text-red-600 dark:text-red-400"
         />
       </div>
+      
+      {/* Class Cards */}
+      {classCards.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-medium">Your Classes</h3>
+            <Button variant="outline" size="sm" onClick={() => window.location.href = '/classes'}>
+              View All
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {classCards.map((classData) => (
+              <ClassCard key={classData.id} class={classData} />
+            ))}
+          </div>
+        </div>
+      )}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2">
