@@ -11,8 +11,7 @@
   }
 
   body {
-    @apply font-sans antialiased text-foreground;
-    background-color: #ede8dd;
+    @apply font-sans antialiased text-foreground bg-background;
   }
 }
 
@@ -28,15 +27,16 @@
 }
 
 .quiz-container {
-  background: #b3e6da;
+  background: rgba(179, 230, 218, 0.3);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 10px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   text-align: center;
   width: 80%;
   max-width: 600px;
   margin: 20px auto; 
   flex-grow: 0; 
+  border: 1px solid rgba(11, 162, 176, 0.2);
 }
 
 #question-container {
@@ -68,19 +68,21 @@
 #options button {
   margin-top: 10px;
   padding: 10px 20px;
-  border: none;
-  background-color: #e6dccf; 
+  border: 1px solid rgba(11, 162, 176, 0.2);
+  background-color: white; 
   color: #333333; 
   border-radius: 10px;
   cursor: pointer;
   font-size: 16px; 
-  transition: background-color 0.3s;
+  transition: all 0.2s ease;
   min-width: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
 #options button:hover {
   background-color: #0ba2b0;
   color: white;
+  border-color: #0ba2b0;
 }
 
 #score {
