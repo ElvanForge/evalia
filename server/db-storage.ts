@@ -588,9 +588,9 @@ export class DBStorage implements IStorage {
     
     // Get all students enrolled in those classes
     const enrolledStudentsQuery = sql`
-      SELECT DISTINCT studentId 
+      SELECT COUNT(DISTINCT "${schema.studentClasses.studentId.name}") as count
       FROM ${schema.studentClasses}
-      WHERE classId IN (${sql.join(classIds, sql`, `)})
+      WHERE "${schema.studentClasses.classId.name}" IN (${sql.join(classIds, sql`, `)})
     `;
     const enrolledStudents = await db.execute(enrolledStudentsQuery);
     
@@ -599,25 +599,57 @@ export class DBStorage implements IStorage {
     const openAssignmentsQuery = sql`
       SELECT COUNT(*) 
       FROM ${schema.assignments}
-      WHERE classId IN (${sql.join(classIds, sql`, `)})
-      AND dueDate > ${now}
+      WHERE "${schema.assignments.classId.name}" IN (${sql.join(classIds, sql`, `)})
+      AND "${schema.assignments.dueDate.name}" > ${now}
     `;
     const openAssignments = await db.execute(openAssignmentsQuery);
     
     // Calculate average grade across all assignments in teacher's classes
     const avgGradeQuery = sql`
-      SELECT AVG(CAST(g.score AS DECIMAL) / CAST(a."maxScore" AS DECIMAL) * 100) as avg_grade
+      SELECT AVG(CAST(g."score" AS DECIMAL) / CAST(a."maxScore" AS DECIMAL) * 100) as avg_grade
       FROM ${schema.grades} g
       JOIN ${schema.assignments} a ON g."assignmentId" = a.id
       WHERE a."classId" IN (${sql.join(classIds, sql`, `)})
     `;
     const avgGrade = await db.execute(avgGradeQuery);
     
+    // Extract values and ensure they are valid numbers
+    let totalStudents = 0;
+    try {
+      const countStr = enrolledStudents.rows[0]?.count;
+      totalStudents = countStr ? parseInt(countStr.toString(), 10) : 0;
+      if (isNaN(totalStudents)) totalStudents = 0;
+    } catch (e) {
+      console.error("Error parsing total students count:", e);
+    }
+    
+    const activeClassCount = classes.length || 0;
+    
+    // Parse and validate count to ensure it's a valid number
+    let openAssignmentCount = 0;
+    try {
+      const countStr = openAssignments.rows[0]?.count;
+      openAssignmentCount = countStr ? parseInt(countStr.toString(), 10) : 0;
+      if (isNaN(openAssignmentCount)) openAssignmentCount = 0;
+    } catch (e) {
+      console.error("Error parsing open assignments count:", e);
+    }
+    
+    // Parse and validate average grade to ensure it's a valid number
+    let avgGradeValue = 0;
+    try {
+      const avgGradeStr = avgGrade.rows[0]?.avg_grade;
+      avgGradeValue = avgGradeStr ? parseFloat(avgGradeStr.toString()) : 0;
+      if (isNaN(avgGradeValue)) avgGradeValue = 0;
+    } catch (e) {
+      console.error("Error parsing average grade:", e);
+    }
+    
     return {
-      totalStudents: enrolledStudents.rows.length,
-      activeClasses: classes.length,
-      openAssignments: parseInt(openAssignments.rows[0]?.count || '0', 10),
-      averageGrade: parseFloat(avgGrade.rows[0]?.avg_grade || '0')
+      totalStudents,
+      activeClasses: activeClassCount,
+      openAssignments: openAssignmentCount,
+      averageGrade: avgGradeValue
     };
   }
 }
