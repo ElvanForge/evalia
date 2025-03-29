@@ -85,17 +85,24 @@ export function QuestionFormDialog({
         const formData = new FormData();
         formData.append("image", file);
 
+        console.log("Uploading image file:", file.name, file.type, file.size);
+        
         // Upload the image
         const uploadResponse = await fetch("/api/upload/image", {
           method: "POST",
           body: formData,
         });
 
+        console.log("Image upload response status:", uploadResponse.status);
+        
         if (!uploadResponse.ok) {
-          throw new Error("Failed to upload image");
+          const errorText = await uploadResponse.text();
+          console.error("Image upload failed:", errorText);
+          throw new Error(`Failed to upload image: ${errorText}`);
         }
 
         const uploadResult = await uploadResponse.json();
+        console.log("Image upload result:", uploadResult);
         imageUrl = uploadResult.imageUrl;
       }
 

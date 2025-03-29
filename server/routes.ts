@@ -1421,13 +1421,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Image upload endpoint for quiz questions
   app.post('/api/upload/image', upload.single('image'), (req, res) => {
+    console.log('Image upload request received');
     try {
       if (!req.file) {
+        console.log('No file found in request');
         return res.status(400).json({ message: 'No file uploaded' });
       }
       
+      console.log('File uploaded successfully:', req.file);
+      
       // Return the file path that can be used in the frontend
       const imageUrl = `/uploads/images/${req.file.filename}`;
+      
+      console.log('Image URL:', imageUrl);
       
       res.status(200).json({ 
         message: 'File uploaded successfully',
