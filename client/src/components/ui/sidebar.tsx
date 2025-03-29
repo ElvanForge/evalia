@@ -87,7 +87,7 @@ export function Sidebar() {
 
         <nav className="mt-5 flex-1 px-2 space-y-1">
           <SidebarLink 
-            href="/" 
+            href="/dashboard" 
             icon={<LayoutDashboard />}
             onClick={() => isMobile && setIsOpen(false)}
           >
