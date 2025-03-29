@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
@@ -21,6 +21,11 @@ import { ClipboardCheck } from "lucide-react";
 export default function Register() {
   const { register, isRegistering } = useAuth();
   const [, navigate] = useLocation();
+
+  // Set page title
+  useEffect(() => {
+    document.title = "Evalia - Register";
+  }, []);
 
   // Create form
   const form = useForm<z.infer<typeof extendedTeacherSchema>>({
@@ -52,13 +57,11 @@ export default function Register() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
-            <div className="bg-blue-500 rounded-full p-2">
-              <ClipboardCheck className="h-8 w-8 text-white" />
-            </div>
+            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-16 w-16" />
           </div>
-          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
+          <CardTitle className="text-2xl font-bold">Evalia</CardTitle>
           <CardDescription>
-            Register for a teacher account to start tracking student grades
+            Register for an Evalia teacher account to start tracking student grades
           </CardDescription>
         </CardHeader>
         <CardContent>
