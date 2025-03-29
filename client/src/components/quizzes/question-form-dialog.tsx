@@ -55,7 +55,16 @@ export function QuestionFormDialog({
 }: QuestionFormDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(questionToEdit?.imageUrl || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Set the image preview when the question changes
+  useEffect(() => {
+    if (questionToEdit?.imageUrl) {
+      setImagePreview(questionToEdit.imageUrl);
+    } else {
+      setImagePreview(null);
+    }
+  }, [questionToEdit]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [options, setOptions] = useState<Array<{ text: string, isCorrect: boolean }>>([]);
@@ -131,9 +140,13 @@ export function QuestionFormDialog({
         const uploadResult = await uploadResponse.json();
         console.log("Image upload result:", uploadResult);
         imageUrl = uploadResult.imageUrl;
-      } else if (imagePreview && !data.imageFile) {
-        // If there's a preview but no new file uploaded, keep the existing image URL
+      } else if (imagePreview) {
+        // If there's a preview image but no new file uploaded, keep the existing image URL
+        console.log("Keeping existing image URL:", questionToEdit?.imageUrl);
         imageUrl = questionToEdit?.imageUrl || null;
+      } else {
+        // No image preview and no file uploaded, set to null
+        imageUrl = null;
       }
 
       // Prepare the question data
@@ -245,10 +258,35 @@ export function QuestionFormDialog({
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+    console.log("Image removed, form values:", form.getValues());
   };
 
+  // Reset form when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        quizId,
+        question: "",
+        type: "multiple_choice",
+        imageUrl: null,
+        questionOptions: [
+          { text: "", isCorrect: true },
+          { text: "", isCorrect: false },
+        ]
+      });
+    }
+  }, [open, form, quizId]);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(openState) => {
+        // Only allow closing if we're not submitting
+        if (!isSubmitting) {
+          onOpenChange(openState);
+        }
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{questionToEdit ? "Edit Question" : "Add New Question"}</DialogTitle>
