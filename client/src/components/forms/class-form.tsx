@@ -97,8 +97,16 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
   });
 
   // Form submission handler
-  const onSubmit = (values: z.infer<typeof insertClassSchema>) => {
-    mutation.mutate(values);
+  const onSubmit = async (values: z.infer<typeof insertClassSchema>) => {
+    try {
+      console.log("Form submitted with values:", values);
+      const result = await mutation.mutateAsync(values);
+      console.log("Mutation result:", result);
+      // We'll handle success in the mutation.onSuccess callback
+    } catch (error) {
+      console.error("Form submission error:", error);
+      // Error is already handled in the mutation.onError callback
+    }
   };
 
   return (
@@ -140,6 +148,10 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
           <Button
             type="submit"
             disabled={mutation.isPending}
+            onClick={() => {
+              console.log("Button clicked, form state:", form.formState);
+              // The actual submission is handled by form.handleSubmit(onSubmit)
+            }}
           >
             {mutation.isPending
               ? isEditing
@@ -149,6 +161,13 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
               ? "Update Class"
               : "Create Class"}
           </Button>
+        </div>
+        
+        {/* Debug info - remove in production */}
+        <div className="text-xs text-muted-foreground mt-4 p-2 border rounded">
+          <p>Form state: {form.formState.isValid ? "Valid" : "Invalid"}</p>
+          <p>Submitting: {form.formState.isSubmitting ? "Yes" : "No"}</p>
+          <p>Errors: {Object.keys(form.formState.errors).length > 0 ? JSON.stringify(form.formState.errors) : "None"}</p>
         </div>
       </form>
     </Form>
