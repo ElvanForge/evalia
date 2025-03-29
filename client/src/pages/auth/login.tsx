@@ -40,7 +40,7 @@ export default function Login() {
   const onSubmit = async (data: z.infer<typeof teacherLoginSchema>) => {
     try {
       await login(data);
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       // Error handling is done in the auth provider
       console.error("Login failed:", error);

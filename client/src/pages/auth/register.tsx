@@ -308,14 +308,14 @@ export default function Register() {
           <div className="text-sm text-center text-gray-500">
             Already have an account?{" "}
             <Link href="/auth/login">
-              <a className="text-blue-600 hover:underline">Sign In</a>
+              <span className="text-blue-600 hover:underline cursor-pointer">Sign In</span>
             </Link>
           </div>
           {plan !== "free" && (
             <div className="text-sm text-center text-gray-500">
               Want a free account instead?{" "}
               <Link href="/auth/register?plan=free">
-                <a className="text-blue-600 hover:underline">Sign up for free</a>
+                <span className="text-blue-600 hover:underline cursor-pointer">Sign up for free</span>
               </Link>
             </div>
           )}
