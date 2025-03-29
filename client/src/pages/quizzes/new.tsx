@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { Loader2, Save } from "lucide-react";
-import { Quiz, InsertQuiz, insertQuizSchema } from "@shared/schema";
+import { Quiz, InsertQuiz, quizFormSchema } from "@shared/schema";
 import { z } from "zod";
 
 const CreateQuizForm = () => {
@@ -31,8 +31,8 @@ const CreateQuizForm = () => {
     enabled: !!user,
   });
 
-  const form = useForm<z.infer<typeof insertQuizSchema>>({
-    resolver: zodResolver(insertQuizSchema),
+  const form = useForm<z.infer<typeof quizFormSchema>>({
+    resolver: zodResolver(quizFormSchema),
     defaultValues: {
       title: "",
       description: null,
@@ -42,7 +42,7 @@ const CreateQuizForm = () => {
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof insertQuizSchema>) => {
+  const onSubmit = async (data: z.infer<typeof quizFormSchema>) => {
     if (!user) return;
     
     setIsSubmitting(true);

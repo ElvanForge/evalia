@@ -209,6 +209,11 @@ export const insertQuizSchema = createInsertSchema(quizzes).omit({
   createdAt: true,
 });
 
+// Create a special frontend version that doesn't require teacherId
+export const quizFormSchema = insertQuizSchema.omit({
+  teacherId: true,
+});
+
 export const quizQuestions = pgTable("quiz_questions", {
   id: serial("id").primaryKey(),
   quizId: integer("quizId").notNull().references(() => quizzes.id),

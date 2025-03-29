@@ -14,6 +14,7 @@ import {
   insertGradeScaleEntrySchema,
   insertStudentClassSchema,
   insertQuizSchema,
+  quizFormSchema,
   insertQuizQuestionSchema,
   insertQuizOptionSchema,
   insertQuizSubmissionSchema,
@@ -837,7 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/quizzes", requireAuth, validateRequest(insertQuizSchema), async (req, res) => {
+  app.post("/api/quizzes", requireAuth, validateRequest(quizFormSchema), async (req, res) => {
     try {
       // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
       const teacherId = req.user?.id;
@@ -894,7 +895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/quizzes/:id", requireAuth, validateRequest(insertQuizSchema.partial()), async (req, res) => {
+  app.put("/api/quizzes/:id", requireAuth, validateRequest(quizFormSchema.partial()), async (req, res) => {
     try {
       // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
       const teacherId = req.user?.id;
