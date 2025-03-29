@@ -1,4 +1,5 @@
 import { 
+  School, InsertSchool,
   Teacher, InsertTeacher, 
   Class, InsertClass, 
   Student, InsertStudent, 
@@ -13,11 +14,20 @@ import {
   QuizSubmission, InsertQuizSubmission,
   QuizAnswer, InsertQuizAnswer,
   teachers, classes, students, assignments, grades, gradeScales, gradeScaleEntries, studentClasses,
-  quizzes, quizQuestions, quizOptions, quizSubmissions, quizAnswers
+  quizzes, quizQuestions, quizOptions, quizSubmissions, quizAnswers, schools, USER_ROLES
 } from "@shared/schema";
 
 // CRUD Interface for the grade tracking system
 export interface IStorage {
+  // School operations
+  getSchool(id: number): Promise<School | undefined>;
+  getAllSchools(): Promise<School[]>;
+  createSchool(school: InsertSchool): Promise<School>;
+  updateSchool(id: number, school: Partial<InsertSchool>): Promise<School | undefined>;
+  deleteSchool(id: number): Promise<boolean>;
+  getTeachersBySchool(schoolId: number): Promise<Teacher[]>;
+  getStudentsBySchool(schoolId: number): Promise<Student[]>;
+  
   // Teacher operations
   getTeacher(id: number): Promise<Teacher | undefined>;
   getTeacherByUsername(username: string): Promise<Teacher | undefined>;
@@ -128,6 +138,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private schoolData: Map<number, School>;
   private teacherData: Map<number, Teacher>;
   private classData: Map<number, Class>;
   private studentData: Map<number, Student>;
@@ -144,6 +155,7 @@ export class MemStorage implements IStorage {
   private quizSubmissionData: Map<number, QuizSubmission>;
   private quizAnswerData: Map<number, QuizAnswer>;
   
+  private schoolId: number;
   private teacherId: number;
   private classId: number;
   private studentId: number;
@@ -160,6 +172,7 @@ export class MemStorage implements IStorage {
   private quizAnswerId: number;
   
   constructor() {
+    this.schoolData = new Map();
     this.teacherData = new Map();
     this.classData = new Map();
     this.studentData = new Map();
@@ -176,6 +189,7 @@ export class MemStorage implements IStorage {
     this.quizSubmissionData = new Map();
     this.quizAnswerData = new Map();
     
+    this.schoolId = 1;
     this.teacherId = 1;
     this.classId = 1;
     this.studentId = 1;
@@ -196,6 +210,17 @@ export class MemStorage implements IStorage {
   }
   
   private initializeData(): void {
+    // Create a default school
+    const defaultSchool: InsertSchool = {
+      name: "Central High School",
+      address: "123 Education Ave",
+      city: "Springfield",
+      state: "IL",
+      zipCode: "62701",
+      phoneNumber: "555-123-4567"
+    };
+    this.createSchool(defaultSchool);
+    
     // Create a default teacher
     const defaultTeacher: InsertTeacher = {
       username: "sarah.johnson",
@@ -203,9 +228,24 @@ export class MemStorage implements IStorage {
       firstName: "Sarah",
       lastName: "Johnson",
       email: "sarah.johnson@example.com",
-      subject: "Mathematics"
+      subject: "Mathematics",
+      schoolId: 1,
+      role: USER_ROLES.TEACHER
     };
     this.createTeacher(defaultTeacher);
+    
+    // Create a manager account
+    const managerTeacher: InsertTeacher = {
+      username: "john.manager",
+      password: "password123",
+      firstName: "John",
+      lastName: "Smith",
+      email: "john.smith@example.com",
+      subject: "Administration",
+      schoolId: 1,
+      role: USER_ROLES.MANAGER
+    };
+    this.createTeacher(managerTeacher);
     
     // Create a default grade scale
     const defaultGradeScale: InsertGradeScale = {
@@ -814,6 +854,47 @@ export class MemStorage implements IStorage {
   
   async deleteQuizAnswer(id: number): Promise<boolean> {
     return this.quizAnswerData.delete(id);
+  }
+
+  // School operations
+  async getSchool(id: number): Promise<School | undefined> {
+    return this.schoolData.get(id);
+  }
+  
+  async getAllSchools(): Promise<School[]> {
+    return Array.from(this.schoolData.values());
+  }
+  
+  async createSchool(school: InsertSchool): Promise<School> {
+    const id = this.schoolId++;
+    const newSchool = { ...school, id, createdAt: new Date() };
+    this.schoolData.set(id, newSchool);
+    return newSchool;
+  }
+  
+  async updateSchool(id: number, school: Partial<InsertSchool>): Promise<School | undefined> {
+    const existingSchool = this.schoolData.get(id);
+    if (!existingSchool) return undefined;
+    
+    const updatedSchool = { ...existingSchool, ...school };
+    this.schoolData.set(id, updatedSchool);
+    return updatedSchool;
+  }
+  
+  async deleteSchool(id: number): Promise<boolean> {
+    return this.schoolData.delete(id);
+  }
+  
+  async getTeachersBySchool(schoolId: number): Promise<Teacher[]> {
+    return Array.from(this.teacherData.values()).filter(
+      teacher => teacher.schoolId === schoolId
+    );
+  }
+  
+  async getStudentsBySchool(schoolId: number): Promise<Student[]> {
+    return Array.from(this.studentData.values()).filter(
+      student => student.schoolId === schoolId
+    );
   }
 }
 

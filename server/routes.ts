@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage as dbStorage } from "./storage";
+import builder from "xmlbuilder";
 import {
   teacherLoginSchema,
   insertTeacherSchema,
@@ -16,6 +17,8 @@ import {
   insertQuizOptionSchema,
   insertQuizSubmissionSchema,
   insertQuizAnswerSchema,
+  insertSchoolSchema,
+  USER_ROLES,
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -51,6 +54,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Unauthorized" });
     }
     next();
+  };
+  
+  // Role-based authorization middleware
+  const requireRole = (roles: string[]) => {
+    return async (req: Request, res: Response, next: express.NextFunction) => {
+      if (!req.session.teacherId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const teacher = await dbStorage.getTeacher(req.session.teacherId);
+      if (!teacher) {
+        return res.status(401).json({ message: "Teacher not found" });
+      }
+      
+      if (!teacher.role || !roles.includes(teacher.role)) {
+        return res.status(403).json({ message: "Insufficient permissions for this action" });
+      }
+      
+      next();
+    };
   };
 
   // Error handling middleware for Zod validation
@@ -1436,6 +1459,209 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Static file serving from uploads directory
   app.use('/uploads', express.static('uploads'));
+  
+  // School routes
+  app.get('/api/schools', requireAuth, async (req, res) => {
+    try {
+      const schools = await dbStorage.getAllSchools();
+      res.status(200).json(schools);
+    } catch (error) {
+      console.error("Error fetching schools:", error);
+      res.status(500).json({ message: "Server error fetching schools" });
+    }
+  });
+  
+  app.post('/api/schools', requireAuth, requireRole([USER_ROLES.MANAGER, USER_ROLES.ADMIN]), validateRequest(insertSchoolSchema), async (req, res) => {
+    try {
+      const newSchool = await dbStorage.createSchool(req.body);
+      res.status(201).json(newSchool);
+    } catch (error) {
+      console.error("Error creating school:", error);
+      res.status(500).json({ message: "Server error creating school" });
+    }
+  });
+  
+  app.get('/api/schools/:id', requireAuth, async (req, res) => {
+    try {
+      const schoolId = Number(req.params.id);
+      const school = await dbStorage.getSchool(schoolId);
+      
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      res.status(200).json(school);
+    } catch (error) {
+      console.error("Error fetching school:", error);
+      res.status(500).json({ message: "Server error fetching school" });
+    }
+  });
+  
+  app.put('/api/schools/:id', requireAuth, requireRole([USER_ROLES.MANAGER, USER_ROLES.ADMIN]), validateRequest(insertSchoolSchema.partial()), async (req, res) => {
+    try {
+      const schoolId = Number(req.params.id);
+      const school = await dbStorage.getSchool(schoolId);
+      
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      const updatedSchool = await dbStorage.updateSchool(schoolId, req.body);
+      res.status(200).json(updatedSchool);
+    } catch (error) {
+      console.error("Error updating school:", error);
+      res.status(500).json({ message: "Server error updating school" });
+    }
+  });
+  
+  app.delete('/api/schools/:id', requireAuth, requireRole([USER_ROLES.ADMIN]), async (req, res) => {
+    try {
+      const schoolId = Number(req.params.id);
+      const school = await dbStorage.getSchool(schoolId);
+      
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      await dbStorage.deleteSchool(schoolId);
+      res.status(200).json({ message: "School deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting school:", error);
+      res.status(500).json({ message: "Server error deleting school" });
+    }
+  });
+  
+  // School data for managers
+  app.get('/api/schools/:id/teachers', requireAuth, requireRole([USER_ROLES.MANAGER, USER_ROLES.ADMIN]), async (req, res) => {
+    try {
+      const schoolId = Number(req.params.id);
+      const teachers = await dbStorage.getTeachersBySchool(schoolId);
+      // Remove passwords from response
+      const teachersWithoutPasswords = teachers.map(({ password: _, ...teacher }) => teacher);
+      res.status(200).json(teachersWithoutPasswords);
+    } catch (error) {
+      console.error("Error fetching school teachers:", error);
+      res.status(500).json({ message: "Server error fetching school teachers" });
+    }
+  });
+  
+  app.get('/api/schools/:id/students', requireAuth, requireRole([USER_ROLES.MANAGER, USER_ROLES.ADMIN]), async (req, res) => {
+    try {
+      const schoolId = Number(req.params.id);
+      const students = await dbStorage.getStudentsBySchool(schoolId);
+      res.status(200).json(students);
+    } catch (error) {
+      console.error("Error fetching school students:", error);
+      res.status(500).json({ message: "Server error fetching school students" });
+    }
+  });
+  
+  // XML Grade Export
+  app.post('/api/export/grades', requireAuth, async (req, res) => {
+    try {
+      const teacherId = Number(req.session.teacherId);
+      const { classId, format } = req.body;
+      
+      // Verify the class belongs to the teacher
+      const class_ = await dbStorage.getClass(classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to export grades for this class" });
+      }
+      
+      // Get students in this class
+      const students = await dbStorage.getStudentsByClass(classId);
+      
+      // Get assignments for this class
+      const assignments = await dbStorage.getAssignmentsByClass(classId);
+      
+      // For each student, get their grades
+      const studentGrades = await Promise.all(
+        students.map(async (student) => {
+          const grades = await dbStorage.getGradesByStudentAndClass(student.id, classId);
+          
+          // Calculate average grade percentage 
+          const totalScore = grades.reduce((sum, grade) => {
+            const assignment = assignments.find(a => a.id === grade.assignmentId);
+            if (!assignment) return sum;
+            
+            const scoreNum = parseFloat(grade.score);
+            const maxScoreNum = parseFloat(assignment.maxScore);
+            const weightNum = parseFloat(assignment.weight);
+            
+            return sum + (scoreNum / maxScoreNum * weightNum);
+          }, 0);
+          
+          const totalWeight = assignments.reduce((sum, assignment) => {
+            const weightNum = parseFloat(assignment.weight);
+            return sum + weightNum;
+          }, 0);
+          
+          const averagePercentage = totalWeight > 0 
+            ? (totalScore / totalWeight * 100).toFixed(2) 
+            : "N/A";
+          
+          // Return student with grades
+          return {
+            student,
+            grades: grades.map(grade => {
+              const assignment = assignments.find(a => a.id === grade.assignmentId);
+              return {
+                ...grade,
+                assignmentName: assignment ? assignment.name : "Unknown",
+                assignmentType: assignment ? assignment.type : "Unknown",
+              };
+            }),
+            averagePercentage
+          };
+        })
+      );
+      
+      if (format === 'xml') {
+        // Generate XML
+        const root = builder.create('ClassGrades');
+        
+        root.ele('ClassName', class_.name);
+        root.ele('ClassDescription', class_.description || '');
+        
+        const studentsEle = root.ele('Students');
+        
+        studentGrades.forEach(({ student, grades, averagePercentage }) => {
+          const studentEle = studentsEle.ele('Student');
+          studentEle.att('id', student.id);
+          studentEle.ele('Name', `${student.firstName} ${student.lastName}`);
+          studentEle.ele('Email', student.email || '');
+          studentEle.ele('AveragePercentage', averagePercentage);
+          
+          const gradesEle = studentEle.ele('Grades');
+          
+          grades.forEach(grade => {
+            const gradeEle = gradesEle.ele('Grade');
+            gradeEle.att('id', grade.id);
+            gradeEle.ele('Assignment', grade.assignmentName);
+            gradeEle.ele('Type', grade.assignmentType);
+            gradeEle.ele('Score', grade.score);
+            gradeEle.ele('Comments', grade.comments || '');
+            gradeEle.ele('GradedAt', grade.gradedAt.toISOString());
+          });
+        });
+        
+        const xml = root.end({ pretty: true });
+        
+        // Set Content-Type and Content-Disposition headers
+        res.setHeader('Content-Type', 'application/xml');
+        res.setHeader('Content-Disposition', `attachment; filename="class_${classId}_grades.xml"`);
+        
+        // Send the XML response
+        res.status(200).send(xml);
+      } else {
+        // Default to JSON response
+        res.status(200).json(studentGrades);
+      }
+    } catch (error) {
+      console.error("Error exporting grades:", error);
+      res.status(500).json({ message: "Server error exporting grades" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

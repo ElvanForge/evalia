@@ -2,7 +2,31 @@ import { pgTable, text, serial, integer, boolean, decimal, timestamp, primaryKey
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Teachers table
+// Schools table
+export const schools = pgTable("schools", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  phoneNumber: text("phone_number"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSchoolSchema = createInsertSchema(schools).omit({
+  id: true,
+  createdAt: true,
+});
+
+// User roles enumeration
+export const USER_ROLES = {
+  TEACHER: "teacher",
+  MANAGER: "manager",
+  ADMIN: "admin",
+} as const;
+
+// Teachers table (now with role and school fields)
 export const teachers = pgTable("teachers", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -11,6 +35,8 @@ export const teachers = pgTable("teachers", {
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   subject: text("subject"),
+  role: text("role").default(USER_ROLES.TEACHER),
+  schoolId: integer("school_id").references(() => schools.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -41,6 +67,7 @@ export const students = pgTable("students", {
   lastName: text("last_name").notNull(),
   email: text("email"),
   gradeLevel: text("grade_level"),
+  schoolId: integer("school_id").references(() => schools.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -119,6 +146,9 @@ export const insertGradeScaleEntrySchema = createInsertSchema(gradeScaleEntries)
 });
 
 // Export types
+export type School = typeof schools.$inferSelect;
+export type InsertSchool = z.infer<typeof insertSchoolSchema>;
+
 export type Teacher = typeof teachers.$inferSelect;
 export type InsertTeacher = z.infer<typeof insertTeacherSchema>;
 
