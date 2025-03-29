@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '@/components/layout';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 
 interface Question {
   question: string;
@@ -8,11 +9,28 @@ interface Question {
   correctAnswer: string;
 }
 
+interface Quiz {
+  id: number;
+  title: string;
+  classId: number | null;
+  gradeLevel?: string | null;
+  unit?: string;
+}
+
 export default function QuizDemo() {
   const [, navigate] = useLocation();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  
+  // Demo quiz data with grade level
+  const quizData: Quiz = {
+    id: 1,
+    title: "Speaking Test",
+    classId: 1,
+    gradeLevel: "6", // This would normally come from the class or student data
+    unit: "UNIT 6"
+  };
   
   // Demo quiz questions based on your provided example
   const questions: Question[] = [
@@ -44,17 +62,20 @@ export default function QuizDemo() {
     setIsComplete(true);
   }
 
+  // Format the quiz title dynamically based on grade level
+  const quizTitle = `Grade ${quizData.gradeLevel} ${quizData.title}`;
+
   if (isComplete) {
     const percentage = (score / questions.length) * 100;
     
     return (
       <Layout title="Quiz Demo">
         <div className="page-header">
-          <h1>Grade 4 Speaking Test</h1>
+          <h1>{quizTitle}</h1>
         </div>
         
         <div className="quiz-container">
-          <h2>UNIT 6 SPEAKING TEST</h2>
+          <h2>{quizData.unit} {quizData.title.toUpperCase()}</h2>
           <div id="score">
             Your score is {score} out of {questions.length} ({percentage.toFixed(2)}%)
           </div>
@@ -79,11 +100,11 @@ export default function QuizDemo() {
   return (
     <Layout title="Quiz Demo">
       <div className="page-header">
-        <h1>Grade 4 Speaking Test</h1>
+        <h1>{quizTitle}</h1>
       </div>
       
       <div className="quiz-container">
-        <h2>UNIT 6 SPEAKING TEST</h2>
+        <h2>{quizData.unit} {quizData.title.toUpperCase()}</h2>
         
         <div id="question-container">
           {currentQuestion.image && (

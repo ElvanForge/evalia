@@ -167,6 +167,17 @@ const QuizDetail = () => {
     },
   });
 
+  // Format the quiz title to include grade level if available
+  const getFormattedTitle = () => {
+    if (quiz?.classId && classes) {
+      const classInfo = classes.find(c => c.id === quiz.classId);
+      if (classInfo?.gradeLevel) {
+        return `Grade ${classInfo.gradeLevel} ${quiz.title}`;
+      }
+    }
+    return quiz?.title || "Quiz Detail";
+  };
+
   const onSubmit = (data: z.infer<typeof insertQuizSchema>) => {
     updateQuizMutation.mutate(data);
   };
@@ -200,7 +211,7 @@ const QuizDetail = () => {
   }
 
   return (
-    <Layout title={isEditing ? "Edit Quiz" : quiz.title}>
+    <Layout title={isEditing ? "Edit Quiz" : getFormattedTitle()}>
       <div className="space-y-6">
         {/* Add Question Dialog */}
         <QuestionFormDialog
@@ -221,7 +232,7 @@ const QuizDetail = () => {
         )}
         
         <PageHeader
-          title={isEditing ? "Edit Quiz" : quiz.title}
+          title={isEditing ? "Edit Quiz" : getFormattedTitle()}
           description={isEditing ? "Update quiz details" : quiz.description || "No description provided"}
           actions={
             isEditing ? (

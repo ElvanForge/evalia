@@ -56,13 +56,22 @@ const QuizPreview = () => {
         return acc;
       }, {} as Record<number, QuizOption[]>)
     : {};
+    
+  // Fetch class information if quiz is assigned to a class
+  const {
+    data: classInfo,
+    isLoading: isLoadingClass,
+  } = useQuery<Class>({
+    queryKey: [`/api/classes/${quiz?.classId}`],
+    enabled: !!quiz?.classId,
+  });
 
   const handleComplete = (correctAnswers: number, totalQuestions: number) => {
     setCompleted(true);
     setResults({ correctAnswers, totalQuestions });
   };
 
-  const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions;
+  const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || (quiz?.classId && isLoadingClass);
   const error = quizError || questionsError || optionsError;
 
   if (isLoading) {
@@ -95,11 +104,19 @@ const QuizPreview = () => {
     );
   }
 
+  // Format the quiz title to include grade level if available
+  const getFormattedTitle = () => {
+    if (quiz?.classId && classInfo?.gradeLevel) {
+      return `Grade ${classInfo.gradeLevel} ${quiz.title}`;
+    }
+    return quiz?.title || "Quiz Preview";
+  };
+
   return (
-    <Layout title={`Preview: ${quiz.title}`}>
+    <Layout title={`Preview: ${getFormattedTitle()}`}>
       <div className="space-y-6">
         <PageHeader
-          title={quiz.title}
+          title={getFormattedTitle()}
           description="Preview mode - results will not be saved"
           actions={
             <Button 
@@ -118,6 +135,7 @@ const QuizPreview = () => {
           options={options}
           onComplete={handleComplete}
           previewMode={true}
+          classInfo={classInfo}
         />
       </div>
     </Layout>

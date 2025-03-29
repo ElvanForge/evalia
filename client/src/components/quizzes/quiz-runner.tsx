@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, ArrowRight, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Quiz, QuizQuestion, QuizOption } from '@shared/schema';
+import { Quiz, QuizQuestion, QuizOption, Class } from '@shared/schema';
 
 interface QuizRunnerProps {
   quiz: Quiz;
@@ -9,6 +9,7 @@ interface QuizRunnerProps {
   options: Record<number, QuizOption[]>;
   onComplete: (correctAnswers: number, totalQuestions: number) => void;
   previewMode?: boolean;
+  classInfo?: Class; // Optional class information that contains grade level
 }
 
 export function QuizRunner({
@@ -16,7 +17,8 @@ export function QuizRunner({
   questions,
   options,
   onComplete,
-  previewMode = false
+  previewMode = false,
+  classInfo
 }: QuizRunnerProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -26,6 +28,14 @@ export function QuizRunner({
   );
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Create a dynamic title that includes grade level if available
+  const getFormattedTitle = () => {
+    if (classInfo?.gradeLevel) {
+      return `Grade ${classInfo.gradeLevel} ${quiz.title}`;
+    }
+    return quiz.title;
+  };
 
   // Setup timer
   useEffect(() => {
@@ -95,7 +105,7 @@ export function QuizRunner({
     
     return (
       <div className="page-header">
-        <h1>{quiz.title}</h1>
+        <h1>{getFormattedTitle()}</h1>
         <div className="quiz-container">
           <h2>Quiz Complete!</h2>
           <div id="score">
@@ -121,11 +131,11 @@ export function QuizRunner({
   return (
     <div>
       <div className="page-header">
-        <h1>{quiz.title}</h1>
+        <h1>{getFormattedTitle()}</h1>
       </div>
       
       <div className="quiz-container">
-        <h2>{quiz.title}</h2>
+        <h2>{getFormattedTitle()}</h2>
         
         {timeLeft !== null && (
           <div className="flex items-center justify-center mb-4 text-sm font-medium">

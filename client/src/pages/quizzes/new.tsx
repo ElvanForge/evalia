@@ -82,7 +82,7 @@ const CreateQuizForm = () => {
   };
 
   return (
-    <Layout title="Create Quiz">
+    <Layout title="Create New Quiz">
       <div className="space-y-6">
         <PageHeader
           title="Create New Quiz"
