@@ -44,9 +44,9 @@ export function StatsCard({
         <CardFooter className="bg-gray-50 px-5 py-3">
           <div className="text-sm">
             <Link href={link.href}>
-              <a className="font-medium text-blue-600 hover:text-blue-900">
+              <span className="font-medium text-blue-600 hover:text-blue-900 cursor-pointer">
                 {link.label}
-              </a>
+              </span>
             </Link>
           </div>
         </CardFooter>

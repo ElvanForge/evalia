@@ -19,7 +19,6 @@ interface ClassCardProps {
 export function ClassCard({ class: classData, onClick, className }: ClassCardProps) {
   return (
     <Link href={`/classes/${classData.id}`}>
-      <a>
         <Card 
           className={cn(
             "overflow-hidden shadow-sm rounded-md border border-gray-200 hover:border-blue-500 cursor-pointer", 
@@ -46,7 +45,6 @@ export function ClassCard({ class: classData, onClick, className }: ClassCardPro
             </div>
           </div>
         </Card>
-      </a>
     </Link>
   );
 }

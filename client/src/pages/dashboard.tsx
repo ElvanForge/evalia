@@ -256,11 +256,9 @@ export default function Dashboard() {
                   </div>
                   <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
                     <Link href="/grades/new">
-                      <a>
-                        <Button>
-                          Enter New Grades
-                        </Button>
-                      </a>
+                      <Button>
+                        Enter New Grades
+                      </Button>
                     </Link>
                   </div>
                 </div>
