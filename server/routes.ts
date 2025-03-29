@@ -1,6 +1,6 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage as dbStorage } from "./storage";
 import {
   teacherLoginSchema,
   insertTeacherSchema,
@@ -22,6 +22,9 @@ import { fromZodError } from "zod-validation-error";
 import express from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session middleware
@@ -73,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", validateRequest(teacherLoginSchema), async (req, res) => {
     try {
       const { username, password } = req.body;
-      const teacher = await storage.getTeacherByUsername(username);
+      const teacher = await dbStorage.getTeacherByUsername(username);
 
       if (!teacher || teacher.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -99,19 +102,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, email } = req.body;
       
       // Check if username or email already exists
-      const existingTeacherByUsername = await storage.getTeacherByUsername(username);
+      const existingTeacherByUsername = await dbStorage.getTeacherByUsername(username);
       if (existingTeacherByUsername) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const existingTeacherByEmail = await storage.getAllTeachers().then(
+      const existingTeacherByEmail = await dbStorage.getAllTeachers().then(
         teachers => teachers.find(t => t.email === email)
       );
       if (existingTeacherByEmail) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
-      const newTeacher = await storage.createTeacher(req.body);
+      const newTeacher = await dbStorage.createTeacher(req.body);
       
       // Store teacher ID in session
       req.session.teacherId = newTeacher.id;
@@ -143,7 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Not authenticated" });
       }
 
-      const teacher = await storage.getTeacher(req.session.teacherId);
+      const teacher = await dbStorage.getTeacher(req.session.teacherId);
       if (!teacher) {
         return res.status(404).json({ message: "Teacher not found" });
       }
@@ -160,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Teacher routes
   app.get("/api/teachers", requireAuth, async (req, res) => {
     try {
-      const teachers = await storage.getAllTeachers();
+      const teachers = await dbStorage.getAllTeachers();
       // Remove passwords from response
       const teachersWithoutPasswords = teachers.map(({ password: _, ...teacher }) => teacher);
       res.status(200).json(teachersWithoutPasswords);
@@ -174,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/classes", requireAuth, async (req, res) => {
     try {
       const teacherId = Number(req.session.teacherId);
-      const classes = await storage.getClassesByTeacher(teacherId);
+      const classes = await dbStorage.getClassesByTeacher(teacherId);
       res.status(200).json(classes);
     } catch (error) {
       console.error("Error fetching classes:", error);
@@ -185,7 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/classes", requireAuth, validateRequest(insertClassSchema), async (req, res) => {
     try {
       const teacherId = Number(req.session.teacherId);
-      const newClass = await storage.createClass({
+      const newClass = await dbStorage.createClass({
         ...req.body,
         teacherId
       });
@@ -199,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/classes/:id", requireAuth, async (req, res) => {
     try {
       const classId = Number(req.params.id);
-      const class_ = await storage.getClass(classId);
+      const class_ = await dbStorage.getClass(classId);
       
       if (!class_) {
         return res.status(404).json({ message: "Class not found" });
@@ -222,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const classId = Number(req.params.id);
       const teacherId = Number(req.session.teacherId);
       
-      const class_ = await storage.getClass(classId);
+      const class_ = await dbStorage.getClass(classId);
       if (!class_) {
         return res.status(404).json({ message: "Class not found" });
       }
@@ -231,7 +234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to update this class" });
       }
 
-      const updatedClass = await storage.updateClass(classId, req.body);
+      const updatedClass = await dbStorage.updateClass(classId, req.body);
       res.status(200).json(updatedClass);
     } catch (error) {
       console.error("Error updating class:", error);
@@ -244,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const classId = Number(req.params.id);
       const teacherId = Number(req.session.teacherId);
       
-      const class_ = await storage.getClass(classId);
+      const class_ = await dbStorage.getClass(classId);
       if (!class_) {
         return res.status(404).json({ message: "Class not found" });
       }
@@ -253,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to delete this class" });
       }
 
-      await storage.deleteClass(classId);
+      await dbStorage.deleteClass(classId);
       res.status(200).json({ message: "Class deleted successfully" });
     } catch (error) {
       console.error("Error deleting class:", error);
@@ -264,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Student routes
   app.get("/api/students", requireAuth, async (req, res) => {
     try {
-      const students = await storage.getAllStudents();
+      const students = await dbStorage.getAllStudents();
       res.status(200).json(students);
     } catch (error) {
       console.error("Error fetching students:", error);
@@ -274,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/students", requireAuth, validateRequest(insertStudentSchema), async (req, res) => {
     try {
-      const newStudent = await storage.createStudent(req.body);
+      const newStudent = await dbStorage.createStudent(req.body);
       res.status(201).json(newStudent);
     } catch (error) {
       console.error("Error creating student:", error);
@@ -285,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/students/:id", requireAuth, async (req, res) => {
     try {
       const studentId = Number(req.params.id);
-      const student = await storage.getStudent(studentId);
+      const student = await dbStorage.getStudent(studentId);
       
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
@@ -301,13 +304,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/students/:id", requireAuth, validateRequest(insertStudentSchema.partial()), async (req, res) => {
     try {
       const studentId = Number(req.params.id);
-      const student = await storage.getStudent(studentId);
+      const student = await dbStorage.getStudent(studentId);
       
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
 
-      const updatedStudent = await storage.updateStudent(studentId, req.body);
+      const updatedStudent = await dbStorage.updateStudent(studentId, req.body);
       res.status(200).json(updatedStudent);
     } catch (error) {
       console.error("Error updating student:", error);
@@ -318,13 +321,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/students/:id", requireAuth, async (req, res) => {
     try {
       const studentId = Number(req.params.id);
-      const student = await storage.getStudent(studentId);
+      const student = await dbStorage.getStudent(studentId);
       
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
 
-      await storage.deleteStudent(studentId);
+      await dbStorage.deleteStudent(studentId);
       res.status(200).json({ message: "Student deleted successfully" });
     } catch (error) {
       console.error("Error deleting student:", error);
@@ -339,12 +342,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const classId = Number(req.body.classId);
       
       // Verify the class belongs to the teacher
-      const class_ = await storage.getClass(classId);
+      const class_ = await dbStorage.getClass(classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to enroll students in this class" });
       }
 
-      const enrollment = await storage.enrollStudent(req.body);
+      const enrollment = await dbStorage.enrollStudent(req.body);
       res.status(201).json(enrollment);
     } catch (error) {
       console.error("Error enrolling student:", error);
@@ -359,12 +362,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const classId = Number(req.params.classId);
       
       // Verify the class belongs to the teacher
-      const class_ = await storage.getClass(classId);
+      const class_ = await dbStorage.getClass(classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to unenroll students from this class" });
       }
 
-      await storage.unenrollStudent(studentId, classId);
+      await dbStorage.unenrollStudent(studentId, classId);
       res.status(200).json({ message: "Student unenrolled successfully" });
     } catch (error) {
       console.error("Error unenrolling student:", error);
@@ -378,12 +381,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const classId = Number(req.params.id);
       
       // Verify the class belongs to the teacher
-      const class_ = await storage.getClass(classId);
+      const class_ = await dbStorage.getClass(classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to view students in this class" });
       }
 
-      const students = await storage.getStudentsByClass(classId);
+      const students = await dbStorage.getStudentsByClass(classId);
       res.status(200).json(students);
     } catch (error) {
       console.error("Error fetching class students:", error);
@@ -399,22 +402,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (classId) {
         // Verify the class belongs to the teacher
-        const class_ = await storage.getClass(classId);
+        const class_ = await dbStorage.getClass(classId);
         if (!class_ || class_.teacherId !== teacherId) {
           return res.status(403).json({ message: "Not authorized to view assignments for this class" });
         }
         
-        const assignments = await storage.getAssignmentsByClass(classId);
+        const assignments = await dbStorage.getAssignmentsByClass(classId);
         return res.status(200).json(assignments);
       }
       
       // If no classId is provided, return all assignments for all classes belonging to the teacher
-      const classes = await storage.getClassesByTeacher(teacherId);
+      const classes = await dbStorage.getClassesByTeacher(teacherId);
       const classIds = classes.map(c => c.id);
       
       const assignments = [];
       for (const classId of classIds) {
-        const classAssignments = await storage.getAssignmentsByClass(classId);
+        const classAssignments = await dbStorage.getAssignmentsByClass(classId);
         assignments.push(...classAssignments);
       }
       
@@ -431,12 +434,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const classId = Number(req.body.classId);
       
       // Verify the class belongs to the teacher
-      const class_ = await storage.getClass(classId);
+      const class_ = await dbStorage.getClass(classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to create assignments for this class" });
       }
 
-      const newAssignment = await storage.createAssignment(req.body);
+      const newAssignment = await dbStorage.createAssignment(req.body);
       res.status(201).json(newAssignment);
     } catch (error) {
       console.error("Error creating assignment:", error);
@@ -449,13 +452,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const assignmentId = Number(req.params.id);
       
-      const assignment = await storage.getAssignment(assignmentId);
+      const assignment = await dbStorage.getAssignment(assignmentId);
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
       
       // Verify the assignment's class belongs to the teacher
-      const class_ = await storage.getClass(assignment.classId);
+      const class_ = await dbStorage.getClass(assignment.classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to view this assignment" });
       }
@@ -472,18 +475,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const assignmentId = Number(req.params.id);
       
-      const assignment = await storage.getAssignment(assignmentId);
+      const assignment = await dbStorage.getAssignment(assignmentId);
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
       
       // Verify the assignment's class belongs to the teacher
-      const class_ = await storage.getClass(assignment.classId);
+      const class_ = await dbStorage.getClass(assignment.classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this assignment" });
       }
 
-      const updatedAssignment = await storage.updateAssignment(assignmentId, req.body);
+      const updatedAssignment = await dbStorage.updateAssignment(assignmentId, req.body);
       res.status(200).json(updatedAssignment);
     } catch (error) {
       console.error("Error updating assignment:", error);
@@ -496,18 +499,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const assignmentId = Number(req.params.id);
       
-      const assignment = await storage.getAssignment(assignmentId);
+      const assignment = await dbStorage.getAssignment(assignmentId);
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
       
       // Verify the assignment's class belongs to the teacher
-      const class_ = await storage.getClass(assignment.classId);
+      const class_ = await dbStorage.getClass(assignment.classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to delete this assignment" });
       }
 
-      await storage.deleteAssignment(assignmentId);
+      await dbStorage.deleteAssignment(assignmentId);
       res.status(200).json({ message: "Assignment deleted successfully" });
     } catch (error) {
       console.error("Error deleting assignment:", error);
@@ -525,39 +528,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If assignmentId is provided, verify the assignment's class belongs to the teacher
       if (assignmentId) {
-        const assignment = await storage.getAssignment(assignmentId);
+        const assignment = await dbStorage.getAssignment(assignmentId);
         if (!assignment) {
           return res.status(404).json({ message: "Assignment not found" });
         }
         
-        const class_ = await storage.getClass(assignment.classId);
+        const class_ = await dbStorage.getClass(assignment.classId);
         if (!class_ || class_.teacherId !== teacherId) {
           return res.status(403).json({ message: "Not authorized to view grades for this assignment" });
         }
         
-        const grades = await storage.getGradesByAssignment(assignmentId);
+        const grades = await dbStorage.getGradesByAssignment(assignmentId);
         return res.status(200).json(grades);
       }
       
       // If classId and studentId are provided, verify the class belongs to the teacher
       if (classId && studentId) {
-        const class_ = await storage.getClass(classId);
+        const class_ = await dbStorage.getClass(classId);
         if (!class_ || class_.teacherId !== teacherId) {
           return res.status(403).json({ message: "Not authorized to view grades for this class" });
         }
         
-        const grades = await storage.getGradesByStudentAndClass(studentId, classId);
+        const grades = await dbStorage.getGradesByStudentAndClass(studentId, classId);
         return res.status(200).json(grades);
       }
       
       // If only studentId is provided, verify the student is in one of the teacher's classes
       if (studentId) {
-        const classes = await storage.getClassesByTeacher(teacherId);
+        const classes = await dbStorage.getClassesByTeacher(teacherId);
         const classIds = classes.map(c => c.id);
         
         const grades = [];
         for (const classId of classIds) {
-          const classGrades = await storage.getGradesByStudentAndClass(studentId, classId);
+          const classGrades = await dbStorage.getGradesByStudentAndClass(studentId, classId);
           grades.push(...classGrades);
         }
         
@@ -566,17 +569,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If only classId is provided, verify the class belongs to the teacher
       if (classId) {
-        const class_ = await storage.getClass(classId);
+        const class_ = await dbStorage.getClass(classId);
         if (!class_ || class_.teacherId !== teacherId) {
           return res.status(403).json({ message: "Not authorized to view grades for this class" });
         }
         
-        const assignments = await storage.getAssignmentsByClass(classId);
+        const assignments = await dbStorage.getAssignmentsByClass(classId);
         const assignmentIds = assignments.map(a => a.id);
         
         const grades = [];
         for (const assignmentId of assignmentIds) {
-          const assignmentGrades = await storage.getGradesByAssignment(assignmentId);
+          const assignmentGrades = await dbStorage.getGradesByAssignment(assignmentId);
           grades.push(...assignmentGrades);
         }
         
@@ -587,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = req.query.limit ? Number(req.query.limit) : 10;
       const offset = req.query.offset ? Number(req.query.offset) : 0;
       
-      const recentGrades = await storage.getRecentGrades(limit, offset);
+      const recentGrades = await dbStorage.getRecentGrades(limit, offset);
       res.status(200).json(recentGrades);
     } catch (error) {
       console.error("Error fetching grades:", error);
@@ -601,17 +604,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const assignmentId = Number(req.body.assignmentId);
       
       // Verify the assignment's class belongs to the teacher
-      const assignment = await storage.getAssignment(assignmentId);
+      const assignment = await dbStorage.getAssignment(assignmentId);
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
       
-      const class_ = await storage.getClass(assignment.classId);
+      const class_ = await dbStorage.getClass(assignment.classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to create grades for this assignment" });
       }
 
-      const newGrade = await storage.createGrade(req.body);
+      const newGrade = await dbStorage.createGrade(req.body);
       res.status(201).json(newGrade);
     } catch (error) {
       console.error("Error creating grade:", error);
@@ -624,23 +627,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const gradeId = Number(req.params.id);
       
-      const grade = await storage.getGrade(gradeId);
+      const grade = await dbStorage.getGrade(gradeId);
       if (!grade) {
         return res.status(404).json({ message: "Grade not found" });
       }
       
       // Verify the grade's assignment's class belongs to the teacher
-      const assignment = await storage.getAssignment(grade.assignmentId);
+      const assignment = await dbStorage.getAssignment(grade.assignmentId);
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
       
-      const class_ = await storage.getClass(assignment.classId);
+      const class_ = await dbStorage.getClass(assignment.classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this grade" });
       }
 
-      const updatedGrade = await storage.updateGrade(gradeId, req.body);
+      const updatedGrade = await dbStorage.updateGrade(gradeId, req.body);
       res.status(200).json(updatedGrade);
     } catch (error) {
       console.error("Error updating grade:", error);
@@ -653,23 +656,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const gradeId = Number(req.params.id);
       
-      const grade = await storage.getGrade(gradeId);
+      const grade = await dbStorage.getGrade(gradeId);
       if (!grade) {
         return res.status(404).json({ message: "Grade not found" });
       }
       
       // Verify the grade's assignment's class belongs to the teacher
-      const assignment = await storage.getAssignment(grade.assignmentId);
+      const assignment = await dbStorage.getAssignment(grade.assignmentId);
       if (!assignment) {
         return res.status(404).json({ message: "Assignment not found" });
       }
       
-      const class_ = await storage.getClass(assignment.classId);
+      const class_ = await dbStorage.getClass(assignment.classId);
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to delete this grade" });
       }
 
-      await storage.deleteGrade(gradeId);
+      await dbStorage.deleteGrade(gradeId);
       res.status(200).json({ message: "Grade deleted successfully" });
     } catch (error) {
       console.error("Error deleting grade:", error);
@@ -681,7 +684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/grade-scales", requireAuth, async (req, res) => {
     try {
       const teacherId = Number(req.session.teacherId);
-      const gradeScales = await storage.getGradeScalesByTeacher(teacherId);
+      const gradeScales = await dbStorage.getGradeScalesByTeacher(teacherId);
       res.status(200).json(gradeScales);
     } catch (error) {
       console.error("Error fetching grade scales:", error);
@@ -692,7 +695,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/grade-scales", requireAuth, validateRequest(insertGradeScaleSchema), async (req, res) => {
     try {
       const teacherId = Number(req.session.teacherId);
-      const newGradeScale = await storage.createGradeScale({
+      const newGradeScale = await dbStorage.createGradeScale({
         ...req.body,
         teacherId
       });
@@ -708,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const scaleId = Number(req.params.id);
       
-      const gradeScale = await storage.getGradeScale(scaleId);
+      const gradeScale = await dbStorage.getGradeScale(scaleId);
       if (!gradeScale) {
         return res.status(404).json({ message: "Grade scale not found" });
       }
@@ -729,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const scaleId = Number(req.params.id);
       
-      const gradeScale = await storage.getGradeScale(scaleId);
+      const gradeScale = await dbStorage.getGradeScale(scaleId);
       if (!gradeScale) {
         return res.status(404).json({ message: "Grade scale not found" });
       }
@@ -738,7 +741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to update this grade scale" });
       }
 
-      const updatedGradeScale = await storage.updateGradeScale(scaleId, req.body);
+      const updatedGradeScale = await dbStorage.updateGradeScale(scaleId, req.body);
       res.status(200).json(updatedGradeScale);
     } catch (error) {
       console.error("Error updating grade scale:", error);
@@ -751,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const scaleId = Number(req.params.id);
       
-      const gradeScale = await storage.getGradeScale(scaleId);
+      const gradeScale = await dbStorage.getGradeScale(scaleId);
       if (!gradeScale) {
         return res.status(404).json({ message: "Grade scale not found" });
       }
@@ -760,7 +763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to delete this grade scale" });
       }
 
-      await storage.deleteGradeScale(scaleId);
+      await dbStorage.deleteGradeScale(scaleId);
       res.status(200).json({ message: "Grade scale deleted successfully" });
     } catch (error) {
       console.error("Error deleting grade scale:", error);
@@ -774,7 +777,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const scaleId = Number(req.params.id);
       
-      const gradeScale = await storage.getGradeScale(scaleId);
+      const gradeScale = await dbStorage.getGradeScale(scaleId);
       if (!gradeScale) {
         return res.status(404).json({ message: "Grade scale not found" });
       }
@@ -783,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to view entries for this grade scale" });
       }
 
-      const entries = await storage.getGradeScaleEntries(scaleId);
+      const entries = await dbStorage.getGradeScaleEntries(scaleId);
       res.status(200).json(entries);
     } catch (error) {
       console.error("Error fetching grade scale entries:", error);
@@ -796,7 +799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const scaleId = Number(req.body.scaleId);
       
-      const gradeScale = await storage.getGradeScale(scaleId);
+      const gradeScale = await dbStorage.getGradeScale(scaleId);
       if (!gradeScale) {
         return res.status(404).json({ message: "Grade scale not found" });
       }
@@ -805,7 +808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to create entries for this grade scale" });
       }
 
-      const newEntry = await storage.createGradeScaleEntry(req.body);
+      const newEntry = await dbStorage.createGradeScaleEntry(req.body);
       res.status(201).json(newEntry);
     } catch (error) {
       console.error("Error creating grade scale entry:", error);
@@ -818,7 +821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const entryId = Number(req.params.id);
       
-      const entry = await storage.getGradeScaleEntries(0).then(
+      const entry = await dbStorage.getGradeScaleEntries(0).then(
         entries => entries.find(e => e.id === entryId)
       );
       
@@ -826,12 +829,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Grade scale entry not found" });
       }
       
-      const gradeScale = await storage.getGradeScale(entry.scaleId);
+      const gradeScale = await dbStorage.getGradeScale(entry.scaleId);
       if (!gradeScale || gradeScale.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this grade scale entry" });
       }
 
-      const updatedEntry = await storage.updateGradeScaleEntry(entryId, req.body);
+      const updatedEntry = await dbStorage.updateGradeScaleEntry(entryId, req.body);
       res.status(200).json(updatedEntry);
     } catch (error) {
       console.error("Error updating grade scale entry:", error);
@@ -844,7 +847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const entryId = Number(req.params.id);
       
-      const entry = await storage.getGradeScaleEntries(0).then(
+      const entry = await dbStorage.getGradeScaleEntries(0).then(
         entries => entries.find(e => e.id === entryId)
       );
       
@@ -852,12 +855,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Grade scale entry not found" });
       }
       
-      const gradeScale = await storage.getGradeScale(entry.scaleId);
+      const gradeScale = await dbStorage.getGradeScale(entry.scaleId);
       if (!gradeScale || gradeScale.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to delete this grade scale entry" });
       }
 
-      await storage.deleteGradeScaleEntry(entryId);
+      await dbStorage.deleteGradeScaleEntry(entryId);
       res.status(200).json({ message: "Grade scale entry deleted successfully" });
     } catch (error) {
       console.error("Error deleting grade scale entry:", error);
@@ -869,7 +872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {
       const teacherId = Number(req.session.teacherId);
-      const stats = await storage.getDashboardStats(teacherId);
+      const stats = await dbStorage.getDashboardStats(teacherId);
       res.status(200).json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -886,13 +889,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let quizzes;
       if (classId) {
         // Verify the class belongs to the teacher
-        const class_ = await storage.getClass(classId);
+        const class_ = await dbStorage.getClass(classId);
         if (!class_ || class_.teacherId !== teacherId) {
           return res.status(403).json({ message: "Not authorized to view quizzes for this class" });
         }
-        quizzes = await storage.getQuizzesByClass(classId);
+        quizzes = await dbStorage.getQuizzesByClass(classId);
       } else {
-        quizzes = await storage.getQuizzesByTeacher(teacherId);
+        quizzes = await dbStorage.getQuizzesByTeacher(teacherId);
       }
       
       res.status(200).json(quizzes);
@@ -909,13 +912,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If a classId is provided, verify it belongs to the teacher
       if (req.body.classId) {
         const classId = Number(req.body.classId);
-        const class_ = await storage.getClass(classId);
+        const class_ = await dbStorage.getClass(classId);
         if (!class_ || class_.teacherId !== teacherId) {
           return res.status(403).json({ message: "Not authorized to create quizzes for this class" });
         }
       }
       
-      const newQuiz = await storage.createQuiz({
+      const newQuiz = await dbStorage.createQuiz({
         ...req.body,
         teacherId
       });
@@ -932,7 +935,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const quizId = Number(req.params.id);
       
-      const quiz = await storage.getQuiz(quizId);
+      const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
         return res.status(404).json({ message: "Quiz not found" });
       }
@@ -953,7 +956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const quizId = Number(req.params.id);
       
-      const quiz = await storage.getQuiz(quizId);
+      const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
         return res.status(404).json({ message: "Quiz not found" });
       }
@@ -962,7 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to update this quiz" });
       }
       
-      const updatedQuiz = await storage.updateQuiz(quizId, req.body);
+      const updatedQuiz = await dbStorage.updateQuiz(quizId, req.body);
       res.status(200).json(updatedQuiz);
     } catch (error) {
       console.error("Error updating quiz:", error);
@@ -975,7 +978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const quizId = Number(req.params.id);
       
-      const quiz = await storage.getQuiz(quizId);
+      const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
         return res.status(404).json({ message: "Quiz not found" });
       }
@@ -984,7 +987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to delete this quiz" });
       }
       
-      await storage.deleteQuiz(quizId);
+      await dbStorage.deleteQuiz(quizId);
       res.status(200).json({ message: "Quiz deleted successfully" });
     } catch (error) {
       console.error("Error deleting quiz:", error);
@@ -998,7 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const quizId = Number(req.params.quizId);
       
-      const quiz = await storage.getQuiz(quizId);
+      const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
         return res.status(404).json({ message: "Quiz not found" });
       }
@@ -1007,7 +1010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to view questions for this quiz" });
       }
       
-      const questions = await storage.getQuizQuestionsByQuiz(quizId);
+      const questions = await dbStorage.getQuizQuestionsByQuiz(quizId);
       res.status(200).json(questions);
     } catch (error) {
       console.error("Error fetching quiz questions:", error);
@@ -1020,7 +1023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const quizId = Number(req.params.quizId);
       
-      const quiz = await storage.getQuiz(quizId);
+      const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
         return res.status(404).json({ message: "Quiz not found" });
       }
@@ -1029,7 +1032,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to add questions to this quiz" });
       }
       
-      const newQuestion = await storage.createQuizQuestion({
+      const newQuestion = await dbStorage.createQuizQuestion({
         ...req.body,
         quizId
       });
@@ -1046,17 +1049,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const questionId = Number(req.params.id);
       
-      const question = await storage.getQuizQuestion(questionId);
+      const question = await dbStorage.getQuizQuestion(questionId);
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
       
-      const quiz = await storage.getQuiz(question.quizId);
+      const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this question" });
       }
       
-      const updatedQuestion = await storage.updateQuizQuestion(questionId, req.body);
+      const updatedQuestion = await dbStorage.updateQuizQuestion(questionId, req.body);
       res.status(200).json(updatedQuestion);
     } catch (error) {
       console.error("Error updating quiz question:", error);
@@ -1069,17 +1072,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const questionId = Number(req.params.id);
       
-      const question = await storage.getQuizQuestion(questionId);
+      const question = await dbStorage.getQuizQuestion(questionId);
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
       
-      const quiz = await storage.getQuiz(question.quizId);
+      const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to delete this question" });
       }
       
-      await storage.deleteQuizQuestion(questionId);
+      await dbStorage.deleteQuizQuestion(questionId);
       res.status(200).json({ message: "Question deleted successfully" });
     } catch (error) {
       console.error("Error deleting quiz question:", error);
@@ -1093,17 +1096,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const questionId = Number(req.params.questionId);
       
-      const question = await storage.getQuizQuestion(questionId);
+      const question = await dbStorage.getQuizQuestion(questionId);
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
       
-      const quiz = await storage.getQuiz(question.quizId);
+      const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to view options for this question" });
       }
       
-      const options = await storage.getQuizOptionsByQuestion(questionId);
+      const options = await dbStorage.getQuizOptionsByQuestion(questionId);
       res.status(200).json(options);
     } catch (error) {
       console.error("Error fetching quiz options:", error);
@@ -1116,17 +1119,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const questionId = Number(req.params.questionId);
       
-      const question = await storage.getQuizQuestion(questionId);
+      const question = await dbStorage.getQuizQuestion(questionId);
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
       
-      const quiz = await storage.getQuiz(question.quizId);
+      const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to add options to this question" });
       }
       
-      const newOption = await storage.createQuizOption({
+      const newOption = await dbStorage.createQuizOption({
         ...req.body,
         questionId
       });
@@ -1143,22 +1146,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const optionId = Number(req.params.id);
       
-      const option = await storage.getQuizOption(optionId);
+      const option = await dbStorage.getQuizOption(optionId);
       if (!option) {
         return res.status(404).json({ message: "Option not found" });
       }
       
-      const question = await storage.getQuizQuestion(option.questionId);
+      const question = await dbStorage.getQuizQuestion(option.questionId);
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
       
-      const quiz = await storage.getQuiz(question.quizId);
+      const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this option" });
       }
       
-      const updatedOption = await storage.updateQuizOption(optionId, req.body);
+      const updatedOption = await dbStorage.updateQuizOption(optionId, req.body);
       res.status(200).json(updatedOption);
     } catch (error) {
       console.error("Error updating quiz option:", error);
@@ -1171,22 +1174,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const optionId = Number(req.params.id);
       
-      const option = await storage.getQuizOption(optionId);
+      const option = await dbStorage.getQuizOption(optionId);
       if (!option) {
         return res.status(404).json({ message: "Option not found" });
       }
       
-      const question = await storage.getQuizQuestion(option.questionId);
+      const question = await dbStorage.getQuizQuestion(option.questionId);
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
       
-      const quiz = await storage.getQuiz(question.quizId);
+      const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to delete this option" });
       }
       
-      await storage.deleteQuizOption(optionId);
+      await dbStorage.deleteQuizOption(optionId);
       res.status(200).json({ message: "Option deleted successfully" });
     } catch (error) {
       console.error("Error deleting quiz option:", error);
@@ -1200,7 +1203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const quizId = Number(req.params.quizId);
       
-      const quiz = await storage.getQuiz(quizId);
+      const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
         return res.status(404).json({ message: "Quiz not found" });
       }
@@ -1209,7 +1212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to view submissions for this quiz" });
       }
       
-      const submissions = await storage.getQuizSubmissionsByQuiz(quizId);
+      const submissions = await dbStorage.getQuizSubmissionsByQuiz(quizId);
       res.status(200).json(submissions);
     } catch (error) {
       console.error("Error fetching quiz submissions:", error);
@@ -1223,7 +1226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quizId = Number(req.params.quizId);
       const studentId = Number(req.body.studentId);
       
-      const quiz = await storage.getQuiz(quizId);
+      const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
         return res.status(404).json({ message: "Quiz not found" });
       }
@@ -1234,7 +1237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Create the submission
-      const newSubmission = await storage.createQuizSubmission({
+      const newSubmission = await dbStorage.createQuizSubmission({
         quizId,
         studentId,
         startedAt: new Date()
@@ -1252,7 +1255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const submissionId = Number(req.params.id);
       
-      const submission = await storage.getQuizSubmission(submissionId);
+      const submission = await dbStorage.getQuizSubmission(submissionId);
       if (!submission) {
         return res.status(404).json({ message: "Submission not found" });
       }
@@ -1262,7 +1265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "This submission is already completed" });
       }
       
-      const updatedSubmission = await storage.updateQuizSubmission(submissionId, {
+      const updatedSubmission = await dbStorage.updateQuizSubmission(submissionId, {
         ...req.body,
         completedAt: new Date() // Set completion time
       });
@@ -1280,7 +1283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const submissionId = Number(req.params.submissionId);
       
-      const submission = await storage.getQuizSubmission(submissionId);
+      const submission = await dbStorage.getQuizSubmission(submissionId);
       if (!submission) {
         return res.status(404).json({ message: "Submission not found" });
       }
@@ -1291,7 +1294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const questionId = Number(req.body.questionId);
-      const question = await storage.getQuizQuestion(questionId);
+      const question = await dbStorage.getQuizQuestion(questionId);
       if (!question) {
         return res.status(404).json({ message: "Question not found" });
       }
@@ -1299,13 +1302,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For multiple choice questions, check if the answer is correct
       let isCorrect = false;
       if (req.body.selectedOptionId) {
-        const option = await storage.getQuizOption(Number(req.body.selectedOptionId));
+        const option = await dbStorage.getQuizOption(Number(req.body.selectedOptionId));
         if (option && option.isCorrect) {
           isCorrect = true;
         }
       }
       
-      const newAnswer = await storage.createQuizAnswer({
+      const newAnswer = await dbStorage.createQuizAnswer({
         ...req.body,
         submissionId,
         isCorrect
@@ -1323,7 +1326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const submissionId = Number(req.params.submissionId);
       
-      const submission = await storage.getQuizSubmission(submissionId);
+      const submission = await dbStorage.getQuizSubmission(submissionId);
       if (!submission) {
         return res.status(404).json({ message: "Submission not found" });
       }
@@ -1331,14 +1334,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If a teacher is requesting, check authorization
       if (req.session.teacherId) {
         const teacherId = Number(req.session.teacherId);
-        const quiz = await storage.getQuiz(submission.quizId);
+        const quiz = await dbStorage.getQuiz(submission.quizId);
         
         if (quiz && quiz.teacherId !== teacherId) {
           return res.status(403).json({ message: "Not authorized to view answers for this submission" });
         }
       }
       
-      const answers = await storage.getQuizAnswersBySubmission(submissionId);
+      const answers = await dbStorage.getQuizAnswersBySubmission(submissionId);
       res.status(200).json(answers);
     } catch (error) {
       console.error("Error fetching quiz answers:", error);
@@ -1352,28 +1355,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const teacherId = Number(req.session.teacherId);
       const answerId = Number(req.params.id);
       
-      const answer = await storage.getQuizAnswer(answerId);
+      const answer = await dbStorage.getQuizAnswer(answerId);
       if (!answer) {
         return res.status(404).json({ message: "Answer not found" });
       }
       
-      const submission = await storage.getQuizSubmission(answer.submissionId);
+      const submission = await dbStorage.getQuizSubmission(answer.submissionId);
       if (!submission) {
         return res.status(404).json({ message: "Submission not found" });
       }
       
-      const quiz = await storage.getQuiz(submission.quizId);
+      const quiz = await dbStorage.getQuiz(submission.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this answer" });
       }
       
-      const updatedAnswer = await storage.updateQuizAnswer(answerId, req.body);
+      const updatedAnswer = await dbStorage.updateQuizAnswer(answerId, req.body);
       res.status(200).json(updatedAnswer);
     } catch (error) {
       console.error("Error updating quiz answer:", error);
       res.status(500).json({ message: "Server error updating quiz answer" });
     }
   });
+
+  // Configure multer for file upload
+  const uploadDir = './uploads/images';
+  
+  // Ensure upload directory exists
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+  
+  const multerStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const fileExt = path.extname(file.originalname);
+      cb(null, 'image-' + uniqueSuffix + fileExt);
+    }
+  });
+  
+  const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    // Accept only images
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  };
+  
+  const upload = multer({ 
+    storage: multerStorage,
+    fileFilter: fileFilter,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB max file size
+    }
+  });
+  
+  // Image upload endpoint for quiz questions
+  app.post('/api/upload/image', upload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+      
+      // Return the file path that can be used in the frontend
+      const imageUrl = `/uploads/images/${req.file.filename}`;
+      
+      res.status(200).json({ 
+        message: 'File uploaded successfully',
+        imageUrl: imageUrl
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      res.status(500).json({ message: 'Failed to upload file' });
+    }
+  });
+  
+  // Static file serving from uploads directory
+  app.use('/uploads', express.static('uploads'));
 
   const httpServer = createServer(app);
   return httpServer;

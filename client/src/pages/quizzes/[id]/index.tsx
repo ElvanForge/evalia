@@ -28,6 +28,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { QuestionFormDialog } from "@/components/quizzes/question-form-dialog";
 import { 
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
@@ -201,6 +202,24 @@ const QuizDetail = () => {
   return (
     <Layout title={isEditing ? "Edit Quiz" : quiz.title}>
       <div className="space-y-6">
+        {/* Add Question Dialog */}
+        <QuestionFormDialog
+          open={isAddingQuestion}
+          onOpenChange={setIsAddingQuestion}
+          quizId={parseInt(id as string)}
+          questionToEdit={null}
+        />
+        
+        {/* Edit Question Dialog */}
+        {editingQuestion && (
+          <QuestionFormDialog
+            open={!!editingQuestion}
+            onOpenChange={(open) => !open && setEditingQuestion(null)}
+            quizId={parseInt(id as string)}
+            questionToEdit={editingQuestion}
+          />
+        )}
+        
         <PageHeader
           title={isEditing ? "Edit Quiz" : quiz.title}
           description={isEditing ? "Update quiz details" : quiz.description || "No description provided"}
