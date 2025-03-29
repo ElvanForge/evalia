@@ -91,18 +91,29 @@ export function QuestionFormDialog({
     const fetchOptions = async () => {
       if (questionToEdit) {
         try {
-          const response = await fetch(`/api/quizzes/${quizId}/questions/${questionToEdit.id}/options`);
+          console.log(`Fetching options for question ${questionToEdit.id} in quiz ${quizId}`);
+          
+          // First try the newer endpoint format
+          const response = await fetch(`/api/quiz-questions/${questionToEdit.id}/options`);
+          
           if (response.ok) {
             const data = await response.json();
+            console.log(`Received options for question ${questionToEdit.id}:`, data);
+            
             const formattedOptions = data.map((option: any) => ({
               text: option.text,
               isCorrect: option.isCorrect
             }));
             
             if (formattedOptions.length > 0) {
+              console.log(`Setting ${formattedOptions.length} options from API`);
               setOptions(formattedOptions);
               form.setValue("questionOptions", formattedOptions);
+            } else {
+              console.log("No options found for the question, keeping defaults");
             }
+          } else {
+            console.error("Error fetching question options:", await response.text());
           }
         } catch (error) {
           console.error("Error fetching question options:", error);
@@ -219,20 +230,43 @@ export function QuestionFormDialog({
             continue;
           }
           
-          const response = await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`, {
+          // Try the newer endpoint format
+          const endpoint = `/api/quiz-questions/${question.id}/options`;
+          console.log(`Creating option for question ${question.id} using endpoint: ${endpoint}`);
+          
+          const optionData = {
+            questionId: question.id,
+            text: option.text,
+            isCorrect: option.isCorrect,
+          };
+          console.log("Option data:", optionData);
+          
+          const response = await fetch(endpoint, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              questionId: question.id,
-              text: option.text,
-              isCorrect: option.isCorrect,
-            }),
+            body: JSON.stringify(optionData),
           });
           
           if (!response.ok) {
             console.error("Failed to create option:", await response.text());
+            
+            // Try fallback to the older endpoint format
+            console.log("Trying fallback endpoint");
+            const fallbackResponse = await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(optionData),
+            });
+            
+            if (!fallbackResponse.ok) {
+              console.error("Fallback also failed:", await fallbackResponse.text());
+            } else {
+              console.log("Successfully created option using fallback endpoint:", option.text);
+            }
           } else {
             console.log("Successfully created option:", option.text);
           }
@@ -247,8 +281,16 @@ export function QuestionFormDialog({
           : "The question has been added to the quiz.",
       });
 
+      // Invalidate all quiz-related queries
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}/questions`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}/options`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/quiz-questions`] });
+      
+      // Explicitly invalidate the options for this question
+      if (question && question.id) {
+        console.log(`Invalidating cache for question options: ${question.id}`);
+        queryClient.invalidateQueries({ queryKey: [`/api/quiz-questions/${question.id}/options`] });
+      }
       
       // Close the dialog
       onOpenChange(false);

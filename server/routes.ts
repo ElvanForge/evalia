@@ -1372,26 +1372,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const quizId = Number(req.params.quizId);
+      console.log(`Fetching all options for quiz ${quizId} by teacher ${teacherId}`);
       
       const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
+        console.log(`Quiz ${quizId} not found`);
         return res.status(404).json({ message: "Quiz not found" });
       }
       
       if (quiz.teacherId !== teacherId) {
+        console.log(`Teacher ${teacherId} not authorized for quiz ${quizId} (owned by ${quiz.teacherId})`);
         return res.status(403).json({ message: "Not authorized to view options for this quiz" });
       }
       
       // Get all questions for this quiz
       const questions = await dbStorage.getQuizQuestionsByQuiz(quizId);
+      console.log(`Found ${questions.length} questions for quiz ${quizId}`);
       
       // For each question, get the options and organize by question ID
       const optionsByQuestion: Record<string, any[]> = {};
       for (const question of questions) {
+        console.log(`Fetching options for question ${question.id}`);
         const questionOptions = await dbStorage.getQuizOptionsByQuestion(question.id);
+        console.log(`Found ${questionOptions.length} options for question ${question.id}`);
         optionsByQuestion[question.id] = questionOptions;
       }
       
+      console.log(`Returning options by question:`, optionsByQuestion);
       res.status(200).json(optionsByQuestion);
     } catch (error) {
       console.error("Error fetching quiz options:", error);
