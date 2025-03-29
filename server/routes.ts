@@ -373,14 +373,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const classId = Number(req.params.id);
+      if (isNaN(classId) || classId <= 0) {
+        return res.status(400).json({ message: "Invalid class ID" });
+      }
       
       // Verify the class belongs to the teacher
       const class_ = await dbStorage.getClass(classId);
-      if (!class_ || class_.teacherId !== teacherId) {
+      if (!class_) {
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to view students in this class" });
       }
 
+      // Check student enrollments
+      const enrollments = await dbStorage.getEnrollments(classId);
+      console.log(`Found ${enrollments.length} student enrollments for class ${classId}`);
+      if (enrollments.length === 0) {
+        return res.status(200).json([]); // No enrollments, return empty array
+      }
+      
+      // Get students for the class
       const students = await dbStorage.getStudentsByClass(classId);
+      console.log(`Retrieved ${students.length} students for class ${classId}`);
+      
+      // Return the students
       res.status(200).json(students);
     } catch (error) {
       console.error("Error fetching class students:", error);

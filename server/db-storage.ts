@@ -162,15 +162,26 @@ export class DBStorage implements IStorage {
   }
 
   async getStudentsByClass(classId: number): Promise<Student[]> {
-    const enrollments = await db
-      .select()
-      .from(schema.studentClasses)
-      .where(eq(schema.studentClasses.classId, classId));
-    
-    if (enrollments.length === 0) return [];
-    
-    const studentIds = enrollments.map(e => e.studentId);
-    return db.select().from(schema.students).where(sql`${schema.students.id} IN (${sql.join(studentIds, sql`, `)})`);
+    try {
+      // First get all enrollments for this class
+      const enrollments = await db
+        .select()
+        .from(schema.studentClasses)
+        .where(eq(schema.studentClasses.classId, classId));
+      
+      if (enrollments.length === 0) return [];
+      
+      // Direct query with parameterized query for safety
+      const result = await pool.query(
+        `SELECT * FROM students WHERE id = ANY($1)`,
+        [enrollments.map(e => e.studentId)]
+      );
+      
+      return result.rows;
+    } catch (error) {
+      console.error("Error in getStudentsByClass:", error);
+      return [];
+    }
   }
 
   async createStudent(student: InsertStudent): Promise<Student> {
