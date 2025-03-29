@@ -839,7 +839,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quizzes", requireAuth, validateRequest(insertQuizSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       
       // If a classId is provided, verify it belongs to the teacher
       if (req.body.classId) {
@@ -891,7 +896,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/quizzes/:id", requireAuth, validateRequest(insertQuizSchema.partial()), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const quizId = Number(req.params.id);
       
       const quiz = await dbStorage.getQuiz(quizId);
@@ -913,7 +924,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/quizzes/:id", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const quizId = Number(req.params.id);
       
       const quiz = await dbStorage.getQuiz(quizId);
