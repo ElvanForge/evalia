@@ -32,11 +32,14 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
   // Create or update class mutation
   const mutation = useMutation({
     mutationFn: async (values: z.infer<typeof insertClassSchema>) => {
+      // Strip teacherId before submitting - the server will set it from the authenticated user
+      const { teacherId, ...dataToSubmit } = values;
+      
       if (isEditing) {
-        const res = await apiRequest("PUT", `/api/classes/${class_.id}`, values);
+        const res = await apiRequest("PUT", `/api/classes/${class_.id}`, dataToSubmit);
         return res.json();
       } else {
-        const res = await apiRequest("POST", "/api/classes", values);
+        const res = await apiRequest("POST", "/api/classes", dataToSubmit);
         return res.json();
       }
     },

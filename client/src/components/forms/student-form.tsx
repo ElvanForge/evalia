@@ -288,6 +288,14 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
     );
   }
 
+  // Fetch classes for the class selector
+  const { data: classes } = useQuery<any[]>({
+    queryKey: ["/api/classes"],
+  });
+
+  // State to track the selected class
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+
   // Regular student form (not for enrollment)
   return (
     <Form {...newStudentForm}>
@@ -357,10 +365,38 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
           )}
         />
 
+        {/* Class selector */}
+        <div className="space-y-2">
+          <FormLabel>Assign to Class (Optional)</FormLabel>
+          <Select 
+            onValueChange={(value) => setSelectedClassId(Number(value))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a class" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes?.map((class_) => (
+                <SelectItem key={class_.id} value={class_.id.toString()}>
+                  {class_.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground">
+            This will automatically enroll the student in the selected class.
+          </p>
+        </div>
+
         <div className="flex justify-end pt-4">
           <Button
             type="submit"
             disabled={studentMutation.isPending}
+            onClick={() => {
+              // If a class is selected, add it to the request
+              if (selectedClassId) {
+                newStudentForm.setValue('classId', selectedClassId, { shouldValidate: true });
+              }
+            }}
           >
             {studentMutation.isPending
               ? isEditing
