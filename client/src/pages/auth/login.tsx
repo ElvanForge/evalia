@@ -101,7 +101,7 @@ export default function Login() {
           <div className="text-sm text-center text-gray-500">
             Don't have an account?{" "}
             <Link href="/auth/register">
-              <a className="text-blue-600 hover:underline">Register</a>
+              <span className="text-blue-600 hover:underline cursor-pointer">Register</span>
             </Link>
           </div>
         </CardFooter>

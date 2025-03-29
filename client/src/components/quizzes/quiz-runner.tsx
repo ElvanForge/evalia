@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, ArrowRight, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Quiz, QuizQuestion, QuizOption } from '@shared/schema';
 
 interface QuizRunnerProps {
@@ -22,20 +18,14 @@ export function QuizRunner({
   onComplete,
   previewMode = false
 }: QuizRunnerProps) {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(
     quiz.timeLimit ? quiz.timeLimit * 60 : null
   );
-  const [results, setResults] = useState<{
-    correctAnswers: number;
-    incorrectAnswers: number;
-    score: number;
-  } | null>(null);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const prevTimeRef = useRef<number | null>(timeLeft);
 
   // Setup timer
   useEffect(() => {
@@ -48,7 +38,7 @@ export function QuizRunner({
         } else {
           // Time's up!
           clearInterval(timerRef.current!);
-          handleComplete();
+          showScore();
           return 0;
         }
       });
@@ -68,53 +58,26 @@ export function QuizRunner({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswer = (questionId: number, optionId: number) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: optionId
-    }));
-  };
-
-  const handleNext = () => {
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+  const selectAnswer = (isCorrect: boolean) => {
+    if (isCorrect) {
+      setScore(prevScore => prevScore + 1);
+    }
+    
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     } else {
-      handleComplete();
+      showScore();
     }
   };
 
-  const handleComplete = () => {
+  const showScore = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
     
-    let correctCount = 0;
-    let incorrectCount = 0;
-    
-    questions.forEach(question => {
-      const selectedOptionId = answers[question.id];
-      if (selectedOptionId) {
-        const selectedOption = options[question.id]?.find(o => o.id === selectedOptionId);
-        if (selectedOption?.isCorrect) {
-          correctCount++;
-        } else {
-          incorrectCount++;
-        }
-      } else {
-        incorrectCount++;
-      }
-    });
-    
-    const score = Math.round((correctCount / questions.length) * 100);
-    
-    setResults({
-      correctAnswers: correctCount,
-      incorrectAnswers: incorrectCount,
-      score
-    });
-    
     setIsComplete(true);
-    onComplete(correctCount, questions.length);
+    const percentage = (score / questions.length) * 100;
+    onComplete(score, questions.length);
   };
 
   if (!questions.length) {
@@ -127,129 +90,95 @@ export function QuizRunner({
     );
   }
 
-  if (isComplete && results) {
+  if (isComplete) {
+    const percentage = (score / questions.length) * 100;
+    
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <h2 className="text-2xl font-bold">Quiz Complete!</h2>
-              
-              <div className="flex justify-center items-center text-4xl font-bold my-8">
-                <span className="text-primary">{results.score}%</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-                <div className="p-4 bg-primary/10 rounded-lg text-center">
-                  <div className="flex justify-center mb-2">
-                    <CheckCircle2 className="h-8 w-8 text-primary" />
-                  </div>
-                  <p className="text-sm font-medium">Correct</p>
-                  <p className="text-xl font-bold">{results.correctAnswers}</p>
-                </div>
-                
-                <div className="p-4 bg-destructive/10 rounded-lg text-center">
-                  <div className="flex justify-center mb-2">
-                    <XCircle className="h-8 w-8 text-destructive" />
-                  </div>
-                  <p className="text-sm font-medium">Incorrect</p>
-                  <p className="text-xl font-bold">{results.incorrectAnswers}</p>
-                </div>
-              </div>
-              
-              {previewMode && (
-                <p className="text-muted-foreground mt-4">
-                  This is a preview. In a real quiz, results would be saved.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="page-header">
+        <h1>{quiz.title}</h1>
+        <div className="quiz-container">
+          <h2>Quiz Complete!</h2>
+          <div id="score">
+            Your score is {score} out of {questions.length} ({percentage.toFixed(2)}%)
+          </div>
+          
+          {previewMode && (
+            <p className="mt-4 text-gray-600">
+              This is a preview. In a real quiz, results would be saved.
+            </p>
+          )}
+        </div>
       </div>
     );
   }
 
-  const currentQuestionData = questions[currentQuestion];
-  const currentOptions = options[currentQuestionData?.id] || [];
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
-  const hasAnswered = !!answers[currentQuestionData?.id];
+  const currentQuestion = questions[currentQuestionIndex];
+  const currentOptions = options[currentQuestion?.id] || [];
+  
+  // Find the correct option
+  const correctOption = currentOptions.find(option => option.isCorrect);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="text-sm font-medium">
-          Question {currentQuestion + 1} of {questions.length}
-        </div>
-        
-        {timeLeft !== null && (
-          <div className="flex items-center gap-1 text-sm font-medium">
-            <Clock className="h-4 w-4" />
-            {formatTime(timeLeft)}
-          </div>
-        )}
+    <div>
+      <div className="page-header">
+        <h1>{quiz.title}</h1>
       </div>
       
-      <Progress value={progress} className="h-2" />
-      
-      <Card>
-        <CardContent className="pt-6">
-          <h2 className="text-xl font-semibold mb-4">{currentQuestionData.question}</h2>
-          
-          {currentQuestionData.imageUrl && (
-            <div className="mb-4">
-              <img 
-                src={currentQuestionData.imageUrl} 
-                alt={`Question ${currentQuestion + 1}`} 
-                className="max-w-full rounded-md"
-              />
-            </div>
+      <div className="quiz-container">
+        <h2>{quiz.title}</h2>
+        
+        {timeLeft !== null && (
+          <div className="flex items-center justify-center mb-4 text-sm font-medium">
+            <Clock className="h-4 w-4 mr-1" />
+            Time remaining: {formatTime(timeLeft)}
+          </div>
+        )}
+        
+        <div id="question-container">
+          {currentQuestion.imageUrl && (
+            <img 
+              id="question-image"
+              src={currentQuestion.imageUrl} 
+              alt={`Question ${currentQuestionIndex + 1}`}
+              style={{ display: 'block', maxWidth: '300px', marginBottom: '20px', marginLeft: 'auto', marginRight: 'auto' }}
+            />
+          )}
+          <div id="question">{currentQuestion.question}</div>
+        </div>
+        
+        <div id="options">
+          {/* For speaking tests or assessments with correct/incorrect */}
+          {currentOptions.length <= 2 && (
+            <>
+              <button 
+                onClick={() => selectAnswer(true)}
+                className="mr-2"
+              >
+                Correct
+              </button>
+              <button 
+                onClick={() => selectAnswer(false)}
+              >
+                Incorrect
+              </button>
+            </>
           )}
           
-          <RadioGroup
-            value={answers[currentQuestionData.id]?.toString()}
-            onValueChange={(value) => 
-              handleAnswer(currentQuestionData.id, parseInt(value))
-            }
-            className="space-y-3"
-          >
-            {currentOptions.map(option => (
-              <div
-                key={option.id}
-                className="flex items-start space-x-2 p-3 rounded-md border"
-              >
-                <RadioGroupItem
-                  value={option.id.toString()}
-                  id={`option-${option.id}`}
-                  className="mt-1"
-                />
-                <Label
-                  htmlFor={`option-${option.id}`}
-                  className="flex-1 cursor-pointer"
+          {/* For multiple choice questions */}
+          {currentOptions.length > 2 && (
+            <div className="grid grid-cols-1 gap-3">
+              {currentOptions.map(option => (
+                <button
+                  key={option.id}
+                  onClick={() => selectAnswer(option.isCorrect || false)}
                 >
                   {option.text}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-          
-          <div className="flex justify-end mt-6">
-            <Button
-              onClick={handleNext}
-              disabled={!hasAnswered}
-              variant="default"
-            >
-              {currentQuestion < questions.length - 1 ? (
-                <>
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              ) : (
-                'Complete Quiz'
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
