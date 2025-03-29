@@ -1,12 +1,9 @@
 import { eq, and, desc, sql } from 'drizzle-orm';
-import { db } from './db';
+import { db, pool } from './db';
 import * as schema from '@shared/schema';
 import { IStorage } from './storage';
 import session from 'express-session';
 import connectPg from 'connect-pg-simple';
-import pg from 'pg';
-
-const { Pool } = pg;
 import type {
   School,
   InsertSchool,
@@ -38,10 +35,7 @@ import type {
   InsertQuizAnswer
 } from '@shared/schema';
 
-// Configure PostgreSQL connection
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+// Reusing the pool from db.ts
 
 // Configure PostgreSQL session store
 const PostgresStore = connectPg(session);
@@ -573,11 +567,76 @@ export class DBStorage implements IStorage {
     openAssignments: number,
     averageGrade: number
   }> {
-    // Get classes taught by the teacher
-    const classes = await this.getClassesByTeacher(teacherId);
-    const classIds = classes.map(c => c.id);
-    
-    if (classIds.length === 0) {
+    try {
+      // Use a simplified approach with a single query for class count
+      const classCountQuery = `
+        SELECT COUNT(*) as count FROM classes WHERE "teacherId" = $1
+      `;
+      const { rows: classRows } = await pool.query(classCountQuery, [teacherId]);
+      const activeClasses = parseInt(classRows[0]?.count || '0', 10) || 0;
+      
+      if (activeClasses === 0) {
+        return {
+          totalStudents: 0,
+          activeClasses: 0,
+          openAssignments: 0,
+          averageGrade: 0
+        };
+      }
+      
+      // Get all class IDs in one query
+      const classIdsQuery = `
+        SELECT id FROM classes WHERE "teacherId" = $1
+      `;
+      const { rows: classIdsRows } = await pool.query(classIdsQuery, [teacherId]);
+      const classIds = classIdsRows.map(row => row.id);
+      
+      // Count distinct students in teacher's classes
+      const studentCountQuery = `
+        SELECT COUNT(DISTINCT "studentId") as count
+        FROM student_classes
+        WHERE "classId" IN (${classIds.join(',')})
+      `;
+      const { rows: studentRows } = await pool.query(studentCountQuery);
+      const totalStudents = parseInt(studentRows[0]?.count || '0', 10) || 0;
+      
+      // Count open assignments
+      const now = new Date().toISOString();
+      const openAssignmentsQuery = `
+        SELECT COUNT(*) as count
+        FROM assignments
+        WHERE "classId" IN (${classIds.join(',')}) AND 
+              "dueDate" > $1
+      `;
+      const { rows: assignmentRows } = await pool.query(openAssignmentsQuery, [now]);
+      const openAssignments = parseInt(assignmentRows[0]?.count || '0', 10) || 0;
+      
+      // Calculate average grade
+      const avgGradeQuery = `
+        SELECT AVG(CAST(g.score AS DECIMAL) / CAST(a."maxScore" AS DECIMAL) * 100) as avg_grade
+        FROM grades g
+        JOIN assignments a ON g."assignmentId" = a.id
+        WHERE a."classId" IN (${classIds.join(',')})
+      `;
+      const { rows: gradeRows } = await pool.query(avgGradeQuery);
+      const averageGrade = parseFloat(gradeRows[0]?.avg_grade || '0') || 0;
+      
+      console.log("Dashboard stats calculated successfully:", {
+        totalStudents,
+        activeClasses,
+        openAssignments,
+        averageGrade
+      });
+      
+      return {
+        totalStudents,
+        activeClasses,
+        openAssignments,
+        averageGrade
+      };
+    } catch (error) {
+      console.error("Error in getDashboardStats:", error);
+      // Return safe default values on error
       return {
         totalStudents: 0,
         activeClasses: 0,
@@ -585,71 +644,5 @@ export class DBStorage implements IStorage {
         averageGrade: 0
       };
     }
-    
-    // Get all students enrolled in those classes
-    const enrolledStudentsQuery = sql`
-      SELECT COUNT(DISTINCT "${schema.studentClasses.studentId.name}") as count
-      FROM ${schema.studentClasses}
-      WHERE "${schema.studentClasses.classId.name}" IN (${sql.join(classIds, sql`, `)})
-    `;
-    const enrolledStudents = await db.execute(enrolledStudentsQuery);
-    
-    // Get assignments with upcoming due dates
-    const now = new Date();
-    const openAssignmentsQuery = sql`
-      SELECT COUNT(*) 
-      FROM ${schema.assignments}
-      WHERE "${schema.assignments.classId.name}" IN (${sql.join(classIds, sql`, `)})
-      AND "${schema.assignments.dueDate.name}" > ${now}
-    `;
-    const openAssignments = await db.execute(openAssignmentsQuery);
-    
-    // Calculate average grade across all assignments in teacher's classes
-    const avgGradeQuery = sql`
-      SELECT AVG(CAST(g."score" AS DECIMAL) / CAST(a."maxScore" AS DECIMAL) * 100) as avg_grade
-      FROM ${schema.grades} g
-      JOIN ${schema.assignments} a ON g."assignmentId" = a.id
-      WHERE a."classId" IN (${sql.join(classIds, sql`, `)})
-    `;
-    const avgGrade = await db.execute(avgGradeQuery);
-    
-    // Extract values and ensure they are valid numbers
-    let totalStudents = 0;
-    try {
-      const countStr = enrolledStudents.rows[0]?.count;
-      totalStudents = countStr ? parseInt(countStr.toString(), 10) : 0;
-      if (isNaN(totalStudents)) totalStudents = 0;
-    } catch (e) {
-      console.error("Error parsing total students count:", e);
-    }
-    
-    const activeClassCount = classes.length || 0;
-    
-    // Parse and validate count to ensure it's a valid number
-    let openAssignmentCount = 0;
-    try {
-      const countStr = openAssignments.rows[0]?.count;
-      openAssignmentCount = countStr ? parseInt(countStr.toString(), 10) : 0;
-      if (isNaN(openAssignmentCount)) openAssignmentCount = 0;
-    } catch (e) {
-      console.error("Error parsing open assignments count:", e);
-    }
-    
-    // Parse and validate average grade to ensure it's a valid number
-    let avgGradeValue = 0;
-    try {
-      const avgGradeStr = avgGrade.rows[0]?.avg_grade;
-      avgGradeValue = avgGradeStr ? parseFloat(avgGradeStr.toString()) : 0;
-      if (isNaN(avgGradeValue)) avgGradeValue = 0;
-    } catch (e) {
-      console.error("Error parsing average grade:", e);
-    }
-    
-    return {
-      totalStudents,
-      activeClasses: activeClassCount,
-      openAssignments: openAssignmentCount,
-      averageGrade: avgGradeValue
-    };
   }
 }
