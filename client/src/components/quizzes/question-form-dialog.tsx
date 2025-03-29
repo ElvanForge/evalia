@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Image, X, Loader2, Plus } from "lucide-react";
+import { getImageProps } from "@/lib/image-utils";
 import {
   Dialog,
   DialogContent,
@@ -362,9 +363,11 @@ export function QuestionFormDialog({
                       {imagePreview ? (
                         <div className="relative w-full rounded-md overflow-hidden border border-border">
                           <img 
-                            src={imagePreview} 
-                            alt="Question preview" 
-                            className="w-full h-auto max-h-[200px] object-contain"
+                            {...getImageProps({
+                              src: imagePreview || '',
+                              alt: "Question preview",
+                              className: "w-full h-auto max-h-[200px] object-contain"
+                            })}
                           />
                           <Button
                             type="button"

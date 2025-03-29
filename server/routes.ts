@@ -1759,7 +1759,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Static file serving from uploads directory
-  app.use('/uploads', express.static('uploads'));
+  app.use('/uploads', (req, res, next) => {
+    console.log('Uploads static file request received for:', req.url);
+    
+    // Check if file exists before serving
+    const filePath = path.join('./uploads', req.url);
+    if (fs.existsSync(filePath)) {
+      console.log('File exists at path:', filePath);
+    } else {
+      console.log('File does not exist at path:', filePath);
+    }
+    
+    next();
+  }, express.static('uploads'));
   
   // School routes
   app.get('/api/schools', requireAuth, async (req, res) => {

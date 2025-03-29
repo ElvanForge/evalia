@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Clock, ArrowRight, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class } from '@shared/schema';
+import { getImageProps } from '@/lib/image-utils';
 
 interface QuizRunnerProps {
   quiz: Quiz;
@@ -170,13 +171,11 @@ export function QuizRunner({
           {currentQuestion.imageUrl && (
             <div className="flex justify-center p-4 bg-muted/50 rounded-lg">
               <img 
-                className="rounded-md object-contain max-h-[300px] max-w-full"
-                src={currentQuestion.imageUrl.startsWith('http') 
-                  ? currentQuestion.imageUrl 
-                  : currentQuestion.imageUrl.startsWith('/') 
-                    ? `${window.location.origin}${currentQuestion.imageUrl}` 
-                    : `${window.location.origin}/${currentQuestion.imageUrl}`}
-                alt={`Question ${currentQuestionIndex + 1}`}
+                {...getImageProps({
+                  src: currentQuestion.imageUrl,
+                  alt: `Question ${currentQuestionIndex + 1}`,
+                  className: "rounded-md object-contain max-h-[300px] max-w-full"
+                })}
               />
             </div>
           )}
