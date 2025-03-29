@@ -46,6 +46,17 @@ export function DataTable<T>({
   // Filter data based on search query if searchKey is provided
   const filteredData = searchKey
     ? data.filter((item) => {
+        // If searchKey is 'lastName', also check 'firstName' since some students might not have lastName
+        if (searchKey === 'lastName') {
+          const lastName = (item as any)['lastName'] || '';
+          const firstName = (item as any)['firstName'] || '';
+          return (
+            (lastName && lastName.toString().toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (firstName && firstName.toString().toLowerCase().includes(searchQuery.toLowerCase()))
+          );
+        }
+        
+        // Regular search on the specified key
         const value = (item as any)[searchKey];
         return value && value.toString().toLowerCase().includes(searchQuery.toLowerCase());
       })
@@ -160,7 +171,7 @@ export function DataTable<T>({
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => goToPage(Math.max(1, currentPage - 1))}
-                isDisabled={currentPage === 1}
+                disabled={currentPage === 1}
               />
             </PaginationItem>
 
@@ -184,7 +195,7 @@ export function DataTable<T>({
                 onClick={() =>
                   goToPage(Math.min(totalPages, currentPage + 1))
                 }
-                isDisabled={currentPage === totalPages}
+                disabled={currentPage === totalPages}
               />
             </PaginationItem>
           </PaginationContent>

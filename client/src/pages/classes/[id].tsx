@@ -55,6 +55,12 @@ export default function ClassDetail() {
   const { data: students, isLoading: isStudentsLoading } = useQuery<Student[]>({
     queryKey: [`/api/classes/${classId}/students`],
     enabled: !!classId,
+    onSuccess: (data) => {
+      console.log("Students fetched successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching students:", error);
+    }
   });
 
   // Fetch assignments for class
@@ -111,32 +117,28 @@ export default function ClassDetail() {
     {
       header: "Last Name",
       accessorKey: "lastName",
-      cell: ({ row }) => {
-        const student = row.original as Student;
+      cell: (student: Student) => {
         return student.lastName || "—";
       }
     },
     {
       header: "Student #",
       accessorKey: "studentNumber",
-      cell: ({ row }) => {
-        const student = row.original as Student;
+      cell: (student: Student) => {
         return student.studentNumber || "—";
       }
     },
     {
       header: "Email",
       accessorKey: "email",
-      cell: ({ row }) => {
-        const student = row.original as Student;
+      cell: (student: Student) => {
         return student.email || "—";
       }
     },
     {
       header: "Grade Level",
       accessorKey: "gradeLevel",
-      cell: ({ row }) => {
-        const student = row.original as Student;
+      cell: (student: Student) => {
         return student.gradeLevel || "—";
       }
     },
