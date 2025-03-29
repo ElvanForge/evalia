@@ -307,15 +307,15 @@ export class DBStorage implements IStorage {
   })[]> {
     const query = sql`
       SELECT g.*, 
-        s.firstName || ' ' || s.lastName as "studentName", 
+        s."firstName" || ' ' || s."lastName" as "studentName", 
         c.name as "className", 
         a.name as "assignmentName", 
-        a.maxScore as "maxScore"
+        a."maxScore" as "maxScore"
       FROM ${schema.grades} g
-      JOIN ${schema.students} s ON g.studentId = s.id
-      JOIN ${schema.assignments} a ON g.assignmentId = a.id
-      JOIN ${schema.classes} c ON a.classId = c.id
-      ORDER BY g.gradedAt DESC
+      JOIN ${schema.students} s ON g."studentId" = s.id
+      JOIN ${schema.assignments} a ON g."assignmentId" = a.id
+      JOIN ${schema.classes} c ON a."classId" = c.id
+      ORDER BY g."gradedAt" DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
     
@@ -606,18 +606,18 @@ export class DBStorage implements IStorage {
     
     // Calculate average grade across all assignments in teacher's classes
     const avgGradeQuery = sql`
-      SELECT AVG(CAST(g.score AS DECIMAL) / CAST(a.maxScore AS DECIMAL) * 100) as avg_grade
+      SELECT AVG(CAST(g.score AS DECIMAL) / CAST(a."maxScore" AS DECIMAL) * 100) as avg_grade
       FROM ${schema.grades} g
-      JOIN ${schema.assignments} a ON g.assignmentId = a.id
-      WHERE a.classId IN (${sql.join(classIds, sql`, `)})
+      JOIN ${schema.assignments} a ON g."assignmentId" = a.id
+      WHERE a."classId" IN (${sql.join(classIds, sql`, `)})
     `;
     const avgGrade = await db.execute(avgGradeQuery);
     
     return {
       totalStudents: enrolledStudents.rows.length,
       activeClasses: classes.length,
-      openAssignments: parseInt(openAssignments.rows[0].count || '0', 10),
-      averageGrade: parseFloat(avgGrade.rows[0].avg_grade || '0')
+      openAssignments: parseInt(openAssignments.rows[0]?.count || '0', 10),
+      averageGrade: parseFloat(avgGrade.rows[0]?.avg_grade || '0')
     };
   }
 }

@@ -133,7 +133,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/classes/:id", requireAuth, validateRequest(insertClassSchema.partial()), async (req, res) => {
     try {
       const classId = Number(req.params.id);
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       
       const class_ = await dbStorage.getClass(classId);
       if (!class_) {
@@ -155,7 +160,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/classes/:id", requireAuth, async (req, res) => {
     try {
       const classId = Number(req.params.id);
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
       
       const class_ = await dbStorage.getClass(classId);
       if (!class_) {

@@ -1,22 +1,33 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuizRunner } from "@/components/quizzes/quiz-runner";
 import { PageHeader } from "@/components/page-header";
 import { useAuth } from "@/hooks/use-auth";
 import Layout from "@/components/layout";
-import { Quiz, QuizQuestion, QuizOption } from "@shared/schema";
+import { Quiz, QuizQuestion, QuizOption, Student } from "@shared/schema";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const QuizPreview = () => {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [completed, setCompleted] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [results, setResults] = useState<{
     correctAnswers: number;
     totalQuestions: number;
+    studentId?: number;
   } | null>(null);
 
   // Fetch quiz data
@@ -66,10 +77,26 @@ const QuizPreview = () => {
     enabled: !!quiz?.classId,
   });
 
+  // Fetch students for the class if quiz is assigned to a class
+  const {
+    data: students,
+    isLoading: isLoadingStudents,
+  } = useQuery<Student[]>({
+    queryKey: [`/api/classes/${quiz?.classId}/students`],
+    enabled: !!quiz?.classId && !previewMode,
+  });
+
   const handleComplete = (correctAnswers: number, totalQuestions: number) => {
     setCompleted(true);
-    setResults({ correctAnswers, totalQuestions });
+    setResults({ 
+      correctAnswers, 
+      totalQuestions,
+      studentId: selectedStudentId || undefined
+    });
   };
+  
+  // Add toggle for preview mode vs. grading mode
+  const [previewMode, setPreviewMode] = useState(true);
 
   const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || (quiz?.classId && isLoadingClass);
   const error = quizError || questionsError || optionsError;
@@ -117,7 +144,7 @@ const QuizPreview = () => {
       <div className="space-y-6">
         <PageHeader
           title={getFormattedTitle()}
-          description="Preview mode - results will not be saved"
+          description={previewMode ? "Preview mode - results will not be saved" : "Administering quiz"}
           actions={
             <Button 
               variant="outline" 
@@ -128,15 +155,75 @@ const QuizPreview = () => {
             </Button>
           }
         />
+        
+        {/* Mode toggle */}
+        <div className="flex items-center space-x-4 px-4 py-3 bg-muted rounded-lg">
+          <div className="flex-1">
+            <h3 className="text-sm font-medium">Mode</h3>
+            <p className="text-sm text-muted-foreground">
+              {previewMode ? "Preview only" : "Administer quiz to students"}
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="mode-toggle" className={previewMode ? "text-muted-foreground" : "font-medium"}>Grade Students</Label>
+            <Switch
+              id="mode-toggle"
+              checked={!previewMode}
+              onCheckedChange={(checked) => {
+                setPreviewMode(!checked);
+                // Reset selected student when switching modes
+                if (!checked) setSelectedStudentId(null);
+              }}
+            />
+          </div>
+        </div>
+        
+        {/* Student selector - only show if not in preview mode and we have students */}
+        {!previewMode && students && students.length > 0 && (
+          <div className="bg-white p-4 rounded-lg shadow">
+            <label className="block text-sm font-medium mb-2 flex items-center">
+              <UserCircle className="mr-2 h-4 w-4" />
+              Select student to grade
+            </label>
+            <Select value={selectedStudentId?.toString()} onValueChange={(value) => setSelectedStudentId(Number(value))}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a student" />
+              </SelectTrigger>
+              <SelectContent>
+                {students.map((student) => (
+                  <SelectItem key={student.id} value={student.id.toString()}>
+                    {student.firstName} {student.lastName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {!selectedStudentId && (
+              <p className="mt-2 text-sm text-amber-600">
+                Please select a student before starting the quiz
+              </p>
+            )}
+          </div>
+        )}
 
-        <QuizRunner
-          quiz={quiz}
-          questions={questions}
-          options={options}
-          onComplete={handleComplete}
-          previewMode={true}
-          classInfo={classInfo}
-        />
+        {/* Only show quiz if in preview mode or a student is selected */}
+        {(previewMode || selectedStudentId) ? (
+          <QuizRunner
+            quiz={quiz}
+            questions={questions}
+            options={options}
+            onComplete={handleComplete}
+            previewMode={previewMode}
+            classInfo={classInfo}
+          />
+        ) : (
+          <div className="bg-muted p-6 rounded-lg text-center">
+            <h3 className="text-lg font-medium mb-2">Student Selection Required</h3>
+            <p className="text-muted-foreground">
+              Please select a student above to administer this quiz.
+            </p>
+          </div>
+        )}
       </div>
     </Layout>
   );
