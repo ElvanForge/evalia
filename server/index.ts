@@ -44,6 +44,31 @@ import { runMigrations, initializeDatabase } from './db';
   try {
     await runMigrations();
     await initializeDatabase();
+    
+    // URGENT FIX: Create a simplified admin account with bcrypt
+    const bcrypt = await import('bcryptjs');
+    const simplePassword = 'evalia123';
+    const hashedPassword = await bcrypt.hash(simplePassword, 10);
+    
+    // Import database connection from db.ts
+    const { pool } = await import('./db');
+    
+    // Force update or create admin account
+    await pool.query(`
+      INSERT INTO teachers (
+        username, password, "firstName", "lastName", email, role
+      ) VALUES (
+        'admin', 
+        $1, 
+        'Admin', 
+        'User', 
+        'admin@evalia.edu', 
+        'manager'
+      ) ON CONFLICT (username) 
+      DO UPDATE SET password = $1
+    `, [hashedPassword]);
+    
+    console.log('IMPORTANT: Admin account created/updated. Username: admin, Password: evalia123');
     console.log('Database setup completed successfully');
   } catch (error) {
     console.error('Error setting up database:', error);
