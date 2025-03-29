@@ -111,8 +111,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/auth/logout", {});
-      return await res.json();
+      // Don't parse JSON as the endpoint returns an empty response
+      await apiRequest("POST", "/api/auth/logout", {});
+      return {}; // Return empty object to indicate success
     },
     onSuccess: () => {
       queryClient.clear();
