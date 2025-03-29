@@ -47,9 +47,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
-            <div className="bg-blue-500 rounded-full p-2">
-              <ClipboardCheck className="h-8 w-8 text-white" />
-            </div>
+            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-16 w-16" />
           </div>
           <CardTitle className="text-2xl font-bold">Evalia</CardTitle>
           <CardDescription>

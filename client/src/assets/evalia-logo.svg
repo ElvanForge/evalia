@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <g id="Evalia-Logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Background" fill="#0ba2b0" cx="100" cy="100" r="90"></circle>
+        <path d="M55,65 L145,65 C150.522,65 155,69.4771525 155,75 L155,125 C155,130.522847 150.522847,135 145,135 L55,135 C49.4771525,135 45,130.522847 45,125 L45,75 C45,69.4771525 49.4771525,65 55,65 Z" id="Tablet" fill="#8dd9d2"></path>
+        <rect id="Screen" fill="#FFFFFF" x="55" y="75" width="90" height="40" rx="2"></rect>
+        <rect id="Line1" fill="#0ba2b0" x="65" y="85" width="70" height="4" rx="2"></rect>
+        <rect id="Line2" fill="#0ba2b0" x="65" y="95" width="50" height="4" rx="2"></rect>
+        <rect id="Line3" fill="#0ba2b0" x="65" y="105" width="60" height="4" rx="2"></rect>
+        <path d="M100,40 L120,60 L80,60 L100,40 Z" id="Top-Arrow" fill="#FFFFFF"></path>
+        <path d="M100,160 L120,140 L80,140 L100,160 Z" id="Bottom-Arrow" fill="#FFFFFF"></path>
+        <circle id="Button" fill="#FFFFFF" cx="100" cy="125" r="5"></circle>
+    </g>
+</svg>

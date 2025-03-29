@@ -71,9 +71,7 @@ export function Sidebar() {
     <>
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
-          <svg className="h-8 w-8 text-[#333333]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-          </svg>
+          <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8" />
           <span className="ml-2 text-xl font-bold text-[#333333]">Evalia</span>
           {isMobile && (
             <Button
