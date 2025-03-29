@@ -271,94 +271,8 @@ export default function Landing() {
         </div>
       </section>
       
-      {/* Testimonials Section */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900">Trusted by Educators</h2>
-            <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
-              Join thousands of teachers who are transforming their classrooms with Evalia
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
-            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} className="h-5 w-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-600 italic mb-4">
-                  "Evalia has transformed how I manage my classroom. The analytics help me identify which students need extra attention before it's too late."
-                </p>
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-teal-600" />
-                  </div>
-                  <div className="ml-3">
-                    <h4 className="text-sm font-medium text-gray-900">Math Teacher</h4>
-                    <p className="text-sm text-gray-500">High School</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Testimonial 2 */}
-            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} className="h-5 w-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-600 italic mb-4">
-                  "The quiz feature alone has saved me hours of grading time each week. My students love getting immediate feedback on their work."
-                </p>
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="ml-3">
-                    <h4 className="text-sm font-medium text-gray-900">Science Teacher</h4>
-                    <p className="text-sm text-gray-500">Middle School</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Testimonial 3 */}
-            <Card className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex items-center mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg key={star} className="h-5 w-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-600 italic mb-4">
-                  "As a department head, the school-wide analytics have been invaluable for tracking performance across different classes and identifying best practices."
-                </p>
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div className="ml-3">
-                    <h4 className="text-sm font-medium text-gray-900">Department Head</h4>
-                    <p className="text-sm text-gray-500">High School</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      {/* Spacer for better layout */}
+      <div className="py-10 bg-white"></div>
       
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-6 bg-white">
@@ -561,8 +475,7 @@ export default function Landing() {
               <h3 className="text-lg font-semibold mb-4">Product</h3>
               <ul className="space-y-2">
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Testimonials</a></li>
+                <li><a href="#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
               </ul>
             </div>

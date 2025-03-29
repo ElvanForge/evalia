@@ -44,15 +44,12 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  // We no longer need to show the authentication error here
+  // because login redirects correctly now
   useEffect(() => {
-    if (!user && !isAuthLoading) {
-      toast({
-        title: "Authentication Required",
-        description: "Please login to access the dashboard",
-        variant: "destructive",
-      });
-    }
-  }, [user, isAuthLoading, toast]);
+    // Set page title
+    document.title = "Evalia Dashboard";
+  }, []);
 
   // Convert classes to format needed by ClassCard
   const classCardData = classes?.map(class_ => ({
@@ -101,7 +98,7 @@ export default function Dashboard() {
 
   const gradeActions = (grade: any) => (
     <Link href={`/grades/${grade.id}/edit`}>
-      <a className="text-blue-600 hover:text-blue-900">Edit</a>
+      <span className="text-blue-600 hover:text-blue-900 cursor-pointer">Edit</span>
     </Link>
   );
 
