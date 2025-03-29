@@ -2,12 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
+    background-color: #ede8dd;
+  }
+
+  /* Quiz container styles */
+  .quiz-container {
+    background: #b3e6da;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 10px 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    margin: 20px 0;
   }
 }

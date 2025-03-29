@@ -105,6 +105,41 @@ export default function Dashboard() {
     </Link>
   );
 
+  // If user is not logged in, show a login screen
+  if (!user && !isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <svg className="mx-auto h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              GradeTrack Teacher Dashboard
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Track student grades, manage classes, and administer quizzes
+            </p>
+          </div>
+          <div className="mt-8 space-y-6">
+            <div className="flex flex-col justify-center space-y-4">
+              <Link href="/auth/login">
+                <Button className="w-full py-6 text-lg">
+                  Login to Dashboard
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button variant="outline" className="w-full py-6 text-lg">
+                  Register New Account
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
       <Sidebar />
@@ -190,12 +225,10 @@ export default function Dashboard() {
                     </div>
                     <div className="mt-4 md:mt-0 md:ml-4">
                       <Link href="/classes/new">
-                        <a>
-                          <Button>
-                            <Plus className="-ml-1 mr-2 h-5 w-5" />
-                            Add New Class
-                          </Button>
-                        </a>
+                        <Button>
+                          <Plus className="-ml-1 mr-2 h-5 w-5" />
+                          Add New Class
+                        </Button>
                       </Link>
                     </div>
                   </div>

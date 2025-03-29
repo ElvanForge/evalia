@@ -32,10 +32,10 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
 
   return (
     <Link href={href}>
-      <a
+      <div
         onClick={onClick}
         className={cn(
-          "flex items-center px-4 py-2 text-sm font-medium rounded-md",
+          "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
             ? "bg-gray-900 text-white"
             : "text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -45,7 +45,7 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
           {icon}
         </span>
         {children}
-      </a>
+      </div>
     </Link>
   );
 };
@@ -169,10 +169,10 @@ export function Sidebar() {
       ) : (
         <div className="p-4 border-t border-gray-700">
           <Link href="/auth/login">
-            <a className="flex items-center text-sm font-medium text-white">
+            <div className="flex items-center text-sm font-medium text-white cursor-pointer">
               <LogIn className="h-5 w-5 mr-2" />
               Login
-            </a>
+            </div>
           </Link>
         </div>
       )}
