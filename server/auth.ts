@@ -16,17 +16,34 @@ declare global {
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string) {
+export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
 }
 
-async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
+export async function comparePasswords(supplied: string, stored: string) {
+  // Make sure stored password has the expected format (hash.salt)
+  if (!stored || !stored.includes('.')) {
+    throw new Error("Invalid password format");
+  }
+  
+  try {
+    const [hashed, salt] = stored.split(".");
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    
+    // In some cases, the buffers might not be the same length, so we should handle that
+    if (hashedBuf.length !== suppliedBuf.length) {
+      console.warn("Buffer length mismatch:", hashedBuf.length, suppliedBuf.length);
+      return false;
+    }
+    
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error("Error comparing passwords:", error);
+    return false; // Return false rather than throwing to prevent crashes
+  }
 }
 
 export function setupAuth(app: Express) {
@@ -48,25 +65,51 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
-      const teacher = await storage.getTeacherByUsername(username);
-      if (!teacher) {
-        return done(null, false, { message: "Incorrect username" });
-      }
-      
-      if (process.env.NODE_ENV === "development" && password === teacher.password) {
-        // In development, allow direct password comparison for testing accounts
-        return done(null, teacher);
-      } else {
-        // In all other cases, use secure password comparison
-        try {
-          const isValid = await comparePasswords(password, teacher.password);
-          if (!isValid) {
-            return done(null, false, { message: "Incorrect password" });
-          }
-          return done(null, teacher);
-        } catch (error) {
-          return done(error);
+      try {
+        const teacher = await storage.getTeacherByUsername(username);
+        if (!teacher) {
+          return done(null, false, { message: "Incorrect username" });
         }
+        
+        // Check if we're using a development plaintext password or bcrypt hash
+        if (process.env.NODE_ENV === "development" && password === teacher.password) {
+          // In development mode only, allow direct comparison for testing
+          return done(null, teacher);
+        } 
+        
+        // Check if password is bcrypt format (starts with $2a$, $2b$, etc.)
+        if (teacher.password.startsWith('$2')) {
+          // Import bcrypt only when needed
+          const bcrypt = await import('bcryptjs');
+          try {
+            const isValidBcrypt = await bcrypt.compare(password, teacher.password);
+            if (isValidBcrypt) {
+              return done(null, teacher);
+            }
+          } catch (bcryptError) {
+            console.log('Bcrypt error:', bcryptError);
+            // Fall through to try other methods
+          }
+        }
+        
+        // Check if password is scrypt format (has a period separating hash and salt)
+        if (teacher.password.includes('.')) {
+          try {
+            const isValidScrypt = await comparePasswords(password, teacher.password);
+            if (isValidScrypt) {
+              return done(null, teacher);
+            }
+          } catch (scryptError) {
+            console.log('Scrypt error:', scryptError);
+            // Fall through to the final rejection
+          }
+        }
+        
+        // If none of the authentication methods worked
+        return done(null, false, { message: "Incorrect password" });
+      } catch (error) {
+        console.error('Authentication error:', error);
+        return done(error);
       }
     }),
   );
