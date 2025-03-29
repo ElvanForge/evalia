@@ -382,7 +382,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Assignment routes
   app.get("/api/assignments", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const classId = req.query.classId ? Number(req.query.classId) : undefined;
       
       if (classId) {
@@ -506,7 +512,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Grade routes
   app.get("/api/grades", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const studentId = req.query.studentId ? Number(req.query.studentId) : undefined;
       const assignmentId = req.query.assignmentId ? Number(req.query.assignmentId) : undefined;
       const classId = req.query.classId ? Number(req.query.classId) : undefined;
@@ -585,7 +597,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/grades", requireAuth, validateRequest(insertGradeSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const assignmentId = Number(req.body.assignmentId);
       
       // Verify the assignment's class belongs to the teacher
