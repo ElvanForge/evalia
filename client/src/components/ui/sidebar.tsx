@@ -40,11 +40,11 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
         className={cn(
           "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
-            ? "bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white" // Gradient highlight
-            : "text-white hover:bg-white/25 hover:text-white"
+            ? "bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium" // Gradient highlight with bold text
+            : "text-[#333333] hover:bg-white/25 hover:text-[#333333] font-medium"
         )}
       >
-        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-white")}>
+        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-[#333333]")}>
           {icon}
         </span>
         {children}
@@ -71,10 +71,10 @@ export function Sidebar() {
     <>
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
-          <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-8 w-8 text-[#333333]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          <span className="ml-2 text-xl font-bold text-white">GradeTrack</span>
+          <span className="ml-2 text-xl font-bold text-[#333333]">GradeTrack</span>
           {isMobile && (
             <Button
               variant="ghost"
@@ -82,7 +82,7 @@ export function Sidebar() {
               className="ml-auto text-white hover:text-white/80"
               onClick={() => setIsOpen(false)}
             >
-              <X className="h-6 w-6" />
+              <X className="h-6 w-6 text-[#333333]" />
             </Button>
           )}
         </div>
@@ -166,8 +166,8 @@ export function Sidebar() {
               </AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium text-white">{user.firstName} {user.lastName}</p>
-              <p className="text-xs font-medium text-white/80">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
+              <p className="text-sm font-medium text-[#333333]">{user.firstName} {user.lastName}</p>
+              <p className="text-xs font-medium text-[#333333]/80">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
             </div>
             <Button 
               variant="ghost" 
@@ -176,15 +176,15 @@ export function Sidebar() {
               onClick={logout}
               title="Logout"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-5 w-5 text-[#333333]" />
             </Button>
           </div>
         </div>
       ) : (
         <div className="p-4 border-t border-white/20">
           <Link href="/auth/login">
-            <div className="flex items-center text-sm font-medium text-white cursor-pointer">
-              <LogIn className="h-5 w-5 mr-2" />
+            <div className="flex items-center text-sm font-medium text-[#333333] cursor-pointer">
+              <LogIn className="h-5 w-5 mr-2 text-[#333333]" />
               Login
             </div>
           </Link>
