@@ -982,7 +982,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quizzes/:quizId/questions", requireAuth, validateRequest(insertQuizQuestionSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const quizId = Number(req.params.quizId);
       
       const quiz = await dbStorage.getQuiz(quizId);
@@ -1008,7 +1014,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/quiz-questions/:id", requireAuth, validateRequest(insertQuizQuestionSchema.partial()), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const questionId = Number(req.params.id);
       
       const question = await dbStorage.getQuizQuestion(questionId);
@@ -1031,7 +1043,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/quiz-questions/:id", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const questionId = Number(req.params.id);
       
       const question = await dbStorage.getQuizQuestion(questionId);
@@ -1121,7 +1139,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quiz-questions/:questionId/options", requireAuth, validateRequest(insertQuizOptionSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const questionId = Number(req.params.questionId);
       
       const question = await dbStorage.getQuizQuestion(questionId);

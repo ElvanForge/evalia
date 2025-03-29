@@ -298,9 +298,7 @@ export function QuestionFormDialog({
                             type="file"
                             className="hidden"
                             accept="image/*"
-                            ref={(node) => {
-                              if (node) fileInputRef.current = node;
-                            }}
+                            ref={fileInputRef}
                             onChange={(e) => {
                               handleImageChange(e);
                               onChange(e.target.files);
