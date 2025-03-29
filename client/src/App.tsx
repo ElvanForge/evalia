@@ -24,6 +24,7 @@ import Manager from "@/pages/manager";
 import Landing from "@/pages/landing";
 import Checkout from "@/pages/checkout";
 import BetaApplication from "@/pages/beta-application";
+import ImageTest from "@/pages/image-test";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 function Router() {
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/manager" component={Manager} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/beta-application" component={BetaApplication} />
+      <Route path="/image-test" component={ImageTest} />
       <Route component={NotFound} />
     </Switch>
   );
