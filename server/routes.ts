@@ -1123,14 +1123,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all questions for this quiz
       const questions = await dbStorage.getQuizQuestionsByQuiz(quizId);
       
-      // For each question, get the options
-      const allOptions = [];
+      // For each question, get the options and organize by question ID
+      const optionsByQuestion: Record<string, any[]> = {};
       for (const question of questions) {
         const questionOptions = await dbStorage.getQuizOptionsByQuestion(question.id);
-        allOptions.push(...questionOptions);
+        optionsByQuestion[question.id] = questionOptions;
       }
       
-      res.status(200).json(allOptions);
+      res.status(200).json(optionsByQuestion);
     } catch (error) {
       console.error("Error fetching quiz options:", error);
       res.status(500).json({ message: "Server error fetching quiz options" });
