@@ -128,7 +128,10 @@ export function QuizRunner({
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const currentOptions = options[currentQuestion?.id] || [];
+  // Ensure currentOptions is always an array
+  const currentOptions = Array.isArray(options[currentQuestion?.id]) 
+    ? options[currentQuestion?.id] 
+    : [];
   
   // Find the correct option
   const correctOption = currentOptions.find(option => option.isCorrect);
