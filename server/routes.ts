@@ -848,7 +848,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/quizzes/:id", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const quizId = Number(req.params.id);
       
       const quiz = await dbStorage.getQuiz(quizId);
@@ -914,7 +920,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quiz Question routes
   app.get("/api/quizzes/:quizId/questions", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const quizId = Number(req.params.quizId);
       
       const quiz = await dbStorage.getQuiz(quizId);
