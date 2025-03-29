@@ -135,8 +135,12 @@ const CreateQuizForm = () => {
                         <FormItem>
                           <FormLabel>Assign to Class</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
-                            value={field.value?.toString() || ""}
+                            onValueChange={(value) => {
+                              // Handle "0" as null (None selection)
+                              const parsed = parseInt(value);
+                              field.onChange(parsed === 0 ? null : parsed);
+                            }}
+                            value={field.value?.toString() || "0"}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -144,7 +148,7 @@ const CreateQuizForm = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">None</SelectItem>
+                              <SelectItem value="0">None</SelectItem>
                               {classes?.map((c) => (
                                 <SelectItem key={c.id} value={c.id.toString()}>
                                   {c.name}
