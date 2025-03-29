@@ -156,7 +156,9 @@ export function QuizRunner({
           {currentQuestion.imageUrl && (
             <img 
               id="question-image"
-              src={currentQuestion.imageUrl} 
+              src={currentQuestion.imageUrl.startsWith('http') 
+                ? currentQuestion.imageUrl 
+                : `${window.location.origin}${currentQuestion.imageUrl}`} 
               alt={`Question ${currentQuestionIndex + 1}`}
               style={{ display: 'block', maxWidth: '300px', marginBottom: '20px', marginLeft: 'auto', marginRight: 'auto' }}
             />
