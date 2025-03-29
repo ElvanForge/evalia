@@ -24,58 +24,14 @@ import {
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import express from "express";
-import session from "express-session";
-import MemoryStore from "memorystore";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup session middleware
-  const SessionStore = MemoryStore(session);
-  
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || "gradetracker-secret-key",
-      resave: false,
-      saveUninitialized: false,
-      store: new SessionStore({
-        checkPeriod: 86400000, // prune expired entries every 24h
-      }),
-      cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        secure: process.env.NODE_ENV === "production",
-      },
-    })
-  );
-
-  // Authentication middleware
-  const requireAuth = (req: Request, res: Response, next: express.NextFunction) => {
-    if (!req.session.teacherId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    next();
-  };
-  
-  // Role-based authorization middleware
-  const requireRole = (roles: string[]) => {
-    return async (req: Request, res: Response, next: express.NextFunction) => {
-      if (!req.session.teacherId) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
-      const teacher = await dbStorage.getTeacher(req.session.teacherId);
-      if (!teacher) {
-        return res.status(401).json({ message: "Teacher not found" });
-      }
-      
-      if (!teacher.role || !roles.includes(teacher.role)) {
-        return res.status(403).json({ message: "Insufficient permissions for this action" });
-      }
-      
-      next();
-    };
-  };
+  // Setup authentication with Passport.js
+  const { requireAuth, requireRole } = setupAuth(app);
 
   // Error handling middleware for Zod validation
   const validateRequest = (schema: any) => {
@@ -95,94 +51,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     };
   };
-
-  // Authentication routes
-  app.post("/api/auth/login", validateRequest(teacherLoginSchema), async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      const teacher = await dbStorage.getTeacherByUsername(username);
-
-      if (!teacher || teacher.password !== password) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      // Store teacher ID in session
-      req.session.teacherId = teacher.id;
-
-      // Remove password from response
-      const { password: _, ...teacherWithoutPassword } = teacher;
-      res.status(200).json({ 
-        message: "Login successful", 
-        teacher: teacherWithoutPassword 
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ message: "Server error during login" });
-    }
-  });
-
-  app.post("/api/auth/register", validateRequest(insertTeacherSchema), async (req, res) => {
-    try {
-      const { username, email } = req.body;
-      
-      // Check if username or email already exists
-      const existingTeacherByUsername = await dbStorage.getTeacherByUsername(username);
-      if (existingTeacherByUsername) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-
-      const existingTeacherByEmail = await dbStorage.getAllTeachers().then(
-        teachers => teachers.find(t => t.email === email)
-      );
-      if (existingTeacherByEmail) {
-        return res.status(400).json({ message: "Email already exists" });
-      }
-
-      const newTeacher = await dbStorage.createTeacher(req.body);
-      
-      // Store teacher ID in session
-      req.session.teacherId = newTeacher.id;
-
-      // Remove password from response
-      const { password: _, ...teacherWithoutPassword } = newTeacher;
-      res.status(201).json({ 
-        message: "Registration successful", 
-        teacher: teacherWithoutPassword 
-      });
-    } catch (error) {
-      console.error("Registration error:", error);
-      res.status(500).json({ message: "Server error during registration" });
-    }
-  });
-
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ message: "Failed to logout" });
-      }
-      res.status(200).json({ message: "Logout successful" });
-    });
-  });
-
-  app.get("/api/auth/me", async (req, res) => {
-    try {
-      if (!req.session.teacherId) {
-        return res.status(401).json({ message: "Not authenticated" });
-      }
-
-      const teacher = await dbStorage.getTeacher(req.session.teacherId);
-      if (!teacher) {
-        return res.status(404).json({ message: "Teacher not found" });
-      }
-
-      // Remove password from response
-      const { password: _, ...teacherWithoutPassword } = teacher;
-      res.status(200).json(teacherWithoutPassword);
-    } catch (error) {
-      console.error("Auth check error:", error);
-      res.status(500).json({ message: "Server error during auth check" });
-    }
-  });
 
   // Teacher routes
   app.get("/api/teachers", requireAuth, async (req, res) => {

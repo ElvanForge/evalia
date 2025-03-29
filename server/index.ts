@@ -36,7 +36,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// Import database initialization functions
+import { runMigrations, initializeDatabase } from './db';
+
 (async () => {
+  // Initialize database before starting the server
+  try {
+    await runMigrations();
+    await initializeDatabase();
+    console.log('Database setup completed successfully');
+  } catch (error) {
+    console.error('Error setting up database:', error);
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
