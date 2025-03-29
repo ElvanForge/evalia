@@ -236,7 +236,7 @@ export function QuestionFormDialog({
                   <FormLabel>Question Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value as string || "multiple_choice"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -298,12 +298,13 @@ export function QuestionFormDialog({
                             type="file"
                             className="hidden"
                             accept="image/*"
-                            ref={fileInputRef}
+                            ref={(node) => {
+                              if (node) fileInputRef.current = node;
+                            }}
                             onChange={(e) => {
                               handleImageChange(e);
                               onChange(e.target.files);
                             }}
-                            {...fieldProps}
                           />
                         </div>
                       )}
