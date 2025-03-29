@@ -781,7 +781,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats route
   app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const stats = await dbStorage.getDashboardStats(teacherId);
       res.status(200).json(stats);
     } catch (error) {
@@ -1018,10 +1024,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Quiz Option routes
+  // Quiz Option routes - Update to use req.user.id and also add a new route format for frontend compatibility
   app.get("/api/quiz-questions/:questionId/options", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const questionId = Number(req.params.questionId);
       
       const question = await dbStorage.getQuizQuestion(questionId);
@@ -1036,6 +1048,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const options = await dbStorage.getQuizOptionsByQuestion(questionId);
       res.status(200).json(options);
+    } catch (error) {
+      console.error("Error fetching quiz options:", error);
+      res.status(500).json({ message: "Server error fetching quiz options" });
+    }
+  });
+
+  // Additional route for frontend compatibility
+  app.get("/api/quizzes/:quizId/options", requireAuth, async (req, res) => {
+    try {
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const quizId = Number(req.params.quizId);
+      
+      const quiz = await dbStorage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view options for this quiz" });
+      }
+      
+      // Get all questions for this quiz
+      const questions = await dbStorage.getQuizQuestionsByQuiz(quizId);
+      
+      // For each question, get the options
+      const allOptions = [];
+      for (const question of questions) {
+        const questionOptions = await dbStorage.getQuizOptionsByQuestion(question.id);
+        allOptions.push(...questionOptions);
+      }
+      
+      res.status(200).json(allOptions);
     } catch (error) {
       console.error("Error fetching quiz options:", error);
       res.status(500).json({ message: "Server error fetching quiz options" });
