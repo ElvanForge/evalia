@@ -29,6 +29,9 @@ const QuizPreview = () => {
     totalQuestions: number;
     studentId?: number;
   } | null>(null);
+  
+  // Add toggle for preview mode vs. grading mode - moved up here to avoid the initialization error
+  const [previewMode, setPreviewMode] = useState(true);
 
   // Fetch quiz data
   const {
@@ -94,9 +97,6 @@ const QuizPreview = () => {
       studentId: selectedStudentId || undefined
     });
   };
-  
-  // Add toggle for preview mode vs. grading mode
-  const [previewMode, setPreviewMode] = useState(true);
 
   const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || (quiz?.classId && isLoadingClass);
   const error = quizError || questionsError || optionsError;
