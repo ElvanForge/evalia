@@ -25,6 +25,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Teacher, Class, Assignment } from "@shared/schema";
+import { 
+  Users, 
+  BookOpen, 
+  GraduationCap, 
+  Clock 
+} from "lucide-react";
 
 interface DashboardProps {
   currentUser: Teacher | null;
@@ -36,6 +42,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['/api/dashboard', selectedClass !== 'all' ? selectedClass : undefined],
+    enabled: true, // Ensure this query runs
   });
 
   // Fetch classes
@@ -88,7 +95,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-medium">Welcome back, {currentUser?.name.split(' ')[0] || 'Teacher'}!</h2>
+            <h2 className="text-2xl font-medium">Welcome back, {currentUser?.firstName || 'Teacher'}!</h2>
             <p className="text-muted-foreground">{currentDate}</p>
           </div>
           

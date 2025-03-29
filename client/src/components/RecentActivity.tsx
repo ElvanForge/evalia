@@ -1,39 +1,59 @@
-import { RecentActivityProps } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+
+interface Activity {
+  type: string;
+  date: string | Date;
+  description: string;
+  details?: string;
+}
+
+interface RecentActivityProps {
+  activities: Activity[];
+}
 
 export default function RecentActivity({ activities }: RecentActivityProps) {
+  if (activities.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center py-10">
+          <p className="text-muted-foreground">No recent activity</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Recent Activity</CardTitle>
+      <CardHeader>
+        <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {activities.length > 0 ? (
-            activities.map((activity, index) => (
-              <div key={index} className="flex">
-                <div className={`rounded-full w-8 h-8 ${activity.bgColorClass} flex items-center justify-center mr-3`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${activity.iconColorClass}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={activity.icon} />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm" dangerouslySetInnerHTML={{ __html: activity.description }}></p>
-                  <p className="text-xs text-muted-foreground mt-1">{activity.timestamp}</p>
+        <div className="space-y-6">
+          {activities.map((activity, index) => {
+            const activityDate = typeof activity.date === 'string' 
+              ? new Date(activity.date) 
+              : activity.date;
+            
+            return (
+              <div key={index} className="relative pl-6 pb-6 border-l border-border last:border-0 last:pb-0">
+                <div className="absolute left-0 top-0 transform -translate-x-1/2 bg-primary h-3 w-3 rounded-full" />
+                <div className="text-sm">
+                  <div className="flex justify-between">
+                    <p className="font-medium">{activity.description}</p>
+                    <p className="text-muted-foreground">{format(activityDate, 'MMM d, h:mm a')}</p>
+                  </div>
+                  {activity.details && (
+                    <p className="text-muted-foreground mt-1">{activity.details}</p>
+                  )}
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">No recent activities found</p>
-            </div>
-          )}
+            );
+          })}
         </div>
-        
-        <Button variant="link" className="w-full mt-4">
-          View All Activity
-        </Button>
       </CardContent>
     </Card>
   );

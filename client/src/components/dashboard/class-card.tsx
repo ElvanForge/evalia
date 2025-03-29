@@ -9,39 +9,45 @@ interface ClassCardProps {
     id: number;
     name: string;
     studentCount: number;
-    openAssignments: number;
-    averageGrade: string;
+    assignmentCount?: number;
+    averageGrade?: number | string;
   };
   onClick?: () => void;
   className?: string;
 }
 
 export function ClassCard({ class: classData, onClick, className }: ClassCardProps) {
+  // Format average grade value
+  const avgGrade = 
+    typeof classData.averageGrade === 'number' 
+      ? `${classData.averageGrade.toFixed(1)}%` 
+      : classData.averageGrade || 'N/A';
+      
   return (
     <Link href={`/classes/${classData.id}`}>
         <Card 
           className={cn(
-            "overflow-hidden shadow-sm rounded-md border border-gray-200 hover:border-blue-500 cursor-pointer", 
+            "overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 rounded-md border border-muted hover:border-primary cursor-pointer", 
             className
           )}
           onClick={onClick}
         >
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg font-medium text-gray-900">{classData.name}</h3>
+            <h3 className="text-lg font-medium">{classData.name}</h3>
             
-            <div className="mt-2 flex items-center text-sm text-gray-500">
-              <Users className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+            <div className="mt-2 flex items-center text-sm text-muted-foreground">
+              <Users className="flex-shrink-0 mr-1.5 h-5 w-5 text-muted-foreground" />
               <span>{classData.studentCount} students</span>
             </div>
             
-            <div className="mt-2 flex items-center text-sm text-gray-500">
-              <FileText className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-              <span>{classData.openAssignments} open assignments</span>
+            <div className="mt-2 flex items-center text-sm text-muted-foreground">
+              <FileText className="flex-shrink-0 mr-1.5 h-5 w-5 text-muted-foreground" />
+              <span>{classData.assignmentCount || 0} assignments</span>
             </div>
             
-            <div className="mt-2 flex items-center text-sm text-gray-500">
-              <BarChart3 className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-              <span>Avg: {classData.averageGrade}</span>
+            <div className="mt-2 flex items-center text-sm text-muted-foreground">
+              <BarChart3 className="flex-shrink-0 mr-1.5 h-5 w-5 text-muted-foreground" />
+              <span>Avg: {avgGrade}</span>
             </div>
           </div>
         </Card>
