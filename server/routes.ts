@@ -1556,6 +1556,244 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Manager endpoints to review teacher content
+  app.get('/api/schools/:id/quizzes', requireAuth, requireRole([USER_ROLES.MANAGER, USER_ROLES.ADMIN]), async (req, res) => {
+    try {
+      const schoolId = Number(req.params.id);
+      
+      // Get all teachers in this school
+      const teachers = await dbStorage.getTeachersBySchool(schoolId);
+      const teacherIds = teachers.map(teacher => teacher.id);
+      
+      // Get all quizzes by those teachers
+      const allQuizzes = [];
+      for (const teacherId of teacherIds) {
+        const quizzes = await dbStorage.getQuizzesByTeacher(teacherId);
+        const quizzesWithTeacher = await Promise.all(quizzes.map(async quiz => {
+          const teacher = await dbStorage.getTeacher(quiz.teacherId);
+          const class_ = quiz.classId ? await dbStorage.getClass(quiz.classId) : null;
+          return {
+            ...quiz,
+            teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : "Unknown",
+            className: class_ ? class_.name : "Not assigned to class"
+          };
+        }));
+        allQuizzes.push(...quizzesWithTeacher);
+      }
+      
+      res.status(200).json(allQuizzes);
+    } catch (error) {
+      console.error("Error fetching school quizzes:", error);
+      res.status(500).json({ message: "Server error fetching school quizzes" });
+    }
+  });
+  
+  app.get('/api/schools/:id/all-grades', requireAuth, requireRole([USER_ROLES.MANAGER, USER_ROLES.ADMIN]), async (req, res) => {
+    try {
+      const schoolId = Number(req.params.id);
+      
+      // Get all students in this school
+      const students = await dbStorage.getStudentsBySchool(schoolId);
+      
+      // Get all grades for these students
+      const allGradeData = [];
+      for (const student of students) {
+        const grades = await dbStorage.getGradesByStudent(student.id);
+        const gradesWithDetails = await Promise.all(grades.map(async grade => {
+          const assignment = await dbStorage.getAssignment(grade.assignmentId);
+          const class_ = assignment ? await dbStorage.getClass(assignment.classId) : null;
+          const teacher = class_ ? await dbStorage.getTeacher(class_.teacherId) : null;
+          
+          return {
+            ...grade,
+            assignmentName: assignment ? assignment.name : "Unknown Assignment",
+            assignmentType: assignment ? assignment.type : "Unknown",
+            className: class_ ? class_.name : "Unknown Class",
+            teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : "Unknown Teacher",
+            studentName: `${student.firstName} ${student.lastName}`
+          };
+        }));
+        
+        allGradeData.push(...gradesWithDetails);
+      }
+      
+      res.status(200).json(allGradeData);
+    } catch (error) {
+      console.error("Error fetching school grades:", error);
+      res.status(500).json({ message: "Server error fetching school grades" });
+    }
+  });
+  
+  // XML Export of all grades in a school for managers
+  app.post('/api/export/school-grades', requireAuth, requireRole([USER_ROLES.MANAGER, USER_ROLES.ADMIN]), async (req, res) => {
+    try {
+      const { schoolId, format } = req.body;
+      
+      // Get the school
+      const school = await dbStorage.getSchool(schoolId);
+      if (!school) {
+        return res.status(404).json({ message: "School not found" });
+      }
+      
+      // Get all students in this school
+      const students = await dbStorage.getStudentsBySchool(schoolId);
+      
+      // Create a map to group grades by class and student
+      const classesByIdMap = new Map();
+      const studentGradesByClassMap = new Map();
+      
+      // Process all students' grades
+      for (const student of students) {
+        const grades = await dbStorage.getGradesByStudent(student.id);
+        
+        // Group by class
+        for (const grade of grades) {
+          const assignment = await dbStorage.getAssignment(grade.assignmentId);
+          if (!assignment) continue;
+          
+          const classId = assignment.classId;
+          
+          // Store class info
+          if (!classesByIdMap.has(classId)) {
+            const class_ = await dbStorage.getClass(classId);
+            if (class_) {
+              classesByIdMap.set(classId, class_);
+            }
+          }
+          
+          // Store grade with student info
+          if (!studentGradesByClassMap.has(classId)) {
+            studentGradesByClassMap.set(classId, new Map());
+          }
+          
+          const classGrades = studentGradesByClassMap.get(classId);
+          if (!classGrades.has(student.id)) {
+            classGrades.set(student.id, {
+              student,
+              grades: []
+            });
+          }
+          
+          classGrades.get(student.id).grades.push({
+            ...grade,
+            assignmentName: assignment.name,
+            assignmentType: assignment.type,
+            maxScore: assignment.maxScore
+          });
+        }
+      }
+      
+      if (format === 'xml') {
+        // Generate XML
+        const root = builder.create('SchoolGrades');
+        
+        root.ele('SchoolName', school.name);
+        root.ele('SchoolAddress', school.address || 'N/A');
+        root.ele('ExportDate', new Date().toISOString());
+        
+        const classesEle = root.ele('Classes');
+        
+        // For each class
+        for (const [classId, class_] of classesByIdMap.entries()) {
+          const classEle = classesEle.ele('Class');
+          classEle.att('id', class_.id);
+          classEle.ele('ClassName', class_.name);
+          classEle.ele('GradeLevel', class_.gradeLevel || 'N/A');
+          
+          const studentsEle = classEle.ele('Students');
+          
+          // Get all students in this class along with their grades
+          const classGrades = studentGradesByClassMap.get(classId) || new Map();
+          
+          // For each student
+          for (const [_, studentData] of classGrades.entries()) {
+            const student = studentData.student;
+            const grades = studentData.grades;
+            
+            // Skip if no grades
+            if (!grades.length) continue;
+            
+            const studentEle = studentsEle.ele('Student');
+            studentEle.att('id', student.id);
+            studentEle.ele('Name', `${student.firstName} ${student.lastName}`);
+            studentEle.ele('Email', student.email || 'N/A');
+            studentEle.ele('GradeLevel', student.gradeLevel || 'N/A');
+            
+            // Calculate average grade for this student in this class
+            let totalScore = 0;
+            let totalMaxScore = 0;
+            
+            grades.forEach(grade => {
+              totalScore += parseFloat(grade.score);
+              totalMaxScore += parseFloat(grade.maxScore);
+            });
+            
+            const averagePercentage = totalMaxScore > 0 
+              ? (totalScore / totalMaxScore * 100).toFixed(2) 
+              : "N/A";
+              
+            studentEle.ele('AveragePercentage', averagePercentage);
+            
+            const gradesEle = studentEle.ele('Grades');
+            
+            // For each grade
+            grades.forEach(grade => {
+              const gradeEle = gradesEle.ele('Grade');
+              gradeEle.att('id', grade.id);
+              gradeEle.ele('Assignment', grade.assignmentName);
+              gradeEle.ele('Type', grade.assignmentType);
+              gradeEle.ele('Score', grade.score);
+              gradeEle.ele('MaxScore', grade.maxScore);
+              gradeEle.ele('Comments', grade.comments || '');
+              gradeEle.ele('GradedAt', grade.gradedAt.toISOString());
+            });
+          }
+        }
+        
+        const xml = root.end({ pretty: true });
+        
+        // Set Content-Type and Content-Disposition headers
+        res.setHeader('Content-Type', 'application/xml');
+        res.setHeader('Content-Disposition', `attachment; filename="school_${schoolId}_grades.xml"`);
+        
+        // Send the XML response
+        res.status(200).send(xml);
+      } else {
+        // Default to JSON format with flat structure
+        const allGradeData = [];
+        
+        // Flatten the data structure for JSON
+        for (const [classId, classGrades] of studentGradesByClassMap.entries()) {
+          const class_ = classesByIdMap.get(classId);
+          
+          for (const [_, studentData] of classGrades.entries()) {
+            const student = studentData.student;
+            const grades = studentData.grades;
+            
+            for (const grade of grades) {
+              allGradeData.push({
+                studentId: student.id,
+                studentName: `${student.firstName} ${student.lastName}`,
+                classId: class_.id,
+                className: class_.name,
+                assignmentName: grade.assignmentName,
+                assignmentType: grade.assignmentType,
+                score: grade.score,
+                maxScore: grade.maxScore,
+                gradedAt: grade.gradedAt
+              });
+            }
+          }
+        }
+        
+        res.status(200).json(allGradeData);
+      }
+    } catch (error) {
+      console.error("Error exporting school grades:", error);
+      res.status(500).json({ message: "Server error exporting school grades" });
+    }
+  });
+  
   // XML Grade Export
   app.post('/api/export/grades', requireAuth, async (req, res) => {
     try {

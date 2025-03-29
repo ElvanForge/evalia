@@ -68,6 +68,7 @@ export function QuizRunner({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Handle when a user selects an answer - following the provided JS file
   const selectAnswer = (isCorrect: boolean) => {
     if (isCorrect) {
       setScore(prevScore => prevScore + 1);
@@ -80,6 +81,7 @@ export function QuizRunner({
     }
   };
 
+  // Show final score - following the provided JS file structure
   const showScore = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -104,8 +106,11 @@ export function QuizRunner({
     const percentage = (score / questions.length) * 100;
     
     return (
-      <div className="page-header">
-        <h1>{getFormattedTitle()}</h1>
+      <div>
+        <div className="page-header">
+          <h1>{getFormattedTitle()}</h1>
+        </div>
+        
         <div className="quiz-container">
           <h2>Quiz Complete!</h2>
           <div id="score">

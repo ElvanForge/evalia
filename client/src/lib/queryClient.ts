@@ -7,6 +7,7 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Base request function
 export async function apiRequest(
   method: string,
   url: string,
@@ -20,6 +21,38 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
+  return res;
+}
+
+// Add a post method for convenience
+apiRequest.post = async function(
+  url: string, 
+  data?: unknown, 
+  options?: { responseType?: string }
+): Promise<any> {
+  // Create fetch options
+  const fetchOptions: RequestInit = {
+    method: 'POST',
+    headers: data ? { "Content-Type": "application/json" } : {},
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: "include"
+  };
+  
+  const res = await fetch(url, fetchOptions);
+  await throwIfResNotOk(res);
+  
+  // Handle different response types
+  if (options?.responseType === 'blob') {
+    return res;
+  }
+  
+  // For regular JSON responses
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const json = await res.json();
+    return json;
+  }
+  
   return res;
 }
 
