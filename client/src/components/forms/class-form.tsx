@@ -39,12 +39,18 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
         description: values.description
       };
       
+      console.log("Submitting class data:", dataToSubmit);
+      
       if (isEditing) {
         const res = await apiRequest("PUT", `/api/classes/${class_.id}`, dataToSubmit);
-        return res.json();
+        const data = await res.json();
+        console.log("Class update response:", data);
+        return data;
       } else {
         const res = await apiRequest("POST", "/api/classes", dataToSubmit);
-        return res.json();
+        const data = await res.json();
+        console.log("Class creation response:", data);
+        return data;
       }
     },
     onSuccess: (data) => {

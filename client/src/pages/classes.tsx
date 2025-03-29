@@ -100,11 +100,9 @@ export default function Classes() {
   const actions = (class_: Class) => (
     <div className="flex space-x-2 justify-end">
       <Link href={`/classes/${class_.id}`}>
-        <a>
-          <Button variant="ghost" size="icon">
-            <Eye className="h-4 w-4" />
-          </Button>
-        </a>
+        <Button variant="ghost" size="icon">
+          <Eye className="h-4 w-4" />
+        </Button>
       </Link>
       <Button 
         variant="ghost" 
@@ -129,12 +127,10 @@ export default function Classes() {
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-medium">All Classes</h2>
           <Link href="/classes/new">
-            <a>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Class
-              </Button>
-            </a>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Class
+            </Button>
           </Link>
         </div>
 

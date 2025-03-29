@@ -89,15 +89,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
       const teacherId = req.user?.id;
       
+      console.log("Creating class - User:", req.user);
+      console.log("Creating class - teacherId:", teacherId);
+      console.log("Creating class - req.body:", req.body);
+      
       if (!teacherId) {
+        console.log("Authentication failed - no teacher ID");
         return res.status(401).json({ message: "User not authenticated" });
       }
       
-      const newClass = await dbStorage.createClass({
+      const dataToCreate = {
         ...req.body,
         teacherId
-      });
-      res.status(201).json(newClass);
+      };
+      
+      console.log("Creating class with data:", dataToCreate);
+      
+      try {
+        const newClass = await dbStorage.createClass(dataToCreate);
+        console.log("Class created successfully:", newClass);
+        res.status(201).json(newClass);
+      } catch (dbError) {
+        console.error("Database error creating class:", dbError);
+        res.status(500).json({ message: "Database error creating class", error: dbError.message });
+      }
     } catch (error) {
       console.error("Error creating class:", error);
       res.status(500).json({ message: "Server error creating class" });
