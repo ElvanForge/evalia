@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
   <rect width="300" height="200" fill="#0ba2b0" />
-  <text x="150" y="100" font-family="Arial" font-size="24" text-anchor="middle" fill="white">Test Image</text>
-  <text x="150" y="130" font-family="Arial" font-size="16" text-anchor="middle" fill="white">For Evalia Quiz System</text>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="24px" font-family="Arial, sans-serif">Evalia Test Image</text>
+  <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="16px" font-family="Arial, sans-serif">For Quiz Questions</text>
 </svg>
