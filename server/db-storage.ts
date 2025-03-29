@@ -222,6 +222,10 @@ export class DBStorage implements IStorage {
   async getEnrollments(classId: number): Promise<StudentClass[]> {
     return db.select().from(schema.studentClasses).where(eq(schema.studentClasses.classId, classId));
   }
+  
+  async getEnrollmentsByStudent(studentId: number): Promise<StudentClass[]> {
+    return db.select().from(schema.studentClasses).where(eq(schema.studentClasses.studentId, studentId));
+  }
 
   // Assignment operations
   async getAssignment(id: number): Promise<Assignment | undefined> {

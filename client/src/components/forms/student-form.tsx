@@ -67,11 +67,28 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
     mutationFn: async (values: any) => {
       try {
         if (isEditing && student) {
-          // Only send student schema fields
-          const { classId, ...studentData } = values;
+          // Always include classId in the update if provided
+          // Backend will handle the class enrollment/unenrollment
+          const dataToSend = values;
           
-          // Use our putRequest helper to avoid TypeScript issues
-          return await putRequest(`/api/students/${student.id}`, studentData, { responseType: 'json' });
+          console.log("Updating student with data:", dataToSend);
+          
+          // Use direct fetch for better error handling
+          const response = await fetch(`/api/students/${student.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend),
+            credentials: 'include'
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to update student: ${errorText}`);
+          }
+          
+          const data = await response.json();
+          console.log("Student update response:", data);
+          return data;
         } else {
           // If classId is provided, add it to the request payload
           const classIdToUse = selectedClassId || classId;

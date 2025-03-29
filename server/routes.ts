@@ -286,7 +286,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Student not found" });
       }
 
-      const updatedStudent = await dbStorage.updateStudent(studentId, req.body);
+      // Extract classId from request body if present
+      const { classId, ...studentData } = req.body;
+      
+      // Update student basic information
+      const updatedStudent = await dbStorage.updateStudent(studentId, studentData);
+      
+      // If classId is provided, update the student's class enrollment
+      if (classId !== undefined) {
+        try {
+          // Check if student is already enrolled in any classes
+          const enrolledClasses = await dbStorage.getEnrollmentsByStudent(studentId);
+          
+          // If student is already enrolled in the target class, nothing to do
+          if (!enrolledClasses.some(enrollment => enrollment.classId === classId)) {
+            // Unenroll from all current classes (this is a simplified version - may want to modify this behavior)
+            for (const enrollment of enrolledClasses) {
+              await dbStorage.unenrollStudent(studentId, enrollment.classId);
+            }
+            
+            // Enroll in the new class if classId is not null
+            if (classId !== null) {
+              await dbStorage.enrollStudent({
+                studentId,
+                classId
+              });
+            }
+          }
+        } catch (enrollmentError) {
+          console.error("Error updating student class assignment:", enrollmentError);
+          // Still return the updated student, but with a warning
+          return res.status(200).json({
+            ...updatedStudent,
+            warning: "Student basic info was updated, but class assignment could not be updated"
+          });
+        }
+      }
+      
       res.status(200).json(updatedStudent);
     } catch (error) {
       console.error("Error updating student:", error);

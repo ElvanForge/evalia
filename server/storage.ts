@@ -71,6 +71,7 @@ export interface IStorage {
   enrollStudent(studentClass: InsertStudentClass): Promise<StudentClass>;
   unenrollStudent(studentId: number, classId: number): Promise<boolean>;
   getEnrollments(classId: number): Promise<StudentClass[]>;
+  getEnrollmentsByStudent(studentId: number): Promise<StudentClass[]>;
   
   // Assignment operations
   getAssignment(id: number): Promise<Assignment | undefined>;
