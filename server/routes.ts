@@ -84,8 +84,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/classes", requireAuth, validateRequest(insertClassSchema), async (req, res) => {
+  // Custom validation for class creation to avoid teacherId validation issues
+  app.post("/api/classes", requireAuth, async (req, res) => {
     try {
+      // Manual validation for required fields
+      if (!req.body.name || typeof req.body.name !== 'string') {
+        return res.status(400).json({
+          message: "Validation error",
+          errors: [{ code: "invalid_type", path: ["name"], expected: "string", received: typeof req.body.name }]
+        });
+      }
+      
       // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
       const teacherId = req.user?.id;
       
@@ -100,7 +109,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const dataToCreate = {
         ...req.body,
-        teacherId
+        teacherId,
+        // Handle optional fields with default null values
+        description: req.body.description || null,
+        gradeLevel: req.body.gradeLevel || null
       };
       
       console.log("Creating class with data:", dataToCreate);
@@ -109,9 +121,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const newClass = await dbStorage.createClass(dataToCreate);
         console.log("Class created successfully:", newClass);
         res.status(201).json(newClass);
-      } catch (dbError) {
+      } catch (dbError: any) {
         console.error("Database error creating class:", dbError);
-        res.status(500).json({ message: "Database error creating class", error: dbError.message });
+        res.status(500).json({ message: "Database error creating class", error: dbError?.message || String(dbError) });
       }
     } catch (error) {
       console.error("Error creating class:", error);
