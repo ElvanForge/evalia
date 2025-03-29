@@ -65,26 +65,12 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
   const studentMutation = useMutation({
     mutationFn: async (values: any) => {
       try {
-        if (isEditing) {
+        if (isEditing && student) {
           // Only send student schema fields
           const { classId, ...studentData } = values;
           
-          // Use direct fetch for better error handling
-          const response = await fetch(`/api/students/${student.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(studentData),
-            credentials: 'include'
-          });
-          
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to update student: ${errorText}`);
-          }
-          
-          const data = await response.json();
-          console.log("Student update response:", data);
-          return data;
+          // Use apiRequest helper for consistency
+          return await apiRequest.post(`/api/students/${student.id}`, studentData, { responseType: 'json' });
         } else {
           // If classId is provided, add it to the request payload
           const classIdToUse = selectedClassId || classId;
