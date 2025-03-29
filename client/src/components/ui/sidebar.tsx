@@ -40,11 +40,11 @@ const SidebarLink = ({ href, icon, children, onClick }: SidebarLinkProps) => {
         className={cn(
           "flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
-            ? "bg-[#0ba2b0] text-white" // Primary button color for selection
-            : "text-gray-700 hover:bg-[#0ba2b0]/20 hover:text-gray-900"
+            ? "bg-[#085a60] text-white" // Darker teal for selection
+            : "text-white hover:bg-white/20 hover:text-white"
         )}
       >
-        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-gray-600")}>
+        <span className={cn("mr-3 h-5 w-5", isActive ? "text-white" : "text-white")}>
           {icon}
         </span>
         {children}
@@ -71,15 +71,15 @@ export function Sidebar() {
     <>
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
-          <svg className="h-8 w-8 text-[#0ba2b0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          <span className="ml-2 text-xl font-bold text-[#0ba2b0]">GradeTrack</span>
+          <span className="ml-2 text-xl font-bold text-white">GradeTrack</span>
           {isMobile && (
             <Button
               variant="ghost"
               size="icon"
-              className="ml-auto text-gray-400 hover:text-white"
+              className="ml-auto text-white hover:text-white/80"
               onClick={() => setIsOpen(false)}
             >
               <X className="h-6 w-6" />
@@ -157,7 +157,7 @@ export function Sidebar() {
       </div>
 
       {user ? (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-white/20">
           <div className="flex items-center">
             <Avatar className="h-10 w-10">
               <AvatarImage src="" alt={`${user.firstName} ${user.lastName}`} />
@@ -166,13 +166,13 @@ export function Sidebar() {
               </AvatarFallback>
             </Avatar>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-800">{user.firstName} {user.lastName}</p>
-              <p className="text-xs font-medium text-gray-600">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
+              <p className="text-sm font-medium text-white">{user.firstName} {user.lastName}</p>
+              <p className="text-xs font-medium text-white/80">{user.subject || (user.role === 'manager' ? "School Manager" : "Teacher")}</p>
             </div>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="ml-auto text-gray-600 hover:text-gray-900"
+              className="ml-auto text-white hover:text-white/80"
               onClick={logout}
               title="Logout"
             >
@@ -181,9 +181,9 @@ export function Sidebar() {
           </div>
         </div>
       ) : (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-white/20">
           <Link href="/auth/login">
-            <div className="flex items-center text-sm font-medium text-gray-800 cursor-pointer">
+            <div className="flex items-center text-sm font-medium text-white cursor-pointer">
               <LogIn className="h-5 w-5 mr-2" />
               Login
             </div>
@@ -199,7 +199,7 @@ export function Sidebar() {
       {isMobile && (
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:bg-gray-100"
+          className="md:hidden px-4 text-[#0ba2b0] focus:outline-none hover:text-[#085a60]"
         >
           <Menu className="h-6 w-6" />
         </button>
@@ -213,7 +213,7 @@ export function Sidebar() {
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#f5f2e8]">
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-[#8dd9d2] to-[#0ba2b0]">
             {sidebarContent}
           </div>
         </div>
@@ -225,7 +225,7 @@ export function Sidebar() {
           {!isSidebarHidden ? (
             <div className="hidden md:flex md:flex-shrink-0 transition-all duration-300">
               <div className="flex flex-col w-64 relative">
-                <div className="flex flex-col h-0 flex-1 bg-[#f5f2e8]">
+                <div className="flex flex-col h-0 flex-1 bg-gradient-to-b from-[#8dd9d2] to-[#0ba2b0]">
                   {sidebarContent}
                   <Button 
                     variant="ghost" 
