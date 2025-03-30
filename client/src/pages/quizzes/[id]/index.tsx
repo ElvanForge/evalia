@@ -536,11 +536,11 @@ const QuizDetail = () => {
                               title: "Export Successful",
                               description: "Quiz scores have been exported to CSV",
                             });
-                          } catch (error) {
+                          } catch (error: any) {
                             console.error("Error exporting scores:", error);
                             toast({
                               title: "Export Failed",
-                              description: "There was a problem exporting the quiz scores",
+                              description: error.message || "There was a problem exporting the quiz scores. Make sure students have completed the quiz.",
                               variant: "destructive",
                             });
                           }

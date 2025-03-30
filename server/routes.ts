@@ -1761,7 +1761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // First, check if this quiz already has an assignment
             const assignments = await dbStorage.getAssignmentsByClass(quiz.classId);
             let quizAssignment = assignments.find(a => 
-              a.name === quiz.title && a.assignmentType === 'Quiz'
+              a.name === quiz.title && a.type === 'Quiz'
             );
             
             // If no assignment exists for this quiz, create one
@@ -1770,7 +1770,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 name: quiz.title,
                 description: `Quiz ${quiz.title}`,
                 classId: quiz.classId,
-                assignmentType: 'Quiz',
+                type: 'Quiz', // Fixed! Using 'type' instead of 'assignmentType'
                 dueDate: new Date(), // Set to current date since it's already completed
                 maxScore: String(maxScore), // Convert to string for consistency
                 weight: "1" // Default weight as string
@@ -2507,7 +2507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const gradeEle = gradesEle.ele('Grade');
               gradeEle.att('id', grade.id);
               gradeEle.ele('Assignment', grade.assignmentName);
-              gradeEle.ele('Type', grade.assignmentType);
+              gradeEle.ele('Type', grade.type);
               gradeEle.ele('Score', grade.score);
               gradeEle.ele('MaxScore', grade.maxScore);
               gradeEle.ele('Comments', grade.comments || '');
@@ -2543,7 +2543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 classId: class_.id,
                 className: class_.name,
                 assignmentName: grade.assignmentName,
-                assignmentType: grade.assignmentType,
+                assignmentType: grade.type,
                 score: grade.score,
                 maxScore: grade.maxScore,
                 gradedAt: grade.gradedAt
@@ -2612,7 +2612,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return {
                 ...grade,
                 assignmentName: assignment ? assignment.name : "Unknown",
-                assignmentType: assignment ? assignment.assignmentType : "Unknown", // Fixed property name
+                assignmentType: assignment ? assignment.type : "Unknown", // Using assignment.type
+                type: assignment ? assignment.type : "Unknown", // Add type field for XML export
                 maxScore: assignment ? assignment.maxScore : 0
               };
             }),
@@ -2643,7 +2644,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const gradeEle = gradesEle.ele('Grade');
             gradeEle.att('id', grade.id);
             gradeEle.ele('Assignment', grade.assignmentName);
-            gradeEle.ele('Type', grade.assignmentType);
+            gradeEle.ele('Type', grade.type);
             gradeEle.ele('Score', grade.score);
             gradeEle.ele('Comments', grade.comments || '');
             gradeEle.ele('GradedAt', grade.gradedAt.toISOString());
@@ -2697,7 +2698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 student.id,
                 studentName,
                 grade.assignmentName,
-                grade.assignmentType,
+                grade.type,
                 grade.score,
                 grade.maxScore,
                 percentage,
@@ -2761,7 +2762,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Found ${completedSubmissions.length} completed submissions`);
       
       if (completedSubmissions.length === 0) {
-        return res.status(404).json({ message: "No completed submissions found for this quiz" });
+        console.log("No completed submissions found for quiz ID:", quizId);
+        return res.status(404).json({ 
+          message: "No completed submissions found for this quiz. Have students take the quiz before exporting scores." 
+        });
       }
       
       // Get student details for each submission
@@ -2934,7 +2938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Get the teacher to check if they already have a subscription
-        const teacher = await storage.getTeacher(teacherId);
+        const teacher = await dbStorage.getTeacher(teacherId);
         
         if (!teacher) {
           return res.status(404).json({ message: "Teacher not found" });
@@ -2956,7 +2960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customerId = customer.id;
           
           // Update the teacher with the new customer ID
-          await storage.updateTeacherStripeCustomerId(teacherId, customerId);
+          await dbStorage.updateTeacherStripeCustomerId(teacherId, customerId);
         }
         
         // Create a subscription
@@ -2971,7 +2975,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Update the teacher with the subscription info
-        await storage.updateTeacherStripeSubscription(teacherId, {
+        await dbStorage.updateTeacherStripeSubscription(teacherId, {
           stripeSubscriptionId: subscription.id,
           subscriptionPlan: plan,
           subscriptionStatus: subscription.status
@@ -3084,7 +3088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!teacherId) return;
         
         // Update subscription status
-        await storage.updateTeacherStripeSubscription(teacherId, {
+        await dbStorage.updateTeacherStripeSubscription(teacherId, {
           stripeSubscriptionId: subscription.id,
           subscriptionPlan: getPlanNameFromId(subscription.items.data[0]?.price?.id),
           subscriptionStatus: subscription.status
@@ -3102,7 +3106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!teacherId) return;
         
         // Update subscription status
-        await storage.updateTeacherStripeSubscription(teacherId, {
+        await dbStorage.updateTeacherStripeSubscription(teacherId, {
           stripeSubscriptionId: subscription.id,
           subscriptionPlan: getPlanNameFromId(subscription.items.data[0]?.price?.id),
           subscriptionStatus: subscription.status
@@ -3120,7 +3124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!teacherId) return;
         
         // Update subscription status to canceled
-        await storage.updateTeacherStripeSubscription(teacherId, {
+        await dbStorage.updateTeacherStripeSubscription(teacherId, {
           stripeSubscriptionId: subscription.id,
           subscriptionPlan: 'free',
           subscriptionStatus: 'canceled'
@@ -3134,7 +3138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async function findTeacherIdByCustomerId(customerId: string): Promise<number | null> {
       try {
         // Find all teachers
-        const teachers = await storage.getAllTeachers();
+        const teachers = await dbStorage.getAllTeachers();
         const teacher = teachers.find(t => t.stripeCustomerId === customerId);
         
         if (teacher) {
