@@ -145,6 +145,7 @@ const QuizPreview = () => {
   const isAdminMode = searchParams.get('admin') === 'true';
   
   // Add toggle for preview mode vs. grading mode - initialized based on URL parameter
+  // If admin=true in URL, we force admin mode (previewMode=false)
   const [previewMode, setPreviewMode] = useState(!isAdminMode);
   
   // We'll only enter fullscreen when a student is selected or we're in preview mode
@@ -386,7 +387,7 @@ const QuizPreview = () => {
                 <Label htmlFor="mode-toggle" className={previewMode ? "text-muted-foreground" : "font-medium"}>Grade Students</Label>
                 <Switch
                   id="mode-toggle"
-                  checked={!previewMode}
+                  checked={!previewMode} 
                   onCheckedChange={(checked) => {
                     setPreviewMode(!checked);
                     // Reset selected student when switching modes
