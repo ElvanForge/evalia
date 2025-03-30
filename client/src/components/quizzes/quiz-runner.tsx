@@ -198,15 +198,15 @@ export function QuizRunner({
               isQuizImage={true}
               onLoadSuccess={() => console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`)}
               onLoadError={() => {
-                console.log(`Quiz image failed to load. Trying direct API URL for: ${currentQuestion.imageUrl}`);
+                console.log(`Quiz image failed to load. Trying direct API URL for: ${currentQuestion.imageUrl || 'no image'}`);
                 
                 // Directly log the exact image path we're working with
-                const filename = currentQuestion.imageUrl.split(/[\/\\]/).pop();
-                const apiUrl = `/api/images/${filename}`;
-                const fullApiUrl = `${window.location.origin}${apiUrl}`;
+                const filename = currentQuestion.imageUrl ? currentQuestion.imageUrl.split(/[\/\\]/).pop() : null;
+                const apiUrl = filename ? `/api/images/${filename}` : null;
+                const fullApiUrl = apiUrl ? `${window.location.origin}${apiUrl}` : null;
                 
                 console.log("Image troubleshooting info:", {
-                  originalUrl: currentQuestion.imageUrl,
+                  originalUrl: currentQuestion.imageUrl || null,
                   extractedFilename: filename,
                   apiUrl: apiUrl,
                   fullApiUrl: fullApiUrl,
@@ -214,14 +214,18 @@ export function QuizRunner({
                 });
                 
                 // Try the direct file access URL (as another option)
-                const directUrl = `${window.location.origin}/uploads/images/${filename}`;
-                console.log(`Also trying direct file URL: ${directUrl}`);
+                const directUrl = filename ? `${window.location.origin}/uploads/images/${filename}` : null;
+                console.log(`Also trying direct file URL: ${directUrl || 'no direct URL (missing filename)'}`);
                 
                 // Add a message in the console with debugging URLs to help developers
-                console.log(`Try accessing these URLs directly to debug:
-                1. ${fullApiUrl}
-                2. ${directUrl}
-                3. ${currentQuestion.imageUrl}`);
+                if (filename) {
+                  console.log(`Try accessing these URLs directly to debug:
+                  1. ${fullApiUrl || 'N/A'}
+                  2. ${directUrl || 'N/A'}
+                  3. ${currentQuestion.imageUrl || 'N/A'}`);
+                } else {
+                  console.log('No image URLs to debug - filename is missing');
+                }
               }}
             />
           </div>
