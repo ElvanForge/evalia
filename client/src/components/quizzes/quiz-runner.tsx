@@ -174,8 +174,10 @@ export function QuizRunner({
                 {...getImageProps({
                   src: currentQuestion.imageUrl,
                   alt: `Question ${currentQuestionIndex + 1}`,
-                  className: "rounded-md object-contain max-h-[300px] max-w-full"
+                  className: "rounded-md object-contain max-h-[300px] max-w-full",
+                  fallbackSrc: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlZGU4ZGQiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzBiYTJiMCIgZm9udC1zaXplPSIxNnB4IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiPkltYWdlIGNvdWxkIG5vdCBiZSBsb2FkZWQ8L3RleHQ+PC9zdmc+"
                 })}
+                onLoad={(e) => console.log(`Quiz question image loaded: ${currentQuestion.imageUrl}`)}
               />
             </div>
           )}

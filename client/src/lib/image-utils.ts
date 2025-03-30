@@ -18,17 +18,29 @@ export function getFullImageUrl(imageUrl: string | null | undefined): string {
   
   // For uploaded images that come from our server
   if (imageUrl.includes('/uploads/')) {
-    // Normalize path to ensure it starts with a slash
-    const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+    // Clean the path to ensure consistent format
+    // First, get just the part from /uploads/ onward
+    let cleanedPath;
     
-    // If the path contains '/uploads/' twice, fix it
-    if ((normalizedPath.match(/\/uploads\//g) || []).length > 1) {
-      const fixedPath = normalizedPath.substring(normalizedPath.lastIndexOf('/uploads/'));
-      console.log('Fixed duplicate uploads path:', fixedPath);
-      return `${window.location.origin}${fixedPath}`;
+    if (imageUrl.includes('/uploads/images/')) {
+      // Extract just the filename if it includes the full path
+      const parts = imageUrl.split('/uploads/images/');
+      const filename = parts[parts.length - 1];
+      cleanedPath = `/uploads/images/${filename}`;
+    } else {
+      // Normalize path to ensure it starts with a slash
+      cleanedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      
+      // If the path contains '/uploads/' twice, fix it
+      if ((cleanedPath.match(/\/uploads\//g) || []).length > 1) {
+        cleanedPath = cleanedPath.substring(cleanedPath.lastIndexOf('/uploads/'));
+      }
     }
     
-    return `${window.location.origin}${normalizedPath}`;
+    // Log for debugging
+    console.log('Processing image path:', { original: imageUrl, cleaned: cleanedPath });
+    
+    return `${window.location.origin}${cleanedPath}`;
   }
   
   // If it's any other relative path, ensure it has the correct origin
@@ -77,9 +89,24 @@ export function getImageProps(props: ImageWithFallbackProps): React.ImgHTMLAttri
       console.error("Image failed to load:", processedSrc, "Original:", src);
       const target = e.target as HTMLImageElement;
       
-      // Special case for uploads folder to ensure correct path
+      // Special case for quiz images and uploads folder
       if (src && src.includes('/uploads/')) {
-        // Try to normalize the uploads path to fix any path issues
+        // First recovery attempt: for quiz images, ensure we have the correct path format
+        if (src.includes('/uploads/images/')) {
+          // Extract just the filename
+          const parts = src.split('/uploads/images/');
+          const filename = parts[parts.length - 1];
+          // Construct the direct URL to the image
+          const directUrl = `${window.location.origin}/uploads/images/${filename}`;
+          
+          console.log("Quiz image recovery attempt with direct path:", directUrl);
+          if (directUrl !== target.src) {
+            target.src = directUrl;
+            return;
+          }
+        }
+        
+        // Second recovery attempt: Try to normalize the uploads path for any uploads
         const uploadsIndex = src.lastIndexOf('/uploads/');
         if (uploadsIndex >= 0) {
           const correctPath = src.substring(uploadsIndex);
@@ -91,9 +118,17 @@ export function getImageProps(props: ImageWithFallbackProps): React.ImgHTMLAttri
             return;
           }
         }
+        
+        // Third recovery attempt: try a direct query parameter approach for server cache busting
+        const cacheBustUrl = `${window.location.origin}/uploads/images/${src.split('/').pop()}?t=${Date.now()}`;
+        console.log("Trying cache-busted URL:", cacheBustUrl);
+        if (cacheBustUrl !== target.src) {
+          target.src = cacheBustUrl;
+          return;
+        }
       }
       
-      // Try correcting the URL with absolute path
+      // Try correcting the URL with absolute path for any path
       if (src && !src.startsWith('data:') && !src.startsWith('http')) {
         // Try a different URL format
         const absoluteUrl = `${window.location.origin}${src.startsWith('/') ? src : '/' + src}`;

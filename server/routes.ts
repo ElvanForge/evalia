@@ -1214,6 +1214,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Quiz Question routes
+  // Helper function to process quiz question image URLs for consistency
+  function processQuizImageUrl(question: any): any {
+    if (!question || !question.imageUrl) return question;
+    
+    // Return a new object with processed URL to avoid modifying the original
+    const processed = { ...question };
+    
+    // Ensure image URL is properly formatted
+    // If it doesn't start with /uploads, add it
+    if (!processed.imageUrl.startsWith('/uploads/')) {
+      // Check if it's a filename only or a partial path
+      if (processed.imageUrl.includes('/uploads/')) {
+        // Extract from uploads/ onward
+        const uploadsIndex = processed.imageUrl.indexOf('/uploads/');
+        processed.imageUrl = processed.imageUrl.substring(uploadsIndex);
+      } else if (processed.imageUrl.includes('/images/')) {
+        // If it has /images/ but not /uploads/, add the uploads part
+        const imagesIndex = processed.imageUrl.indexOf('/images/');
+        processed.imageUrl = '/uploads' + processed.imageUrl.substring(imagesIndex);
+      } else {
+        // Assume it's just a filename
+        processed.imageUrl = `/uploads/images/${processed.imageUrl}`;
+      }
+    }
+    
+    console.log(`Processed image URL for question ${processed.id}: ${processed.imageUrl}`);
+    return processed;
+  }
+  
   app.get("/api/quizzes/:quizId/questions", requireAuth, async (req, res) => {
     try {
       // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
@@ -1235,10 +1264,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const questions = await dbStorage.getQuizQuestionsByQuiz(quizId);
-      res.status(200).json(questions);
+      
+      // Process image URLs for correct frontend display
+      const processedQuestions = questions.map(question => processQuizImageUrl(question));
+      
+      res.status(200).json(processedQuestions);
     } catch (error) {
       console.error("Error fetching quiz questions:", error);
       res.status(500).json({ message: "Server error fetching quiz questions" });
+    }
+  });
+  
+  // Add endpoint to get a single quiz question
+  app.get("/api/quiz-questions/:id", requireAuth, async (req, res) => {
+    try {
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const questionId = Number(req.params.id);
+      
+      const question = await dbStorage.getQuizQuestion(questionId);
+      if (!question) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+      
+      const quiz = await dbStorage.getQuiz(question.quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view this question" });
+      }
+      
+      // Process image URL for consistency
+      const processedQuestion = processQuizImageUrl(question);
+      
+      res.status(200).json(processedQuestion);
+    } catch (error) {
+      console.error("Error fetching quiz question:", error);
+      res.status(500).json({ message: "Server error fetching quiz question" });
     }
   });
 
