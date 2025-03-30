@@ -169,8 +169,12 @@ export function QuizRunner({
         </div>
         
         <div className="space-y-6 h-full flex flex-col">
+          {/* Question text first to ensure it's always at the top */}
+          <div className="text-lg font-medium">{currentQuestion.question}</div>
+          
+          {/* Image container with better positioning */}
           {currentQuestion.imageUrl && (
-            <div className="flex justify-center p-4 bg-muted/50 rounded-lg">
+            <div className="flex-grow flex items-center justify-center p-4 bg-muted/50 rounded-lg">
               <ImageWithFallback 
                 src={currentQuestion.imageUrl}
                 alt={`Question ${currentQuestionIndex + 1}`}
@@ -181,7 +185,9 @@ export function QuizRunner({
               />
             </div>
           )}
-          <div className="text-lg font-medium flex-grow">{currentQuestion.question}</div>
+          
+          {/* If no image, add empty space to maintain layout */}
+          {!currentQuestion.imageUrl && <div className="flex-grow"></div>}
         </div>
       </div>
       
