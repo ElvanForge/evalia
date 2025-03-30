@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clock, ArrowRight, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Clock, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class } from '@shared/schema';
 import { getImageProps } from '@/lib/image-utils';
@@ -35,6 +35,7 @@ interface QuizRunnerProps {
   onComplete: (correctAnswers: number, totalQuestions: number) => void;
   previewMode?: boolean;
   classInfo?: Class; // Optional class information that contains grade level
+  onBackToDetails?: () => void; // New callback to handle navigation back to quiz details
 }
 
 export function QuizRunner({
@@ -43,7 +44,8 @@ export function QuizRunner({
   options,
   onComplete,
   previewMode = false,
-  classInfo
+  classInfo,
+  onBackToDetails
 }: QuizRunnerProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -152,12 +154,24 @@ export function QuizRunner({
         </div>
         
         {previewMode && (
-          <div className="p-4 border border-dashed border-muted-foreground rounded-md">
+          <div className="p-4 border border-dashed border-muted-foreground rounded-md mb-6">
             <p className="text-muted-foreground">
               This is a preview. In a real quiz, results would be recorded.
             </p>
           </div>
         )}
+        
+        {/* Back to quiz details button */}
+        <div className="mt-6">
+          <Button 
+            variant="outline" 
+            onClick={onBackToDetails}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Quiz Details
+          </Button>
+        </div>
       </div>
     );
   }

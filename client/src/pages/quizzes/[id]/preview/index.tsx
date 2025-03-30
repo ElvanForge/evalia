@@ -48,14 +48,18 @@ const QuizPreview = () => {
     }
   }, [previewMode]);
 
+  // Make sure id is a number for database queries
+  const numericId = id ? parseInt(id, 10) : undefined;
+  const validId = !isNaN(Number(numericId)) ? numericId : undefined;
+  
   // Fetch quiz data
   const {
     data: quiz,
     isLoading: isLoadingQuiz,
     error: quizError,
   } = useQuery<Quiz>({
-    queryKey: [`/api/quizzes/${id}`],
-    enabled: !!id,
+    queryKey: [`/api/quizzes/${validId}`],
+    enabled: !!validId,
   });
 
   // Fetch quiz questions
@@ -64,8 +68,8 @@ const QuizPreview = () => {
     isLoading: isLoadingQuestions,
     error: questionsError,
   } = useQuery<QuizQuestion[]>({
-    queryKey: [`/api/quizzes/${id}/questions`],
-    enabled: !!id,
+    queryKey: [`/api/quizzes/${validId}/questions`],
+    enabled: !!validId,
   });
 
   // Fetch options for all questions
@@ -74,8 +78,8 @@ const QuizPreview = () => {
     isLoading: isLoadingOptions,
     error: optionsError,
   } = useQuery<Record<string, QuizOption[]>>({
-    queryKey: [`/api/quizzes/${id}/options`],
-    enabled: !!id && !!questions?.length,
+    queryKey: [`/api/quizzes/${validId}/options`],
+    enabled: !!validId && !!questions?.length,
   });
 
   // Format options to match the expected structure
@@ -86,13 +90,16 @@ const QuizPreview = () => {
       }, {} as Record<number, QuizOption[]>)
     : {};
     
+  // Get valid class ID
+  const validClassId = quiz?.classId && !isNaN(Number(quiz.classId)) ? quiz.classId : undefined;
+  
   // Fetch class information if quiz is assigned to a class
   const {
     data: classInfo,
     isLoading: isLoadingClass,
   } = useQuery<Class>({
-    queryKey: [`/api/classes/${quiz?.classId}`],
-    enabled: !!quiz?.classId,
+    queryKey: [`/api/classes/${validClassId}`],
+    enabled: !!validClassId,
   });
 
   // Fetch students for the class if quiz is assigned to a class
@@ -100,8 +107,8 @@ const QuizPreview = () => {
     data: students,
     isLoading: isLoadingStudents,
   } = useQuery<Student[]>({
-    queryKey: [`/api/classes/${quiz?.classId}/students`],
-    enabled: !!quiz?.classId && !previewMode,
+    queryKey: [`/api/classes/${validClassId}/students`],
+    enabled: !!validClassId && !previewMode,
   });
 
   const handleComplete = (correctAnswers: number, totalQuestions: number) => {
@@ -136,7 +143,7 @@ const QuizPreview = () => {
           </p>
           <Button 
             variant="outline" 
-            onClick={() => setLocation(`/quizzes/${id}`)}
+            onClick={() => setLocation(`/quizzes/${validId}`)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Quiz Details
@@ -173,7 +180,7 @@ const QuizPreview = () => {
                 <div className="flex space-x-2">
                   <Button 
                     variant="outline" 
-                    onClick={() => setLocation(`/quizzes/${id}`)}
+                    onClick={() => setLocation(`/quizzes/${validId}`)}
                   >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Quiz Details
@@ -251,6 +258,7 @@ const QuizPreview = () => {
               onComplete={handleComplete}
               previewMode={previewMode}
               classInfo={classInfo}
+              onBackToDetails={() => setLocation(`/quizzes/${validId}`)}
             />
           </div>
         ) : (
