@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { 
-  ArrowLeft, Save, Trash2, Plus, Edit, Loader2, Play, PlusCircle, Image
+  ArrowLeft, Save, Trash2, Plus, Edit, Loader2, Play, PlusCircle, Image, Users
 } from "lucide-react";
 import { getImageProps } from "@/lib/image-utils";
 import Layout from "@/components/layout";
@@ -37,6 +37,8 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Quiz, QuizQuestion, QuizOption, insertQuizSchema } from "@shared/schema";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/use-auth";
 
 const QuizDetail = () => {
   const { id } = useParams();
@@ -89,6 +91,65 @@ const QuizDetail = () => {
   } = useQuery({
     queryKey: ["/api/classes"],
   });
+  
+  // Fetch assigned classes for this quiz
+  const {
+    data: assignedClasses,
+    isLoading: isLoadingAssignedClasses,
+    refetch: refetchAssignedClasses
+  } = useQuery({
+    queryKey: [`/api/quizzes/${id}/classes`],
+    enabled: !!id,
+  });
+  
+  // State for class assignment management
+  const [isEditingClasses, setIsEditingClasses] = useState(false);
+  const [selectedClassIds, setSelectedClassIds] = useState<number[]>([]);
+  
+  // Update selectedClassIds when assigned classes are loaded
+  useEffect(() => {
+    if (assignedClasses?.length) {
+      setSelectedClassIds(assignedClasses.map(c => c.id));
+    } else {
+      setSelectedClassIds([]);
+    }
+  }, [assignedClasses]);
+  
+  // Mutation for updating class assignments
+  const updateClassAssignmentsMutation = useMutation({
+    mutationFn: async (classIds: number[]) => {
+      const response = await fetch(`/api/quizzes/${id}/classes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ classIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to update class assignments");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Classes Updated",
+        description: "Your quiz has been assigned to the selected classes.",
+      });
+      setIsEditingClasses(false);
+      refetchAssignedClasses();
+      queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quizzes"] });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "There was a problem updating class assignments.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const form = useForm<z.infer<typeof insertQuizSchema>>({
     resolver: zodResolver(insertQuizSchema),
@@ -102,7 +163,7 @@ const QuizDetail = () => {
   });
 
   // Update form when quiz data is loaded
-  useState(() => {
+  useEffect(() => {
     if (quiz) {
       form.reset({
         title: quiz.title,
@@ -112,7 +173,7 @@ const QuizDetail = () => {
         timeLimit: quiz.timeLimit,
       });
     }
-  });
+  }, [quiz, form]);
 
   // Update quiz mutation
   const updateQuizMutation = useMutation({
@@ -285,6 +346,13 @@ const QuizDetail = () => {
                 >
                   <Play className="mr-2 h-4 w-4" />
                   Preview
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => setLocation(`/quizzes/${id}/preview?admin=true`)}
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Administer Quiz
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -472,6 +540,110 @@ const QuizDetail = () => {
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Class Assignments</CardTitle>
+                  <CardDescription>
+                    Assign this quiz to multiple classes
+                  </CardDescription>
+                </div>
+                {isEditingClasses ? (
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsEditingClasses(false);
+                        // Reset to original values
+                        if (assignedClasses?.length) {
+                          setSelectedClassIds(assignedClasses.map(c => c.id));
+                        } else {
+                          setSelectedClassIds([]);
+                        }
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => updateClassAssignmentsMutation.mutate(selectedClassIds)}
+                      disabled={updateClassAssignmentsMutation.isPending}
+                    >
+                      {updateClassAssignmentsMutation.isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Save
+                    </Button>
+                  </div>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    onClick={() => setIsEditingClasses(true)}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Assignments
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                {isLoadingAssignedClasses ? (
+                  <div className="flex items-center justify-center h-24">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : isEditingClasses ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-3">
+                      {classes?.map((c) => (
+                        <div 
+                          key={c.id}
+                          className="flex items-center space-x-2 border rounded-lg p-3"
+                        >
+                          <Checkbox 
+                            id={`class-${c.id}`}
+                            checked={selectedClassIds.includes(c.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedClassIds(prev => [...prev, c.id]);
+                              } else {
+                                setSelectedClassIds(prev => prev.filter(id => id !== c.id));
+                              }
+                            }}
+                          />
+                          <label
+                            htmlFor={`class-${c.id}`}
+                            className="flex-1 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {c.name} {c.gradeLevel ? `(Grade ${c.gradeLevel})` : ""}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : assignedClasses?.length ? (
+                  <div className="flex flex-col space-y-2">
+                    {assignedClasses.map((c) => (
+                      <div 
+                        key={c.id} 
+                        className="flex items-center rounded-md border p-2"
+                      >
+                        <span className="font-medium">{c.name}</span>
+                        {c.gradeLevel && (
+                          <span className="ml-2 text-sm text-muted-foreground">
+                            Grade {c.gradeLevel}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    This quiz is not assigned to any classes.
+                  </p>
+                )}
               </CardContent>
             </Card>
 

@@ -205,10 +205,20 @@ export const quizzes = pgTable("quizzes", {
   description: text("description"),
   createdAt: timestamp("createdAt").defaultNow(),
   teacherId: integer("teacherId").notNull().references(() => teachers.id),
-  classId: integer("classId").references(() => classes.id),
+  classId: integer("classId").references(() => classes.id), // Keep for backward compatibility
   isActive: boolean("isActive").default(false),
   timeLimit: integer("timeLimit"), // in minutes
 });
+
+// Quiz-Class relationship (many-to-many)
+export const quizClasses = pgTable("quiz_classes", {
+  quizId: integer("quizId").notNull().references(() => quizzes.id),
+  classId: integer("classId").notNull().references(() => classes.id),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.quizId, t.classId] }),
+}));
+
+export const insertQuizClassSchema = createInsertSchema(quizClasses);
 
 export const insertQuizSchema = createInsertSchema(quizzes).omit({
   id: true,
@@ -291,3 +301,6 @@ export type InsertQuizSubmission = z.infer<typeof insertQuizSubmissionSchema>;
 
 export type QuizAnswer = typeof quizAnswers.$inferSelect;
 export type InsertQuizAnswer = z.infer<typeof insertQuizAnswerSchema>;
+
+export type QuizClass = typeof quizClasses.$inferSelect;
+export type InsertQuizClass = z.infer<typeof insertQuizClassSchema>;

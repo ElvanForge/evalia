@@ -99,7 +99,7 @@ export default function QuizLayout({
             {isFullscreen ? (
               <Button 
                 variant="ghost" 
-                onClick={() => navigate(`/quizzes/${title.split(' ').pop()}`)} 
+                onClick={() => navigate(`/quizzes`)} 
                 className="flex items-center"
               >
                 <X className="h-5 w-5 mr-2" />

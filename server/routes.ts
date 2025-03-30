@@ -1213,6 +1213,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quiz-Class assignment routes
+  app.get("/api/quizzes/:id/classes", requireAuth, async (req, res) => {
+    try {
+      const quizId = Number(req.params.id);
+      if (isNaN(quizId)) {
+        return res.status(400).json({ message: "Invalid quiz ID" });
+      }
+      
+      const classes = await dbStorage.getClassesByQuiz(quizId);
+      res.status(200).json(classes);
+    } catch (error) {
+      console.error("Error fetching quiz classes:", error);
+      res.status(500).json({ message: "Server error fetching quiz classes" });
+    }
+  });
+  
+  app.post("/api/quizzes/:id/classes", requireAuth, async (req, res) => {
+    try {
+      const quizId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      if (isNaN(quizId)) {
+        return res.status(400).json({ message: "Invalid quiz ID" });
+      }
+      
+      // Validate that the quiz belongs to the teacher
+      const quiz = await dbStorage.getQuiz(quizId);
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this quiz" });
+      }
+      
+      // Get class IDs from the request
+      const { classIds } = req.body;
+      
+      if (!Array.isArray(classIds)) {
+        return res.status(400).json({ message: "Class IDs must be an array" });
+      }
+      
+      // Update assignments
+      const success = await dbStorage.assignQuizToMultipleClasses(quizId, classIds);
+      
+      if (success) {
+        const classes = await dbStorage.getClassesByQuiz(quizId);
+        res.status(200).json(classes);
+      } else {
+        res.status(500).json({ message: "Failed to update quiz class assignments" });
+      }
+    } catch (error) {
+      console.error("Error updating quiz classes:", error);
+      res.status(500).json({ message: "Server error updating quiz classes" });
+    }
+  });
+  
   // Quiz Question routes
   // Helper function to process quiz question image URLs for consistency
   function processQuizImageUrl(question: any): any {

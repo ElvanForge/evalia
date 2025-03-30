@@ -31,11 +31,15 @@ const QuizPreview = () => {
     studentId?: number;
   } | null>(null);
   
-  // Add toggle for preview mode vs. grading mode - moved up here to avoid the initialization error
-  const [previewMode, setPreviewMode] = useState(true);
+  // Parse URL for admin mode parameter
+  const searchParams = new URLSearchParams(window.location.search);
+  const isAdminMode = searchParams.get('admin') === 'true';
+  
+  // Add toggle for preview mode vs. grading mode - initialized based on URL parameter
+  const [previewMode, setPreviewMode] = useState(!isAdminMode);
   
   // Auto-enter fullscreen when in administration mode (not preview)
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(isAdminMode);
   
   // Update fullscreen state when preview mode changes
   useEffect(() => {

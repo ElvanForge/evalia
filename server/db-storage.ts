@@ -455,7 +455,137 @@ export class DBStorage implements IStorage {
   }
 
   async getQuizzesByClass(classId: number): Promise<Quiz[]> {
-    return db.select().from(schema.quizzes).where(eq(schema.quizzes.classId, classId));
+    // First get quizzes directly assigned to this class (legacy)
+    const directAssignedQuizzes = await db.select()
+      .from(schema.quizzes)
+      .where(eq(schema.quizzes.classId, classId));
+    
+    // Then get quizzes from the many-to-many relationship
+    const relatedQuizzes = await db.select({
+        quiz: schema.quizzes
+      })
+      .from(schema.quizzes)
+      .innerJoin(
+        schema.quizClasses,
+        and(
+          eq(schema.quizClasses.quizId, schema.quizzes.id),
+          eq(schema.quizClasses.classId, classId)
+        )
+      );
+    
+    // Combine both results, removing duplicates by ID
+    const relatedQuizzesArray = relatedQuizzes.map(r => r.quiz);
+    const allQuizzes = [...directAssignedQuizzes, ...relatedQuizzesArray];
+    
+    // Remove duplicates by ID
+    return Array.from(
+      new Map(allQuizzes.map(quiz => [quiz.id, quiz])).values()
+    );
+  }
+  
+  // New methods for quiz-class relationships
+  async getClassesByQuiz(quizId: number): Promise<Class[]> {
+    // First get the direct class assignment (legacy)
+    const quiz = await this.getQuiz(quizId);
+    let classes: Class[] = [];
+    
+    if (quiz?.classId) {
+      const directClass = await db.select()
+        .from(schema.classes)
+        .where(eq(schema.classes.id, quiz.classId));
+      
+      if (directClass.length > 0) {
+        classes = directClass;
+      }
+    }
+    
+    // Then get classes from the many-to-many relationship
+    const relatedClasses = await db.select({
+        class: schema.classes
+      })
+      .from(schema.classes)
+      .innerJoin(
+        schema.quizClasses,
+        and(
+          eq(schema.quizClasses.classId, schema.classes.id),
+          eq(schema.quizClasses.quizId, quizId)
+        )
+      );
+    
+    // Combine both results, removing duplicates by ID
+    const relatedClassesArray = relatedClasses.map(r => r.class);
+    const allClasses = [...classes, ...relatedClassesArray];
+    
+    // Remove duplicates by ID
+    return Array.from(
+      new Map(allClasses.map(cls => [cls.id, cls])).values()
+    );
+  }
+  
+  async assignQuizToClass(quizId: number, classId: number): Promise<boolean> {
+    try {
+      // Check if the assignment already exists
+      const exists = await db.select()
+        .from(schema.quizClasses)
+        .where(
+          and(
+            eq(schema.quizClasses.quizId, quizId),
+            eq(schema.quizClasses.classId, classId)
+          )
+        );
+        
+      if (exists.length > 0) {
+        return true; // Assignment already exists
+      }
+      
+      // Create the assignment
+      await db.insert(schema.quizClasses)
+        .values({ quizId, classId });
+        
+      return true;
+    } catch (error) {
+      console.error("Error assigning quiz to class:", error);
+      return false;
+    }
+  }
+  
+  async removeQuizFromClass(quizId: number, classId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(schema.quizClasses)
+        .where(
+          and(
+            eq(schema.quizClasses.quizId, quizId),
+            eq(schema.quizClasses.classId, classId)
+          )
+        );
+        
+      return result.rowCount ? result.rowCount > 0 : false;
+    } catch (error) {
+      console.error("Error removing quiz from class:", error);
+      return false;
+    }
+  }
+  
+  async assignQuizToMultipleClasses(quizId: number, classIds: number[]): Promise<boolean> {
+    try {
+      // Remove all existing assignments first
+      await db.delete(schema.quizClasses)
+        .where(eq(schema.quizClasses.quizId, quizId));
+        
+      // Skip if no classes to assign
+      if (classIds.length === 0) {
+        return true;
+      }
+      
+      // Create new assignments
+      const values = classIds.map(classId => ({ quizId, classId }));
+      await db.insert(schema.quizClasses).values(values);
+      
+      return true;
+    } catch (error) {
+      console.error("Error assigning quiz to multiple classes:", error);
+      return false;
+    }
   }
 
   async createQuiz(quiz: InsertQuiz): Promise<Quiz> {
