@@ -1183,6 +1183,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log the current quiz state
       console.log("Current quiz state:", JSON.stringify(quiz, null, 2));
       
+      // Explicitly check isActive type handling
+      if (req.body.isActive !== undefined) {
+        console.log(`routes.ts - isActive in request: ${req.body.isActive} (type: ${typeof req.body.isActive})`);
+        req.body.isActive = Boolean(req.body.isActive);
+        console.log(`routes.ts - isActive after conversion: ${req.body.isActive} (type: ${typeof req.body.isActive})`);
+      }
+      
       const updatedQuiz = await dbStorage.updateQuiz(quizId, req.body);
       console.log("Updated quiz:", JSON.stringify(updatedQuiz, null, 2));
       

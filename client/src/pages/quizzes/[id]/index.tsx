@@ -180,23 +180,40 @@ const QuizDetail = () => {
     mutationFn: async (data: z.infer<typeof insertQuizSchema>) => {
       console.log("Updating quiz with data:", JSON.stringify(data, null, 2)); 
       
-      const response = await fetch(`/api/quizzes/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Quiz update failed:", errorText);
-        throw new Error(`Failed to update quiz: ${errorText}`);
+      try {
+        const response = await fetch(`/api/quizzes/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        
+        console.log("Update response status:", response.status);
+        
+        // Try to get the response text regardless of status
+        const responseText = await response.text();
+        console.log("Response text:", responseText);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to update quiz: ${responseText}`);
+        }
+        
+        // Parse the response JSON only if it's valid
+        let result;
+        try {
+          result = JSON.parse(responseText);
+          console.log("Parsed update result:", JSON.stringify(result, null, 2));
+        } catch (e) {
+          console.error("Failed to parse response as JSON:", e);
+          throw new Error("Invalid JSON response from server");
+        }
+        
+        return result;
+      } catch (error) {
+        console.error("Error in update mutation:", error);
+        throw error;
       }
-      
-      const result = await response.json();
-      console.log("Update result:", JSON.stringify(result, null, 2));
-      return result;
     },
     onSuccess: (data) => {
       console.log("Quiz successfully updated:", data);
@@ -258,7 +275,17 @@ const QuizDetail = () => {
   };
 
   const onSubmit = (data: z.infer<typeof insertQuizSchema>) => {
-    updateQuizMutation.mutate(data);
+    console.log("Form submitted with data:", JSON.stringify(data, null, 2));
+    console.log("isActive value:", data.isActive, "type:", typeof data.isActive);
+    
+    // Ensure isActive is properly set as a boolean
+    const formattedData = {
+      ...data,
+      isActive: data.isActive === true,
+    };
+    
+    console.log("Formatted data for submission:", JSON.stringify(formattedData, null, 2));
+    updateQuizMutation.mutate(formattedData);
   };
 
   if (isLoading) {
@@ -505,8 +532,11 @@ const QuizDetail = () => {
                           </div>
                           <FormControl>
                             <Switch
-                              checked={field.value || false}
-                              onCheckedChange={field.onChange}
+                              checked={field.value === true}
+                              onCheckedChange={(checked) => {
+                                console.log("Switch toggled to:", checked);
+                                field.onChange(checked);
+                              }}
                             />
                           </FormControl>
                         </FormItem>
