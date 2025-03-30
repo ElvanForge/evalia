@@ -34,9 +34,19 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
       <CardContent>
         <div className="space-y-6">
           {activities.map((activity, index) => {
-            const activityDate = typeof activity.date === 'string' 
-              ? new Date(activity.date) 
-              : activity.date;
+            let formattedDate = "Recent";
+            try {
+              const activityDate = typeof activity.date === 'string' 
+                ? new Date(activity.date) 
+                : activity.date;
+                
+              // Verify it's a valid date before formatting
+              if (activityDate instanceof Date && !isNaN(activityDate.getTime())) {
+                formattedDate = format(activityDate, 'MMM d, h:mm a');
+              }
+            } catch (e) {
+              console.error("Error formatting date:", e);
+            }
             
             return (
               <div key={index} className="relative pl-6 pb-6 border-l border-border last:border-0 last:pb-0">
@@ -44,7 +54,7 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
                 <div className="text-sm">
                   <div className="flex justify-between">
                     <p className="font-medium">{activity.description}</p>
-                    <p className="text-muted-foreground">{format(activityDate, 'MMM d, h:mm a')}</p>
+                    <p className="text-muted-foreground">{formattedDate}</p>
                   </div>
                   {activity.details && (
                     <p className="text-muted-foreground mt-1">{activity.details}</p>

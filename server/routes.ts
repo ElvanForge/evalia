@@ -1108,12 +1108,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Format as activities
       const recentActivities = recentGrades.map(grade => {
+        // Ensure we have a valid date object
+        let activityDate;
+        try {
+          // Try to convert the date or use current date as fallback
+          activityDate = grade.gradedAt 
+            ? new Date(grade.gradedAt) 
+            : (grade.submittedAt ? new Date(grade.submittedAt) : new Date());
+          
+          // Validate that it's a valid date
+          if (isNaN(activityDate.getTime())) {
+            activityDate = new Date(); // Fallback to current date if invalid
+          }
+        } catch (e) {
+          console.error("Error parsing date:", e);
+          activityDate = new Date(); // Fallback to current date
+        }
+        
         return {
           type: 'grade',
           id: grade.id,
-          title: `${grade.studentName} - ${grade.assignmentName}`,
+          description: `${grade.studentName} - ${grade.assignmentName}`,
           details: `Score: ${grade.score}/${grade.maxScore}`,
-          timestamp: grade.gradedAt || grade.submittedAt || new Date(),
+          date: activityDate,
           link: `/grades/${grade.id}`
         };
       });
@@ -1129,10 +1146,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate letter grades from recent grades
       recentGrades.forEach(grade => {
-        const percentage = (parseFloat(grade.score) / parseFloat(grade.maxScore)) * 100;
-        const letterGrade = getLetterGrade(percentage);
-        if (letterGrade in gradeDistribution) {
-          gradeDistribution[letterGrade]++;
+        try {
+          const percentage = (parseFloat(grade.score) / parseFloat(grade.maxScore)) * 100;
+          const letterGrade = getLetterGrade(percentage);
+          // Type-safe check for letterGrade
+          if (['A', 'B', 'C', 'D', 'F'].includes(letterGrade)) {
+            gradeDistribution[letterGrade as keyof typeof gradeDistribution]++;
+          }
+        } catch (e) {
+          console.error("Error processing grade for distribution:", e);
         }
       });
       
