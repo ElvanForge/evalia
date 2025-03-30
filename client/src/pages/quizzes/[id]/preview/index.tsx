@@ -40,28 +40,54 @@ const QuizPreview = () => {
       quizId: number;
       studentId: number;
     }) => {
-      const response = await apiRequest(
-        "POST", 
-        "/api/quiz-submissions", 
-        data
-      );
-      return response.json();
+      try {
+        const response = await apiRequest(
+          "POST", 
+          `/api/quizzes/${data.quizId}/submissions`, 
+          data
+        );
+        
+        // Check if the response is ok
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create quiz submission');
+        }
+        
+        return await response.json();
+      } catch (error: any) {
+        console.error("Error creating quiz submission:", error);
+        throw new Error(error.message || 'Failed to create quiz submission');
+      }
     },
     onSuccess: (data) => {
-      toast({
-        title: "Quiz started",
-        description: "Submission created successfully",
-      });
-      
-      // Store the submission ID
-      setSubmissionId(data.id);
+      // Only show toast and set ID if we got valid data
+      if (data && data.id) {
+        // Store the submission ID
+        setSubmissionId(data.id);
+        
+        toast({
+          title: "Quiz started",
+          description: "Ready to record answers",
+        });
+      } else {
+        console.error("Received invalid submission data:", data);
+        toast({
+          title: "Warning",
+          description: "Quiz started but tracking may be limited",
+          variant: "default",
+        });
+      }
     },
     onError: (error: Error) => {
+      console.error("Submission creation error:", error);
       toast({
-        title: "Failed to start quiz",
-        description: error.message,
+        title: "Quiz will continue in preview mode",
+        description: "Your answers won't be saved: " + error.message,
         variant: "destructive",
       });
+      
+      // Force preview mode on error
+      setPreviewMode(true);
     }
   });
   
@@ -73,12 +99,24 @@ const QuizPreview = () => {
       maxScore: number;
       completed: boolean;
     }) => {
-      const response = await apiRequest(
-        "PATCH", 
-        `/api/quiz-submissions/${data.submissionId}`, 
-        data
-      );
-      return response.json();
+      try {
+        const response = await apiRequest(
+          "PUT", 
+          `/api/quiz-submissions/${data.submissionId}`, 
+          data
+        );
+        
+        // Check if response is ok
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to update quiz submission');
+        }
+        
+        return await response.json();
+      } catch (error: any) {
+        console.error("Error updating quiz submission:", error);
+        throw new Error(error.message || 'Failed to update quiz submission');
+      }
     },
     onSuccess: () => {
       toast({
@@ -90,10 +128,11 @@ const QuizPreview = () => {
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${validId}/submissions`] });
     },
     onError: (error: Error) => {
+      console.error("Failed to save final quiz results:", error);
       toast({
-        title: "Failed to save quiz results",
-        description: error.message,
-        variant: "destructive",
+        title: "Quiz completed",
+        description: "But there was an issue saving the final score. The answers may have been recorded.",
+        variant: "default", // Using a less alarming variant since answers might still be saved
       });
     }
   });
