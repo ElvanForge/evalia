@@ -44,6 +44,7 @@ const QuizDetail = () => {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<QuizQuestion | null>(null);
@@ -255,10 +256,11 @@ const QuizDetail = () => {
     console.log("Form submitted with data:", JSON.stringify(data, null, 2));
     console.log("isActive value:", data.isActive, "type:", typeof data.isActive);
     
-    // Ensure isActive is properly set as a boolean
+    // Ensure isActive is properly set as a boolean and teacherId is included
     const formattedData = {
       ...data,
       isActive: data.isActive === true,
+      teacherId: user?.id // Add teacherId from component-level useAuth
     };
     
     console.log("Formatted data for submission:", JSON.stringify(formattedData, null, 2));
@@ -376,33 +378,19 @@ const QuizDetail = () => {
                       return;
                     }
                     
-                    // Get the current user's ID from useAuth
-                    const { user } = useAuth();
-                    
                     // Ensure all required fields are present and properly formatted
                     const formattedData = {
                       ...formValues,
                       isActive: formValues.isActive === true,
-                      teacherId: user?.id // Add teacherId from authenticated user
+                      teacherId: user?.id // Add teacherId from authenticated user (from component-level useAuth)
                     };
                     
                     console.log("Formatted data for direct submission:", JSON.stringify(formattedData, null, 2));
                     
                     try {
-                      // Directly call the API without using mutation
+                      // Directly call the API using apiRequest helper
                       const quizId = parseInt(id as string);
-                      const response = await fetch(`/api/quizzes/${quizId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(formattedData),
-                        credentials: 'include'
-                      });
-                      
-                      if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`Error ${response.status}: ${errorText}`);
-                      }
-                      
+                      const response = await apiRequest.put(`/api/quizzes/${quizId}`, formattedData);
                       const result = await response.json();
                       console.log("Direct API call success:", result);
                       
