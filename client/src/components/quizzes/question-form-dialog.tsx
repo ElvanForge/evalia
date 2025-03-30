@@ -307,8 +307,8 @@ export function QuestionFormDialog({
         quizId: data.quizId,
         question: data.question,
         type: data.type,
-        imageUrl: imageUrl,
-        questionOptions: data.questionOptions
+        imageUrl: imageUrl
+        // Options will be handled separately after creating the question
       };
 
       // Create or update the question
