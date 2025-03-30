@@ -1,208 +1,190 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState } from "react";
 import { useLocation } from "wouter";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Beaker, CheckCircle, Loader2 } from "lucide-react";
 
+// Define the schema for the beta application form
 const betaApplicationSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters."),
-  lastName: z.string().min(2, "Last name must be at least 2 characters."),
-  email: z.string().email("Please enter a valid email address."),
-  schoolName: z.string().min(2, "School name must be at least 2 characters."),
-  role: z.enum(["teacher", "administrator", "other"]),
-  gradeLevel: z.string().min(1, "Please select a grade level."),
-  experience: z.string().min(10, "Please tell us a bit about your teaching experience."),
-  useCase: z.string().min(10, "Please tell us how you plan to use Evalia."),
-  howHeard: z.string().min(1, "Please let us know how you heard about us."),
+  school: z.string().min(2, "School name must be at least 2 characters"),
+  role: z.string().min(2, "Role must be at least 2 characters"),
+  yearsTeaching: z.string().refine(
+    (val) => !isNaN(Number(val)) && Number(val) >= 0,
+    { message: "Years teaching must be a valid number" }
+  ),
+  reasonForInterest: z
+    .string()
+    .min(10, "Please provide more details about your interest"),
+  howHeard: z.string().min(2, "Please tell us how you heard about us"),
+  agreedToTerms: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the terms to continue",
+  }),
 });
 
 type BetaApplicationFormValues = z.infer<typeof betaApplicationSchema>;
 
 export default function BetaApplication() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [, navigate] = useLocation();
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [submitted, setSubmitted] = useState(false);
 
+  // Initialize form with default values
   const form = useForm<BetaApplicationFormValues>({
     resolver: zodResolver(betaApplicationSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      schoolName: "",
-      role: "teacher",
-      gradeLevel: "",
-      experience: "",
-      useCase: "",
+      school: "",
+      role: "",
+      yearsTeaching: "",
+      reasonForInterest: "",
       howHeard: "",
+      agreedToTerms: false,
     },
   });
 
-  async function onSubmit(data: BetaApplicationFormValues) {
-    setIsSubmitting(true);
-    try {
-      const response = await apiRequest('POST', '/api/beta-application', data);
-      
-      if (response.ok) {
-        toast({
-          title: "Application Submitted!",
-          description: "We'll review your application and get back to you soon.",
-        });
-        navigate('/auth/register?plan=free');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit application");
+  // Define the mutation
+  const submitBetaApplication = useMutation({
+    mutationFn: async (values: BetaApplicationFormValues) => {
+      const response = await apiRequest(
+        "POST",
+        "/api/beta-application",
+        values
+      );
+      if (!response.ok) {
+        throw new Error("Failed to submit application");
       }
-    } catch (error: any) {
+      return response.json();
+    },
+    onSuccess: () => {
       toast({
-        title: "Submission Error",
-        description: error.message || "There was a problem submitting your application. Please try again.",
+        title: "Application Submitted",
+        description: "Your beta application has been received. We'll be in touch soon!",
+      });
+      setSubmitted(true);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Submission Failed",
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
-    }
+    },
+  });
+
+  function onSubmit(values: BetaApplicationFormValues) {
+    submitBetaApplication.mutate(values);
+  }
+
+  // Redirect if user is not logged in
+  if (user === null) {
+    setLocation("/auth");
+    return null;
+  }
+
+  if (submitted) {
+    return (
+      <div className="container max-w-3xl py-12">
+        <Card>
+          <CardHeader className="text-center">
+            <CheckCircle className="mx-auto h-16 w-16 text-primary mb-4" />
+            <CardTitle className="text-3xl">Application Submitted!</CardTitle>
+            <CardDescription className="text-lg">
+              Thank you for your interest in the Evalia beta program
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p>
+              We've received your application and our team will review it shortly.
+              If selected, we'll upgrade your account to beta tester status which
+              gives you free access to premium features.
+            </p>
+            <p>
+              While you wait, you can continue to use Evalia's free features.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Button onClick={() => setLocation("/dashboard")}>
+              Return to Dashboard
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-      <Card className="w-full max-w-2xl">
+    <div className="container max-w-3xl py-12">
+      <Card>
         <CardHeader>
-          <CardTitle>Apply for the Evalia Beta Program</CardTitle>
-          <CardDescription>
-            Join our beta program to receive free access to Evalia Professional features and help shape the future of education analytics.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-3xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Apply for Evalia Beta Program
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Get free access to premium features by becoming a beta tester
+              </CardDescription>
+            </div>
+            <Beaker className="h-10 w-10 text-primary" />
+          </div>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+            >
+              <div className="grid gap-6 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="firstName"
+                  name="school"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                      <FormLabel>School Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="John" {...field} />
+                        <Input placeholder="Enter your school's name" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Smith" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="john.smith@example.com" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      We'll use this email to create your account and communicate about the beta program.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="schoolName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>School Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Jefferson High School" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="role"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Your Role</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-col space-y-1"
-                        >
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="teacher" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Teacher</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="administrator" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Administrator</FormLabel>
-                          </FormItem>
-                          <FormItem className="flex items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <RadioGroupItem value="other" />
-                            </FormControl>
-                            <FormLabel className="font-normal">Other</FormLabel>
-                          </FormItem>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="gradeLevel"
-                  render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Grade Level</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select grade level" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="elementary">Elementary (K-5)</SelectItem>
-                          <SelectItem value="middle">Middle School (6-8)</SelectItem>
-                          <SelectItem value="high">High School (9-12)</SelectItem>
-                          <SelectItem value="higher">Higher Education</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormLabel>Role/Position</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Science Teacher, Principal" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -211,16 +193,12 @@ export default function BetaApplication() {
 
               <FormField
                 control={form.control}
-                name="experience"
+                name="yearsTeaching"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tell us about your teaching experience</FormLabel>
+                    <FormLabel>Years Teaching</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Years of experience, subjects taught, etc." 
-                        className="min-h-[100px]" 
-                        {...field} 
-                      />
+                      <Input type="number" min="0" placeholder="e.g. 5" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -229,15 +207,15 @@ export default function BetaApplication() {
 
               <FormField
                 control={form.control}
-                name="useCase"
+                name="reasonForInterest"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>How do you plan to use Evalia?</FormLabel>
+                    <FormLabel>Why are you interested in Evalia?</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Describe your needs and how you think Evalia could help." 
-                        className="min-h-[100px]" 
-                        {...field} 
+                      <Textarea
+                        placeholder="Please share why you're interested in being a beta tester..."
+                        className="min-h-[120px]"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -250,46 +228,57 @@ export default function BetaApplication() {
                 name="howHeard"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>How did you hear about Evalia?</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an option" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="search">Search Engine</SelectItem>
-                        <SelectItem value="social">Social Media</SelectItem>
-                        <SelectItem value="colleague">Colleague/Friend</SelectItem>
-                        <SelectItem value="conference">Education Conference</SelectItem>
-                        <SelectItem value="publication">Education Publication</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>How did you hear about us?</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Search engine, colleague, social media" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="flex justify-between">
+              <FormField
+                control={form.control}
+                name="agreedToTerms"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        I agree to provide feedback and report issues
+                      </FormLabel>
+                      <FormDescription>
+                        As a beta tester, you'll get free access to premium features in exchange for your feedback.
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end">
                 <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => window.history.back()}
-                  disabled={isSubmitting}
+                  type="submit"
+                  disabled={submitBetaApplication.isPending}
                 >
-                  Back
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Application"}
+                  {submitBetaApplication.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Application"
+                  )}
                 </Button>
               </div>
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex justify-center text-sm text-gray-500">
-          We'll review your application and contact you within 3-5 business days.
-        </CardFooter>
       </Card>
     </div>
   );

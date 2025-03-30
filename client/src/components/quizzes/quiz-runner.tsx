@@ -188,27 +188,16 @@ export function QuizRunner({
         {/* Question text always at the top */}
         <div className="text-lg font-medium mb-4 w-full">{currentQuestion.question}</div>
         
-        {/* Image container with new direct API endpoint */}
+        {/* Image container - simplified direct approach */}
         {currentQuestion.imageUrl && (
           <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[300px]">
-            <img 
-              src={getQuizImageUrl(currentQuestion.imageUrl)}
+            <ImageWithFallback 
+              src={currentQuestion.imageUrl}
               alt={`Question ${currentQuestionIndex + 1}`}
               className="rounded-md object-contain max-h-[280px] max-w-full"
-              onLoad={() => console.log(`Quiz question image loaded from API: ${currentQuestion.imageUrl}`)}
-              onError={(e) => {
-                console.log(`Quiz image failed to load from API, trying fallback: ${currentQuestion.imageUrl}`);
-                // If API approach fails, try with direct static approach
-                const target = e.target as HTMLImageElement;
-                if (currentQuestion.imageUrl) {
-                  const filename = currentQuestion.imageUrl.split(/[\/\\]/).pop();
-                  // Try adding a cache-busting parameter
-                  target.src = `${window.location.origin}/api/images/${filename}?t=${Date.now()}`;
-                } else {
-                  // Fallback to a default image if imageUrl is somehow null
-                  target.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlZGU4ZGQiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzBiYTJiMCIgZm9udC1zaXplPSIxNnB4IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiPkltYWdlIGNvdWxkIG5vdCBiZSBsb2FkZWQ8L3RleHQ+PC9zdmc+";
-                }
-              }}
+              isQuizImage={true}
+              onLoadSuccess={() => console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`)}
+              onLoadError={() => console.log(`Quiz image failed to load: ${currentQuestion.imageUrl}`)}
             />
           </div>
         )}

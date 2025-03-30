@@ -18,7 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, CreditCard, Check, AlertCircle } from "lucide-react";
 import { GradeScaleForm } from "@/components/forms/grade-scale-form";
 import {
   AlertDialog,
@@ -30,6 +30,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "wouter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -214,8 +216,9 @@ export default function Settings() {
     <Layout title="Settings">
       <div className="mt-6 space-y-6">
         <Tabs defaultValue="profile">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="subscription">Subscription</TabsTrigger>
             <TabsTrigger value="grading">Grading Scales</TabsTrigger>
           </TabsList>
           
@@ -344,6 +347,176 @@ export default function Settings() {
                     </div>
                   </form>
                 </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="subscription" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Subscription Management</CardTitle>
+                <CardDescription>View and manage your subscription plan</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Current Plan</h3>
+                    
+                    <div className="flex items-center p-4 border rounded-lg">
+                      <div className="mr-4">
+                        {user?.subscriptionStatus === 'active' ? (
+                          <Check className="h-8 w-8 text-green-500" />
+                        ) : user?.isBetaTester ? (
+                          <Check className="h-8 w-8 text-blue-500" />
+                        ) : (
+                          <AlertCircle className="h-8 w-8 text-amber-500" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-base font-semibold">
+                            {user?.subscriptionPlan === 'free' && 'Free Plan'}
+                            {user?.subscriptionPlan === 'pro' && 'Pro Plan'}
+                            {user?.subscriptionPlan === 'school' && 'School Plan'}
+                            {!user?.subscriptionPlan && 'No Plan'}
+                          </h4>
+                          <Badge 
+                            className={`${
+                              user?.subscriptionStatus === 'active' ? 'bg-green-600' : 
+                              user?.isBetaTester ? 'bg-blue-600' : 'bg-amber-600'
+                            }`}
+                          >
+                            {user?.subscriptionStatus === 'active' ? 'Active' : 
+                             user?.isBetaTester ? 'Beta Tester' : 'Inactive'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {user?.isBetaTester && "You have free access as a beta tester."}
+                          {user?.subscriptionStatus === 'active' && !user?.isBetaTester && "Your subscription is active and will renew automatically."}
+                          {user?.subscriptionStatus !== 'active' && !user?.isBetaTester && "Your subscription is not active. Subscribe to access premium features."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h3 className="text-lg font-medium mb-4">Available Plans</h3>
+                    
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {/* Free Plan */}
+                      <Card className="border-2 hover:border-primary/50">
+                        <CardHeader>
+                          <CardTitle>Free</CardTitle>
+                          <CardDescription>Basic features for individual teachers</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold mb-2">$0</div>
+                          <ul className="space-y-2 mb-6">
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Up to 2 classes</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Up to 30 students</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Basic grade tracking</span>
+                            </li>
+                          </ul>
+                          {user?.subscriptionPlan === 'free' ? (
+                            <Button disabled className="w-full">Current Plan</Button>
+                          ) : (
+                            <Button variant="outline" className="w-full" asChild>
+                              <Link to="/subscribe/free">Select</Link>
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                      
+                      {/* Pro Plan */}
+                      <Card className="border-2 border-primary">
+                        <CardHeader className="bg-primary/5">
+                          <CardTitle>Pro</CardTitle>
+                          <CardDescription>Advanced features for power users</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold mb-2">$9.99<span className="text-sm font-normal">/month</span></div>
+                          <ul className="space-y-2 mb-6">
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Unlimited classes</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Up to 300 students</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Advanced analytics</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Quiz creation</span>
+                            </li>
+                          </ul>
+                          {user?.subscriptionPlan === 'pro' ? (
+                            <Button disabled className="w-full">Current Plan</Button>
+                          ) : (
+                            <Button className="w-full" asChild>
+                              <Link to="/subscribe/pro">Subscribe</Link>
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                      
+                      {/* School Plan */}
+                      <Card className="border-2 hover:border-primary/50">
+                        <CardHeader>
+                          <CardTitle>School</CardTitle>
+                          <CardDescription>For educational institutions</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="text-2xl font-bold mb-2">$49.99<span className="text-sm font-normal">/month</span></div>
+                          <ul className="space-y-2 mb-6">
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Unlimited classes and students</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">School management dashboard</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Administrative tools</span>
+                            </li>
+                            <li className="flex items-center">
+                              <Check className="h-4 w-4 mr-2 text-green-500" />
+                              <span className="text-sm">Priority support</span>
+                            </li>
+                          </ul>
+                          {user?.subscriptionPlan === 'school' ? (
+                            <Button disabled className="w-full">Current Plan</Button>
+                          ) : (
+                            <Button variant="outline" className="w-full" asChild>
+                              <Link to="/subscribe/school">Subscribe</Link>
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                  
+                  {user?.subscriptionStatus === 'active' && (
+                    <div className="flex justify-end border-t pt-4">
+                      <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                        Cancel Subscription
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

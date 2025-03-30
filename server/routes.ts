@@ -2572,6 +2572,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
     });
+    
+    // Route for creating a subscription
+    app.post("/api/create-subscription", requireAuth, async (req, res) => {
+      try {
+        const teacherId = req.user?.id;
+        
+        if (!teacherId) {
+          return res.status(401).json({ message: "Unauthorized" });
+        }
+        
+        const { plan } = req.body;
+        const planId = getPlanIdByType(plan);
+        
+        if (!planId) {
+          return res.status(400).json({ message: "Invalid plan specified" });
+        }
+        
+        // Get the teacher to check if they already have a subscription
+        const teacher = await storage.getTeacher(teacherId);
+        
+        if (!teacher) {
+          return res.status(404).json({ message: "Teacher not found" });
+        }
+        
+        // If the teacher already has a customer ID, use it, otherwise create a new customer
+        let customerId = teacher.stripeCustomerId;
+        
+        if (!customerId) {
+          // Create a new customer
+          const customer = await stripe.customers.create({
+            email: teacher.email,
+            name: `${teacher.firstName} ${teacher.lastName}`,
+            metadata: {
+              teacherId: teacherId.toString(),
+            }
+          });
+          
+          customerId = customer.id;
+          
+          // Update the teacher with the new customer ID
+          await storage.updateTeacherStripeCustomerId(teacherId, customerId);
+        }
+        
+        // Create a subscription
+        const subscription = await stripe.subscriptions.create({
+          customer: customerId,
+          items: [
+            { price: planId }
+          ],
+          payment_behavior: 'default_incomplete',
+          payment_settings: { save_default_payment_method: 'on_subscription' },
+          expand: ['latest_invoice.payment_intent']
+        });
+        
+        // Update the teacher with the subscription info
+        await storage.updateTeacherStripeSubscription(teacherId, {
+          stripeSubscriptionId: subscription.id,
+          subscriptionPlan: plan,
+          subscriptionStatus: subscription.status
+        });
+        
+        // @ts-ignore - TypeScript doesn't know about the expanded fields
+        const clientSecret = subscription.latest_invoice.payment_intent.client_secret;
+        
+        res.status(200).json({
+          subscriptionId: subscription.id,
+          clientSecret,
+          plan
+        });
+      } catch (error: any) {
+        console.error("Error creating subscription:", error);
+        res.status(500).json({
+          message: "Error creating subscription",
+          error: error.message
+        });
+      }
+    });
+    
+    // Helper function to get plan ID by type
+    function getPlanIdByType(planType: string): string | null {
+      const planIds: Record<string, string> = {
+        'pro': process.env.STRIPE_PRO_PRICE_ID || '',
+        'school': process.env.STRIPE_SCHOOL_PRICE_ID || ''
+      };
+      
+      return planIds[planType] || null;
+    }
 
     // Route for processing beta applications
     app.post("/api/beta-application", requireAuth, async (req, res) => {
@@ -2615,10 +2702,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Payment was successful, update the user's subscription status
             console.log('Payment succeeded:', event.data.object);
             break;
+            
           case 'payment_intent.payment_failed':
             // Payment failed, maybe notify the user
             console.log('Payment failed:', event.data.object);
             break;
+            
+          case 'customer.subscription.created':
+            await handleSubscriptionCreated(event.data.object);
+            break;
+            
+          case 'customer.subscription.updated':
+            await handleSubscriptionUpdated(event.data.object);
+            break;
+            
+          case 'customer.subscription.deleted':
+            await handleSubscriptionDeleted(event.data.object);
+            break;
+            
           default:
             console.log(`Unhandled event type ${event.type}`);
         }
@@ -2629,6 +2730,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).send(`Webhook Error: ${error.message}`);
       }
     });
+    
+    // Helper functions for subscription webhook handlers
+    async function handleSubscriptionCreated(subscription: any) {
+      console.log('Subscription created:', subscription);
+      try {
+        // Find the teacher by the customer ID
+        const teacherId = await findTeacherIdByCustomerId(subscription.customer);
+        if (!teacherId) return;
+        
+        // Update subscription status
+        await storage.updateTeacherStripeSubscription(teacherId, {
+          stripeSubscriptionId: subscription.id,
+          subscriptionPlan: getPlanNameFromId(subscription.items.data[0]?.price?.id),
+          subscriptionStatus: subscription.status
+        });
+      } catch (error) {
+        console.error('Error handling subscription creation:', error);
+      }
+    }
+    
+    async function handleSubscriptionUpdated(subscription: any) {
+      console.log('Subscription updated:', subscription);
+      try {
+        // Find the teacher by the customer ID
+        const teacherId = await findTeacherIdByCustomerId(subscription.customer);
+        if (!teacherId) return;
+        
+        // Update subscription status
+        await storage.updateTeacherStripeSubscription(teacherId, {
+          stripeSubscriptionId: subscription.id,
+          subscriptionPlan: getPlanNameFromId(subscription.items.data[0]?.price?.id),
+          subscriptionStatus: subscription.status
+        });
+      } catch (error) {
+        console.error('Error handling subscription update:', error);
+      }
+    }
+    
+    async function handleSubscriptionDeleted(subscription: any) {
+      console.log('Subscription deleted:', subscription);
+      try {
+        // Find the teacher by the customer ID
+        const teacherId = await findTeacherIdByCustomerId(subscription.customer);
+        if (!teacherId) return;
+        
+        // Update subscription status to canceled
+        await storage.updateTeacherStripeSubscription(teacherId, {
+          stripeSubscriptionId: subscription.id,
+          subscriptionPlan: 'free',
+          subscriptionStatus: 'canceled'
+        });
+      } catch (error) {
+        console.error('Error handling subscription deletion:', error);
+      }
+    }
+    
+    // Helper to find a teacher by Stripe customer ID
+    async function findTeacherIdByCustomerId(customerId: string): Promise<number | null> {
+      try {
+        // Find all teachers
+        const teachers = await storage.getAllTeachers();
+        const teacher = teachers.find(t => t.stripeCustomerId === customerId);
+        
+        if (teacher) {
+          return teacher.id;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error finding teacher by customer ID:', error);
+        return null;
+      }
+    }
+    
+    // Helper to get plan name from price ID
+    function getPlanNameFromId(priceId: string): string {
+      // Reverse lookup of the price ID to plan name
+      const planMap: Record<string, string> = {
+        [process.env.STRIPE_PRO_PRICE_ID || '']: 'pro',
+        [process.env.STRIPE_SCHOOL_PRICE_ID || '']: 'school'
+      };
+      
+      return planMap[priceId] || 'free';
+    }
   }
 
   const httpServer = createServer(app);

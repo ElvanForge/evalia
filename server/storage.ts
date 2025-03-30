@@ -51,6 +51,14 @@ export interface IStorage {
   updateTeacher(id: number, teacher: Partial<InsertTeacher>): Promise<Teacher | undefined>;
   deleteTeacher(id: number): Promise<boolean>;
   getAllTeachers(): Promise<Teacher[]>;
+  updateTeacherStripeCustomerId(teacherId: number, customerId: string): Promise<Teacher | undefined>;
+  updateTeacherStripeSubscription(teacherId: number, 
+    subscriptionData: { 
+      stripeSubscriptionId: string, 
+      subscriptionPlan: string, 
+      subscriptionStatus: string 
+    }): Promise<Teacher | undefined>;
+  updateBetaTesterStatus(teacherId: number, isBetaTester: boolean): Promise<Teacher | undefined>;
   
   // Class operations
   getClass(id: number): Promise<Class | undefined>;

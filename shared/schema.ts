@@ -37,6 +37,11 @@ export const teachers = pgTable("teachers", {
   subject: text("subject"),
   role: text("role").default(USER_ROLES.TEACHER),
   schoolId: integer("schoolId").references(() => schools.id),
+  stripeCustomerId: text("stripeCustomerId"),
+  stripeSubscriptionId: text("stripeSubscriptionId"),
+  subscriptionPlan: text("subscriptionPlan").default("free"),
+  subscriptionStatus: text("subscriptionStatus").default("inactive"),
+  isBetaTester: boolean("isBetaTester").default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

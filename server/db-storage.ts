@@ -121,6 +121,38 @@ export class DBStorage implements IStorage {
   async getAllTeachers(): Promise<Teacher[]> {
     return db.select().from(schema.teachers);
   }
+  
+  async updateTeacherStripeCustomerId(teacherId: number, customerId: string): Promise<Teacher | undefined> {
+    const [updatedTeacher] = await db
+      .update(schema.teachers)
+      .set({ stripeCustomerId: customerId })
+      .where(eq(schema.teachers.id, teacherId))
+      .returning();
+    return updatedTeacher;
+  }
+  
+  async updateTeacherStripeSubscription(teacherId: number, 
+    subscriptionData: { 
+      stripeSubscriptionId: string, 
+      subscriptionPlan: string, 
+      subscriptionStatus: string 
+    }): Promise<Teacher | undefined> {
+    const [updatedTeacher] = await db
+      .update(schema.teachers)
+      .set(subscriptionData)
+      .where(eq(schema.teachers.id, teacherId))
+      .returning();
+    return updatedTeacher;
+  }
+  
+  async updateBetaTesterStatus(teacherId: number, isBetaTester: boolean): Promise<Teacher | undefined> {
+    const [updatedTeacher] = await db
+      .update(schema.teachers)
+      .set({ isBetaTester })
+      .where(eq(schema.teachers.id, teacherId))
+      .returning();
+    return updatedTeacher;
+  }
 
   // Class operations
   async getClass(id: number): Promise<Class | undefined> {
