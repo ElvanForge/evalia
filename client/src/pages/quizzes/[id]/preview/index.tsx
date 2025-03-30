@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft, UserCircle, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuizRunner } from "@/components/quizzes/quiz-runner";
@@ -23,6 +25,7 @@ const QuizPreview = () => {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [completed, setCompleted] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [results, setResults] = useState<{
@@ -30,6 +33,73 @@ const QuizPreview = () => {
     totalQuestions: number;
     studentId?: number;
   } | null>(null);
+  
+  // Create submission before starting quiz
+  const createSubmissionMutation = useMutation({
+    mutationFn: async (data: {
+      quizId: number;
+      studentId: number;
+    }) => {
+      const response = await apiRequest(
+        "POST", 
+        "/api/quiz-submissions", 
+        data
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Quiz started",
+        description: "Submission created successfully",
+      });
+      
+      // Store the submission ID
+      setSubmissionId(data.id);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to start quiz",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Create mutation for updating quiz results when completed
+  const updateQuizResultMutation = useMutation({
+    mutationFn: async (data: {
+      submissionId: number;
+      score: number;
+      maxScore: number;
+      completed: boolean;
+    }) => {
+      const response = await apiRequest(
+        "PATCH", 
+        `/api/quiz-submissions/${data.submissionId}`, 
+        data
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Quiz completed",
+        description: "Student's score has been saved successfully",
+      });
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: [`/api/students/${selectedStudentId}/quiz-submissions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${validId}/submissions`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to save quiz results",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Add state for tracking submission ID
+  const [submissionId, setSubmissionId] = useState<number | null>(null);
   
   // Parse URL for admin mode parameter
   const searchParams = new URLSearchParams(window.location.search);
@@ -142,6 +212,18 @@ const QuizPreview = () => {
     enabled: !!activeClassId && !previewMode,
   });
 
+  // Function to create a quiz submission when a student is selected
+  useEffect(() => {
+    // Only create submission when we have a valid quiz ID, student ID, and we're in grading mode
+    if (!previewMode && selectedStudentId && validId && !submissionId) {
+      createSubmissionMutation.mutate({
+        quizId: validId,
+        studentId: selectedStudentId
+      });
+    }
+  }, [selectedStudentId, validId, previewMode, submissionId]);
+  
+  // Handle quiz completion
   const handleComplete = (correctAnswers: number, totalQuestions: number) => {
     setCompleted(true);
     setResults({ 
@@ -149,6 +231,16 @@ const QuizPreview = () => {
       totalQuestions,
       studentId: selectedStudentId || undefined
     });
+    
+    // If not in preview mode and we have a submission ID, update the quiz results
+    if (!previewMode && submissionId) {
+      updateQuizResultMutation.mutate({
+        submissionId: submissionId,
+        score: correctAnswers,
+        maxScore: totalQuestions,
+        completed: true
+      });
+    }
   };
 
   // We only add isLoadingStudents to the loading state if we're in admin mode
@@ -334,6 +426,7 @@ const QuizPreview = () => {
               previewMode={previewMode}
               classInfo={classInfo}
               onBackToDetails={() => setLocation(`/quizzes/${validId}`)}
+              submissionId={submissionId || undefined}
             />
           </div>
         ) : (

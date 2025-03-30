@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clock, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Quiz, QuizQuestion, QuizOption, Class } from '@shared/schema';
+import { Quiz, QuizQuestion, QuizOption, Class, InsertQuizAnswer } from '@shared/schema';
 import { getImageProps } from '@/lib/image-utils';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
 import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
+import { apiRequest } from '@/lib/queryClient';
 
 /**
  * Helper function to get the properly formatted URL for quiz images
@@ -28,6 +29,14 @@ function getQuizImageUrl(url: string | null | undefined): string {
   return `${window.location.origin}${apiPath}`;
 }
 
+// Interface for our internal answer tracking
+interface QuizAnswer {
+  questionId: number;
+  selectedOptionId?: number; // For multiple choice questions
+  isCorrect: boolean;
+  speakingAnswer?: string; // For speaking questions
+}
+
 interface QuizRunnerProps {
   quiz: Quiz;
   questions: QuizQuestion[];
@@ -36,6 +45,7 @@ interface QuizRunnerProps {
   previewMode?: boolean;
   classInfo?: Class; // Optional class information that contains grade level
   onBackToDetails?: () => void; // New callback to handle navigation back to quiz details
+  submissionId?: number; // Optional submission ID for saving answers
 }
 
 export function QuizRunner({
@@ -45,7 +55,8 @@ export function QuizRunner({
   onComplete,
   previewMode = false,
   classInfo,
-  onBackToDetails
+  onBackToDetails,
+  submissionId
 }: QuizRunnerProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -53,6 +64,8 @@ export function QuizRunner({
   const [timeLeft, setTimeLeft] = useState<number | null>(
     quiz.timeLimit ? quiz.timeLimit * 60 : null
   );
+  // Enhanced answer tracking to include selected option IDs
+  const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -95,8 +108,25 @@ export function QuizRunner({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle when a user selects an answer - following the provided JS file
-  const selectAnswer = (isCorrect: boolean) => {
+  // Handle when a user selects an answer
+  const selectAnswer = (isCorrect: boolean, selectedOptionId?: number) => {
+    // Record the answer with the selected option ID
+    const currentQuestion = questions[currentQuestionIndex];
+    
+    // Create the answer object with all needed properties
+    const answer: QuizAnswer = {
+      questionId: currentQuestion.id,
+      isCorrect,
+      selectedOptionId // This will be undefined for speaking assessments
+    };
+    
+    setAnswers(prev => [...prev, answer]);
+    
+    // Save the answer to the server if we have a submission ID and not in preview mode
+    if (submissionId && !previewMode) {
+      saveAnswerToServer(answer);
+    }
+    
     if (isCorrect) {
       setScore(prevScore => prevScore + 1);
     }
@@ -107,16 +137,61 @@ export function QuizRunner({
       showScore();
     }
   };
+  
+  // Function to save an answer to the server
+  const saveAnswerToServer = async (answer: QuizAnswer) => {
+    if (!submissionId) return;
+    
+    try {
+      // Format the answer according to the API requirements
+      const answerData: InsertQuizAnswer = {
+        submissionId,
+        questionId: answer.questionId,
+        selectedOptionId: answer.selectedOptionId,
+        isCorrect: answer.isCorrect,
+        speakingAnswer: answer.speakingAnswer
+      };
+      
+      // Make the API request
+      await apiRequest(
+        "POST", 
+        `/api/quiz-submissions/${submissionId}/answers`, 
+        answerData
+      );
+      
+      console.log(`Answer for question ${answer.questionId} saved successfully`);
+    } catch (error) {
+      console.error("Error saving quiz answer:", error);
+    }
+  };
 
-  // Show final score - following the provided JS file structure
+  // Show final score and finalize the quiz session
   const showScore = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
     
     setIsComplete(true);
-    const percentage = (score / questions.length) * 100;
+    
+    // Pass results to the parent component for further processing
     onComplete(score, questions.length);
+    
+    // If not in preview mode, log the detailed answers
+    if (!previewMode) {
+      console.log('Quiz completed, detailed answers:', answers);
+      
+      // If we have a submission ID and answers aren't empty, ensure all answers are submitted
+      if (submissionId && answers.length > 0) {
+        // Check if we have answers for all questions
+        const answeredQuestionIds = answers.map(a => a.questionId);
+        const unansweredQuestions = questions.filter(q => !answeredQuestionIds.includes(q.id));
+        
+        // Log any questions without answers (this could happen if time runs out)
+        if (unansweredQuestions.length > 0) {
+          console.log('Some questions were not answered:', unansweredQuestions.map(q => q.id));
+        }
+      }
+    }
   };
 
   if (!questions.length) {
@@ -296,7 +371,7 @@ export function QuizRunner({
                 key={option.id}
                 variant="outline"
                 className="justify-start h-auto py-3 px-4 text-left"
-                onClick={() => selectAnswer(option.isCorrect || false)}
+                onClick={() => selectAnswer(option.isCorrect || false, option.id)}
               >
                 {option.text}
               </Button>
