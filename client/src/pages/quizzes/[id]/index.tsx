@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,7 +36,6 @@ import {
 } from "@/components/ui/table";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
 import { Quiz, QuizQuestion, QuizOption, insertQuizSchema } from "@shared/schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
@@ -120,36 +120,15 @@ const QuizDetail = () => {
     mutationFn: async (classIds: number[]) => {
       console.log("Updating quiz class assignments with class IDs:", classIds);
       
-      const response = await fetch(`/api/quizzes/${id}/classes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ classIds }),
-        credentials: "include" // Include credentials for authentication
-      });
-      
-      console.log("Class assignment update response status:", response.status);
-      
-      // Try to get the response text regardless of status
-      const responseText = await response.text();
-      console.log("Response text:", responseText);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to update class assignments: ${responseText}`);
-      }
-      
-      // Parse the response if it's valid JSON
-      let result;
       try {
-        result = JSON.parse(responseText);
-      } catch (e) {
-        console.warn("Response was not JSON:", e);
-        // Return a simple success object if not JSON
-        result = { success: true };
+        // Use the apiRequest.post utility for consistent authentication handling
+        const result = await apiRequest.post(`/api/quizzes/${id}/classes`, { classIds });
+        console.log("Class assignments update successful:", result);
+        return result;
+      } catch (error) {
+        console.error("Error in class assignments update:", error);
+        throw error;
       }
-      
-      return result;
     },
     onSuccess: () => {
       toast({
@@ -200,38 +179,9 @@ const QuizDetail = () => {
       console.log("Updating quiz with data:", JSON.stringify(data, null, 2)); 
       
       try {
-        // Send all fields including the ID as a route parameter (not in body)
-        // Use the apiRequest utility from queryClient to ensure auth headers are included
-        const response = await fetch(`/api/quizzes/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-          // Make sure to include credentials to send cookies
-          credentials: "include"
-        });
-        
-        console.log("Update response status:", response.status);
-        
-        // Try to get the response text regardless of status
-        const responseText = await response.text();
-        console.log("Response text:", responseText);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to update quiz: ${responseText}`);
-        }
-        
-        // Parse the response JSON only if it's valid
-        let result;
-        try {
-          result = JSON.parse(responseText);
-          console.log("Parsed update result:", JSON.stringify(result, null, 2));
-        } catch (e) {
-          console.error("Failed to parse response as JSON:", e);
-          throw new Error("Invalid JSON response from server");
-        }
-        
+        // Use the apiRequest.put utility instead of raw fetch for consistent auth handling
+        const result = await apiRequest.put(`/api/quizzes/${id}`, data);
+        console.log("Quiz update successful:", result);
         return result;
       } catch (error) {
         console.error("Error in update mutation:", error);
@@ -261,21 +211,14 @@ const QuizDetail = () => {
   // Delete quiz mutation
   const deleteQuizMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/quizzes/${id}`, {
-        method: "DELETE",
-        credentials: "include" // Include credentials for authentication
-      });
-      
-      console.log("Delete response status:", response.status);
-      
-      // Get response text for better error handling
-      const responseText = await response.text();
-      if (responseText) {
-        console.log("Delete response text:", responseText);
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Failed to delete quiz: ${responseText || response.statusText}`);
+      try {
+        // Use apiRequest for DELETE operation
+        const response = await apiRequest("DELETE", `/api/quizzes/${id}`);
+        console.log("Delete response status:", response.status);
+        return response;
+      } catch (error) {
+        console.error("Error in delete operation:", error);
+        throw error;
       }
     },
     onSuccess: () => {
