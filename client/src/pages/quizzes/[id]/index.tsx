@@ -180,7 +180,8 @@ const QuizDetail = () => {
       console.log("Updating quiz with data:", JSON.stringify(data, null, 2)); 
       
       try {
-        // Use the apiRequest.put utility instead of raw fetch for consistent auth handling
+        // Use the apiRequest.put utility for consistent auth handling
+        // apiRequest.put returns the response directly, no need to call .json()
         const result = await apiRequest.put(`/api/quizzes/${id}`, data);
         console.log("Quiz update successful:", result);
         return result;
@@ -391,7 +392,8 @@ const QuizDetail = () => {
                       // Directly call the API using apiRequest helper
                       const quizId = parseInt(id as string);
                       const response = await apiRequest.put(`/api/quizzes/${quizId}`, formattedData);
-                      const result = await response.json();
+                      // For apiRequest, we don't need to call .json() as it handles the response internally
+                      const result = response;
                       console.log("Direct API call success:", result);
                       
                       toast({
