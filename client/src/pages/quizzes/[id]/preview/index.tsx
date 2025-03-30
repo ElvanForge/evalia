@@ -100,10 +100,20 @@ const QuizPreview = () => {
       completed: boolean;
     }) => {
       try {
+        // Map our data to what the server expects
+        // The server expects score/maxScore as decimals, not booleans for completion status
+        const submissionData = {
+          score: data.score,
+          maxScore: data.maxScore
+          // Server automatically sets completedAt when updating
+        };
+        
+        console.log("Submitting final quiz data:", submissionData);
+        
         const response = await apiRequest(
           "PUT", 
           `/api/quiz-submissions/${data.submissionId}`, 
-          data
+          submissionData
         );
         
         // Check if response is ok
