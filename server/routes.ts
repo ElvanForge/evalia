@@ -1722,7 +1722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Image upload endpoint for quiz questions
   app.post('/api/upload/image', upload.single('image'), (req, res) => {
-    console.log('Image upload request received');
+    console.log('============= IMAGE UPLOAD REQUEST RECEIVED =============');
     try {
       if (!req.file) {
         console.log('No file found in request');
@@ -1751,11 +1751,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a nice absolute URL path
       const imageUrl = `/uploads/images/${req.file.filename}`;
       
-      console.log('Image URL:', imageUrl);
-      console.log('Full file path:', path.resolve(filePath));
+      console.log('Image URL to be returned:', imageUrl);
+      console.log('Full file path on disk:', path.resolve(filePath));
       
-      // Verify file permissions
-      fs.chmodSync(filePath, 0o666);
+      // Ensure upload directory and file have correct permissions
+      try {
+        // Make sure upload directory is readable and executable
+        fs.chmodSync(uploadDir, 0o755);
+        // Make sure the file is readable by all
+        fs.chmodSync(filePath, 0o644);
+        console.log('Updated permissions for upload directory and file');
+      } catch (permError) {
+        console.error('Error setting permissions:', permError);
+      }
       
       // Verify file is readable
       try {
@@ -1773,16 +1781,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fs.readSync(fd, buffer, 0, buffer.length, 0);
         fs.closeSync(fd);
         console.log('File is readable, first bytes:', buffer.toString('hex').substring(0, 50));
+        
+        // For image files, log the mime type
+        if (req.file.mimetype.startsWith('image/')) {
+          console.log('Image mime type:', req.file.mimetype);
+        }
       } catch (readError) {
         console.error('Error reading uploaded file:', readError);
       }
       
+      // Test if the image is accessible via the URL
+      const testUrl = `http://localhost:5000${imageUrl}`;
+      console.log('Image should be accessible at:', testUrl);
+      
       // Return success response with the URL
+      console.log('Returning image URL to client:', imageUrl);
       res.status(200).json({ 
         message: 'File uploaded successfully',
-        imageUrl: imageUrl,
-        absolutePath: path.resolve(filePath)
+        imageUrl: imageUrl
       });
+      
+      console.log('============= IMAGE UPLOAD COMPLETED =============');
     } catch (error) {
       console.error('Error uploading file:', error);
       res.status(500).json({ message: 'Failed to upload file' });
@@ -1791,6 +1810,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Static file serving from uploads directory
   app.use('/uploads', (req, res, next) => {
+    console.log('============ STATIC FILE REQUEST ============');
     console.log('Uploads static file request received for:', req.url);
     
     // Check if file exists before serving
@@ -1800,7 +1820,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ensure file has correct permissions
       try {
-        fs.chmodSync(filePath, 0o666);
+        // Make sure the file is readable by all
+        fs.chmodSync(filePath, 0o644);
         
         // Log file stats for debugging
         const stats = fs.statSync(filePath);
@@ -1823,12 +1844,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (ext === '.gif') contentType = 'image/gif';
       else if (ext === '.svg') contentType = 'image/svg+xml';
       
+      console.log('Setting Content-Type:', contentType);
+      
       // For debugging only - this won't run for most requests as express.static will handle them
       res.setHeader('Content-Type', contentType);
+      
+      // Try to serve the file directly (for debugging only)
+      if (req.query.direct === '1') {
+        console.log('Serving file directly (bypass express.static)');
+        try {
+          const fileContent = fs.readFileSync(filePath);
+          res.setHeader('Content-Length', stats.size);
+          res.status(200).end(fileContent);
+          return; // Skip remaining middleware
+        } catch (readError) {
+          console.error('Error reading file for direct serving:', readError);
+          // Continue to next middleware
+        }
+      }
     } else {
       console.log('File does not exist at path:', filePath);
+      // Log the list of files in the uploads/images directory to debug
+      try {
+        const uploadsDir = './uploads/images';
+        if (fs.existsSync(uploadsDir)) {
+          const files = fs.readdirSync(uploadsDir);
+          console.log('Files in uploads directory:', files);
+        } else {
+          console.log('Uploads directory does not exist');
+        }
+      } catch (error) {
+        console.error('Error listing files in uploads directory:', error);
+      }
     }
     
+    console.log('Continuing to express.static middleware');
     next();
   }, express.static('uploads', {
     setHeaders: (res, filePath) => {
@@ -1839,6 +1889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log the headers we're setting
       console.log(`Setting headers for ${filePath}`);
+      console.log('============ STATIC FILE SERVED ============');
     }
   }));
   
