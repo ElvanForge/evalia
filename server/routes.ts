@@ -1774,7 +1774,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   } else {
     console.log('Upload directory exists:', path.resolve(uploadDir));
     // Make sure directory permissions are correct
-    fs.chmodSync(uploadDir, 0o777);
+    try {
+      fs.chmodSync(uploadDir, 0o755); // More secure permissions
+      console.log('Updated upload directory permissions to 0755');
+    } catch (error) {
+      console.error('Error setting upload directory permissions:', error);
+    }
+  }
+  
+  // Make parent directory readable and executable too
+  if (fs.existsSync('./uploads')) {
+    try {
+      fs.chmodSync('./uploads', 0o755);
+      console.log('Updated parent uploads directory permissions to 0755');
+    } catch (error) {
+      console.error('Error setting parent directory permissions:', error);
+    }
   }
   
   const multerStorage = multer.diskStorage({
@@ -1784,8 +1799,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
     filename: function (req, file, cb) {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      const fileExt = path.extname(file.originalname);
-      const filename = 'image-' + uniqueSuffix + fileExt;
+      const fileExt = path.extname(file.originalname).toLowerCase();
+      // Sanitize file extension
+      const safeExt = fileExt.replace(/[^a-z0-9.]/gi, '');
+      const filename = 'image-' + uniqueSuffix + safeExt;
       console.log('Generated filename for upload:', filename);
       cb(null, filename);
     }
@@ -1859,17 +1876,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Create a nice absolute URL path
-      const imageUrl = `/uploads/images/${req.file.filename}`;
+      // Create the normalized path to be saved to the database and returned
+      let imageUrl = `/uploads/images/${req.file.filename}`;
       
-      console.log('Image URL to be returned:', imageUrl);
+      // Ensure path is standardized and properly formatted
+      if (!imageUrl.startsWith('/')) {
+        imageUrl = '/' + imageUrl;
+      }
+      
+      console.log('Standardized image URL to be returned:', imageUrl);
       console.log('Full file path on disk:', path.resolve(filePath));
       
       // Ensure upload directory and file have correct permissions
       try {
-        // Make sure upload directory is readable and executable
+        // Make sure upload directory is readable and executable (but not writable by others)
         fs.chmodSync(uploadDir, 0o755);
-        // Make sure the file is readable by all
+        // Make sure the file is readable by all (but not writable by others)
         fs.chmodSync(filePath, 0o644);
         console.log('Updated permissions for upload directory and file');
       } catch (permError) {
@@ -1906,28 +1928,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (req.file.mimetype.startsWith('image/')) {
           console.log('Image mime type:', req.file.mimetype);
         }
+        
+        // Verify file is accessible via HTTP (non-blocking)
+        const serverUrl = `${req.protocol}://${req.get('host')}`;
+        const testUrl = `${serverUrl}${imageUrl}`;
+        console.log('Image should be accessible at URL:', testUrl);
+        
+        // Test the file is accessible on the server's filesystem using fs.access
+        fs.access(filePath, fs.constants.R_OK, (err) => {
+          if (err) {
+            console.error('File access check failed:', err);
+          } else {
+            console.log('File is accessible by the server');
+          }
+        });
       } catch (readError) {
         console.error('Error reading uploaded file:', readError);
         // Non-fatal error, continue
       }
       
-      // Generate test URLs to be used for debugging
+      // Return a full response with multiple URL formats to help frontend compatibility
+      // This provides several formats of the same URL to handle different client-side scenarios
       const serverUrl = `${req.protocol}://${req.get('host')}`;
-      const testUrl = `${serverUrl}${imageUrl}`;
-      console.log('Image should be accessible at:', testUrl);
       
-      // Return success response with the URL (always starts with /)
-      const normalizedImageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-      console.log('Returning image URL to client:', normalizedImageUrl);
+      // Log all the URL variations we're sending back
+      console.log('URL formats being returned:', {
+        imageUrl: imageUrl,               // The relative URL path with leading slash: /uploads/images/filename.jpg
+        fullUrl: `${serverUrl}${imageUrl}`,  // Full absolute URL including server: http://domain.com/uploads/images/filename.jpg
+        relativeUrl: imageUrl.substring(1),  // Relative URL without leading slash: uploads/images/filename.jpg
+        filename: req.file.filename         // Just the filename: image-123456789.jpg
+      });
       
-      // Return a full response with multiple URL formats
+      // Return the response object with all URL variations and metadata
       res.status(200).json({ 
         message: 'File uploaded successfully',
-        imageUrl: normalizedImageUrl,
-        fullUrl: `${serverUrl}${normalizedImageUrl}`,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size,
+        imageUrl: imageUrl,                  // Standard format with leading slash
+        fullUrl: `${serverUrl}${imageUrl}`,  // Full URL for direct access
+        relativeUrl: imageUrl.substring(1),  // Without leading slash for some client scenarios
+        filename: req.file.filename,         // Just the filename
+        originalName: req.file.originalname, // Original file name
+        size: req.file.size,                 // File size in bytes
+        type: req.file.mimetype,             // MIME type
         success: true
       });
       

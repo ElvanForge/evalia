@@ -184,12 +184,35 @@ export function QuestionFormDialog({
           } else {
             const uploadResult = await uploadResponse.json();
             console.log("Image upload success! Result:", uploadResult);
-            imageUrl = uploadResult.imageUrl;
             
-            // Make sure we have a valid URL format
+            // The server now returns multiple URL formats to handle different scenarios
+            // Use the standard imageUrl format which includes a leading slash
+            if (uploadResult.imageUrl) {
+              imageUrl = uploadResult.imageUrl;
+              console.log(`Using server-provided imageUrl: ${imageUrl}`);
+            } 
+            // Fallback to other URL formats if needed
+            else if (uploadResult.relativeUrl) {
+              imageUrl = `/${uploadResult.relativeUrl}`;
+              console.log(`Using normalized relativeUrl: ${imageUrl}`);
+            }
+            else if (uploadResult.filename) {
+              // Construct a path if only filename was provided
+              imageUrl = `/uploads/images/${uploadResult.filename}`;
+              console.log(`Constructed URL from filename: ${imageUrl}`);
+            }
+            
+            // Final validation: ensure URL has leading slash
             if (imageUrl && !imageUrl.startsWith('/')) {
               imageUrl = '/' + imageUrl;
+              console.log(`Normalized URL with leading slash: ${imageUrl}`);
             }
+            
+            // Show success toast with image preview
+            toast({
+              title: "Image Uploaded Successfully",
+              description: "The image has been added to your question.",
+            });
           }
         } catch (uploadError) {
           console.error("Error during image upload:", uploadError);
