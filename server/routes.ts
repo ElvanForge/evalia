@@ -1752,6 +1752,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completedAt: new Date() // Set completion time
       });
       
+      // Get quiz details to create a corresponding grade entry
+      const quiz = await dbStorage.getQuiz(submission.quizId);
+      if (quiz && typeof score === 'number' && typeof maxScore === 'number') {
+        try {
+          if (quiz.classId) {
+            // Create an assignment for the quiz if it doesn't exist
+            // First, check if this quiz already has an assignment
+            const assignments = await dbStorage.getAssignmentsByClass(quiz.classId);
+            let quizAssignment = assignments.find(a => 
+              a.name === quiz.title && a.assignmentType === 'Quiz'
+            );
+            
+            // If no assignment exists for this quiz, create one
+            if (!quizAssignment) {
+              quizAssignment = await dbStorage.createAssignment({
+                name: quiz.title,
+                description: `Quiz ${quiz.title}`,
+                classId: quiz.classId,
+                assignmentType: 'Quiz',
+                dueDate: new Date(), // Set to current date since it's already completed
+                maxScore: String(maxScore), // Convert to string for consistency
+                weight: "1" // Default weight as string
+              });
+              console.log(`Created new assignment for quiz: ${quiz.title}`);
+            }
+            
+            // Create a grade entry for this quiz submission
+            const gradeEntry = await dbStorage.createGrade({
+              studentId: submission.studentId,
+              assignmentId: quizAssignment.id,
+              score: String(score), // Convert to string for consistency
+              comments: `Quiz automatically graded: ${score}/${maxScore} points`,
+              submittedAt: new Date() // Use submittedAt instead of gradedAt
+            });
+            
+            console.log(`Created grade entry for quiz submission: ${gradeEntry.id}`);
+          } else {
+            console.log('Quiz has no associated class, skipping grade creation');
+          }
+        } catch (gradeError) {
+          console.error("Error creating grade entry for quiz:", gradeError);
+          // We don't want to fail the submission update if the grade creation fails
+          // Just log the error and continue
+        }
+      }
+      
       res.status(200).json(updatedSubmission);
     } catch (error) {
       console.error("Error updating quiz submission:", error);
@@ -2514,7 +2560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // XML Grade Export
+  // Grade Export in XML or CSV format
   app.post('/api/export/grades', requireAuth, async (req, res) => {
     try {
       const teacherId = Number(req.session.teacherId);
@@ -2566,7 +2612,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return {
                 ...grade,
                 assignmentName: assignment ? assignment.name : "Unknown",
-                assignmentType: assignment ? assignment.type : "Unknown",
+                assignmentType: assignment ? assignment.assignmentType : "Unknown", // Fixed property name
+                maxScore: assignment ? assignment.maxScore : 0
               };
             }),
             averagePercentage
@@ -2586,7 +2633,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studentGrades.forEach(({ student, grades, averagePercentage }) => {
           const studentEle = studentsEle.ele('Student');
           studentEle.att('id', student.id);
-          studentEle.ele('Name', `${student.firstName} ${student.lastName}`);
+          studentEle.ele('Name', `${student.firstName} ${student.lastName || ''}`);
           studentEle.ele('Email', student.email || '');
           studentEle.ele('AveragePercentage', averagePercentage);
           
@@ -2611,6 +2658,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Send the XML response
         res.status(200).send(xml);
+      } else if (format === 'csv') {
+        // Import csv-stringify
+        const { stringify } = require('csv-stringify/sync');
+        
+        // Prepare data for CSV export
+        const flattenedData = [];
+        
+        // Add header row
+        const header = ['Student ID', 'Student Name', 'Assignment', 'Type', 'Score', 'Max Score', 'Percentage', 'Comments', 'Graded At'];
+        flattenedData.push(header);
+        
+        // Add rows for each student and grade
+        studentGrades.forEach(({ student, grades }) => {
+          const studentName = `${student.firstName} ${student.lastName || ''}`.trim();
+          
+          if (grades.length === 0) {
+            // Include student with no grades
+            flattenedData.push([
+              student.id,
+              studentName,
+              'No assignments graded',
+              '',
+              '',
+              '',
+              '',
+              '',
+              ''
+            ]);
+          } else {
+            // Add a row for each grade
+            grades.forEach(grade => {
+              const scoreNum = parseFloat(grade.score);
+              const maxScoreNum = parseFloat(grade.maxScore);
+              const percentage = maxScoreNum > 0 ? ((scoreNum / maxScoreNum) * 100).toFixed(2) + '%' : 'N/A';
+              
+              flattenedData.push([
+                student.id,
+                studentName,
+                grade.assignmentName,
+                grade.assignmentType,
+                grade.score,
+                grade.maxScore,
+                percentage,
+                grade.comments || '',
+                new Date(grade.gradedAt).toLocaleDateString()
+              ]);
+            });
+          }
+        });
+        
+        // Convert data to CSV
+        const csvOutput = stringify(flattenedData);
+        
+        // Set Content-Type and Content-Disposition headers
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="class_${classId}_grades.csv"`);
+        
+        // Send the CSV response
+        res.status(200).send(csvOutput);
       } else {
         // Default to JSON response
         res.status(200).json(studentGrades);
@@ -2618,6 +2724,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error exporting grades:", error);
       res.status(500).json({ message: "Server error exporting grades" });
+    }
+  });
+  
+  // Quiz Scores Export (CSV)
+  app.post('/api/export/quiz-scores', requireAuth, async (req, res) => {
+    try {
+      // Use req.user.id instead of req.user?.id to avoid TS errors
+      const teacherId = req.user && typeof req.user.id === 'number' ? req.user.id : 0;
+      const { quizId, format = 'csv' } = req.body;
+      
+      // Verify the quiz belongs to the teacher
+      const quiz = await dbStorage.getQuiz(quizId);
+      if (!quiz || quiz.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to export scores for this quiz" });
+      }
+      
+      // Get all submissions for this quiz
+      const submissions = await dbStorage.getQuizSubmissionsByQuiz(quizId);
+      
+      // Filter out incomplete submissions
+      const completedSubmissions = submissions.filter(sub => sub.completedAt);
+      
+      if (completedSubmissions.length === 0) {
+        return res.status(404).json({ message: "No completed submissions found for this quiz" });
+      }
+      
+      // Get student details for each submission
+      const submissionDetails = await Promise.all(
+        completedSubmissions.map(async (submission) => {
+          const student = await dbStorage.getStudent(submission.studentId);
+          const answers = await dbStorage.getQuizAnswersBySubmission(submission.id);
+          
+          return {
+            submission,
+            student,
+            answers
+          };
+        })
+      );
+      
+      // Get all questions for this quiz
+      const questions = await dbStorage.getQuizQuestionsByQuiz(quizId);
+      
+      if (format === 'csv') {
+        // Import csv-stringify
+        const { stringify } = require('csv-stringify/sync');
+        
+        // Prepare data for CSV export
+        const flattenedData: string[][] = [];
+        
+        // Add header row
+        const header = ['Student ID', 'Student Name', 'Score', 'Max Score', 'Percentage', 'Completed At'];
+        flattenedData.push(header);
+        
+        // Add rows for each student submission
+        submissionDetails.forEach(({ submission, student }) => {
+          if (!student) return; // Skip if student not found
+          
+          const studentName = `${student.firstName} ${student.lastName || ''}`.trim();
+          // Handle possible string or number values by converting to string first
+          const scoreStr = typeof submission.score === 'undefined' ? '0' : String(submission.score);
+          const maxScoreStr = typeof submission.maxScore === 'undefined' ? '0' : String(submission.maxScore);
+          const scoreNum = parseFloat(scoreStr);
+          const maxScoreNum = parseFloat(maxScoreStr);
+          
+          const percentage = maxScoreNum > 0 ? ((scoreNum / maxScoreNum) * 100).toFixed(2) + '%' : 'N/A';
+          const completedDate = submission.completedAt ? new Date(submission.completedAt).toLocaleDateString() : 'Unknown';
+          
+          flattenedData.push([
+            String(student.id),
+            studentName,
+            String(scoreNum),
+            String(maxScoreNum),
+            percentage,
+            completedDate
+          ]);
+        });
+        
+        // Convert data to CSV
+        const csvOutput = stringify(flattenedData);
+        
+        // Set Content-Type and Content-Disposition headers
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="quiz_${quizId}_scores.csv"`);
+        
+        // Send the CSV response
+        res.status(200).send(csvOutput);
+      } else {
+        // Default to JSON response
+        res.status(200).json(submissionDetails);
+      }
+    } catch (error) {
+      console.error("Error exporting quiz scores:", error);
+      res.status(500).json({ message: "Server error exporting quiz scores" });
     }
   });
 

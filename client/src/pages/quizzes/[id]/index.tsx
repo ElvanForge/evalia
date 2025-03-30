@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { 
-  ArrowLeft, Save, Trash2, Plus, Edit, Loader2, Play, PlusCircle, Image, Users
+  ArrowLeft, Save, Trash2, Plus, Edit, Loader2, Play, PlusCircle, Image, Users, Download
 } from "lucide-react";
 import { getImageProps } from "@/lib/image-utils";
 import Layout from "@/components/layout";
@@ -39,6 +39,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Quiz, QuizQuestion, QuizOption, quizFormSchema } from "@shared/schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const QuizDetail = () => {
   const { id } = useParams();
@@ -445,6 +451,60 @@ const QuizDetail = () => {
                   <Users className="mr-2 h-4 w-4" />
                   Administer Quiz to Students
                 </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            // Show loading toast
+                            toast({
+                              title: "Exporting Scores",
+                              description: "Preparing CSV export...",
+                            });
+                            
+                            // Directly fetch CSV data - in a real app we would use streaming
+                            const response = await apiRequest.post('/api/export/quiz-scores', {
+                              quizId: Number(id),
+                              format: 'csv'
+                            }, {
+                              responseType: 'blob' // Important for file downloads
+                            });
+                            
+                            // Create a download link and trigger download
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.setAttribute('download', `quiz_${id}_scores.csv`);
+                            document.body.appendChild(link);
+                            link.click();
+                            link.remove();
+                            
+                            toast({
+                              title: "Export Successful",
+                              description: "Quiz scores have been exported to CSV",
+                            });
+                          } catch (error) {
+                            console.error("Error exporting scores:", error);
+                            toast({
+                              title: "Export Failed",
+                              description: "There was a problem exporting the quiz scores",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Export Scores (CSV)
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Download student quiz scores as CSV
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive">
