@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/table";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useToast } from "@/hooks/use-toast";
-import { Quiz, QuizQuestion, QuizOption, insertQuizSchema } from "@shared/schema";
+import { Quiz, QuizQuestion, QuizOption, quizFormSchema } from "@shared/schema";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -149,8 +149,8 @@ const QuizDetail = () => {
     },
   });
 
-  const form = useForm<z.infer<typeof insertQuizSchema>>({
-    resolver: zodResolver(insertQuizSchema),
+  const form = useForm<z.infer<typeof quizFormSchema>>({
+    resolver: zodResolver(quizFormSchema),
     defaultValues: {
       title: "",
       description: null,
@@ -175,7 +175,7 @@ const QuizDetail = () => {
 
   // Update quiz mutation
   const updateQuizMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof insertQuizSchema>) => {
+    mutationFn: async (data: z.infer<typeof quizFormSchema>) => {
       console.log("Updating quiz with data:", JSON.stringify(data, null, 2)); 
       
       try {
@@ -250,7 +250,7 @@ const QuizDetail = () => {
     return quiz?.title || "Quiz Detail";
   };
 
-  const onSubmit = (data: z.infer<typeof insertQuizSchema>) => {
+  const onSubmit = (data: z.infer<typeof quizFormSchema>) => {
     console.log("Form submission triggered!");
     console.log("Form submitted with data:", JSON.stringify(data, null, 2));
     console.log("isActive value:", data.isActive, "type:", typeof data.isActive);
