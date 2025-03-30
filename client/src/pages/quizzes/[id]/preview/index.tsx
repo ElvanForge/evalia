@@ -94,16 +94,42 @@ const QuizPreview = () => {
       }, {} as Record<number, QuizOption[]>)
     : {};
     
-  // Get valid class ID
-  const validClassId = quiz?.classId && !isNaN(Number(quiz.classId)) ? quiz.classId : undefined;
+  // Fetch class assignments for this quiz
+  const {
+    data: assignedClasses,
+    isLoading: isLoadingAssignedClasses,
+  } = useQuery({
+    queryKey: [`/api/quizzes/${validId}/classes`],
+    enabled: !!validId,
+  });
+  
+  // Get valid class ID - either the primary classId or the first assigned class
+  const validClassId = (quiz?.classId && !isNaN(Number(quiz.classId))) 
+    ? quiz.classId 
+    : (assignedClasses && assignedClasses.length > 0) 
+      ? assignedClasses[0].id 
+      : undefined;
+  
+  // State for selected class when multiple classes are available
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  
+  // Set the selected class to the valid class ID when it becomes available
+  useEffect(() => {
+    if (validClassId && !selectedClassId) {
+      setSelectedClassId(validClassId);
+    }
+  }, [validClassId, selectedClassId]);
+  
+  // Use the selected class ID for fetching if available, otherwise use validClassId
+  const activeClassId = selectedClassId || validClassId;
   
   // Fetch class information if quiz is assigned to a class
   const {
     data: classInfo,
     isLoading: isLoadingClass,
   } = useQuery<Class>({
-    queryKey: [`/api/classes/${validClassId}`],
-    enabled: !!validClassId,
+    queryKey: [`/api/classes/${activeClassId}`],
+    enabled: !!activeClassId,
   });
 
   // Fetch students for the class if quiz is assigned to a class
@@ -111,8 +137,8 @@ const QuizPreview = () => {
     data: students,
     isLoading: isLoadingStudents,
   } = useQuery<Student[]>({
-    queryKey: [`/api/classes/${validClassId}/students`],
-    enabled: !!validClassId && !previewMode,
+    queryKey: [`/api/classes/${activeClassId}/students`],
+    enabled: !!activeClassId && !previewMode,
   });
 
   const handleComplete = (correctAnswers: number, totalQuestions: number) => {
@@ -124,7 +150,7 @@ const QuizPreview = () => {
     });
   };
 
-  const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || (quiz?.classId && isLoadingClass);
+  const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || isLoadingAssignedClasses || (activeClassId && isLoadingClass);
   const error = quizError || questionsError || optionsError;
 
   if (isLoading) {
@@ -222,6 +248,34 @@ const QuizPreview = () => {
               </div>
             </div>
             
+            {/* Class selector - only show if multiple classes are assigned and not in preview mode */}
+            {!previewMode && assignedClasses && assignedClasses.length > 1 && (
+              <div className="bg-white p-4 rounded-lg shadow mb-4">
+                <label className="block text-sm font-medium mb-2">
+                  Select class
+                </label>
+                <Select 
+                  value={selectedClassId?.toString()} 
+                  onValueChange={(value) => {
+                    setSelectedClassId(Number(value));
+                    // Reset student selection when changing class
+                    setSelectedStudentId(null);
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assignedClasses.map((c) => (
+                      <SelectItem key={c.id} value={c.id.toString()}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
             {/* Student selector - only show if not in preview mode and we have students */}
             {!previewMode && students && students.length > 0 && (
               <div className="bg-white p-4 rounded-lg shadow">
@@ -236,7 +290,7 @@ const QuizPreview = () => {
                   <SelectContent>
                     {students.map((student) => (
                       <SelectItem key={student.id} value={student.id.toString()}>
-                        {student.firstName} {student.lastName}
+                        {student.firstName} {student.lastName || ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -247,6 +301,15 @@ const QuizPreview = () => {
                     Please select a student before starting the quiz
                   </p>
                 )}
+              </div>
+            )}
+            
+            {/* Show message if there are no students in the selected class */}
+            {!previewMode && activeClassId && (!students || students.length === 0) && (
+              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-amber-800">
+                <p className="text-sm">
+                  No students are enrolled in the selected class. Please add students to the class before administering the quiz.
+                </p>
               </div>
             )}
           </>
