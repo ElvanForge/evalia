@@ -161,34 +161,32 @@ export function QuizRunner({
         )}
       </div>
       
-      <div className="mb-8 flex-grow">
+      <div className="mb-8 flex-grow flex flex-col">
         <div className="flex items-center mb-2">
           <div className="bg-primary/10 text-primary text-sm font-medium rounded-full px-3 py-1">
             Question {currentQuestionIndex + 1} of {questions.length}
           </div>
         </div>
         
-        <div className="space-y-6 h-full flex flex-col">
-          {/* Question text first to ensure it's always at the top */}
-          <div className="text-lg font-medium">{currentQuestion.question}</div>
-          
-          {/* Image container with better positioning */}
-          {currentQuestion.imageUrl && (
-            <div className="flex-grow flex items-center justify-center p-4 bg-muted/50 rounded-lg">
-              <ImageWithFallback 
-                src={currentQuestion.imageUrl}
-                alt={`Question ${currentQuestionIndex + 1}`}
-                className="rounded-md object-contain max-h-[300px] max-w-full"
-                isQuizImage={true}
-                onLoadSuccess={() => console.log(`Quiz question image loaded: ${currentQuestion.imageUrl}`)}
-                onLoadError={() => console.log(`Quiz question image failed to load: ${currentQuestion.imageUrl}`)}
-              />
-            </div>
-          )}
-          
-          {/* If no image, add empty space to maintain layout */}
-          {!currentQuestion.imageUrl && <div className="flex-grow"></div>}
-        </div>
+        {/* Question text always at the top */}
+        <div className="text-lg font-medium mb-4 w-full">{currentQuestion.question}</div>
+        
+        {/* Image container as a fixed size - not flexible */}
+        {currentQuestion.imageUrl && (
+          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[300px]">
+            <ImageWithFallback 
+              src={currentQuestion.imageUrl}
+              alt={`Question ${currentQuestionIndex + 1}`}
+              className="rounded-md object-contain max-h-[280px] max-w-full"
+              isQuizImage={true}
+              onLoadSuccess={() => console.log(`Quiz question image loaded: ${currentQuestion.imageUrl}`)}
+              onLoadError={() => console.log(`Quiz question image failed to load: ${currentQuestion.imageUrl}`)}
+            />
+          </div>
+        )}
+        
+        {/* If no image, add empty space */}
+        {!currentQuestion.imageUrl && <div className="flex-grow"></div>}
       </div>
       
       <div>
