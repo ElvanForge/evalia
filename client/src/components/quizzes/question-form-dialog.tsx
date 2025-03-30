@@ -58,7 +58,7 @@ export function QuestionFormDialog({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  
+
   // Set the image preview when the question changes
   useEffect(() => {
     if (questionToEdit?.imageUrl) {
@@ -72,7 +72,7 @@ export function QuestionFormDialog({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [options, setOptions] = useState<Array<{ text: string, isCorrect: boolean }>>([]);
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(QuestionFormSchema),
     defaultValues: {
@@ -93,19 +93,19 @@ export function QuestionFormDialog({
       if (questionToEdit) {
         try {
           console.log(`Fetching options for question ${questionToEdit.id} in quiz ${quizId}`);
-          
+
           // First try the newer endpoint format
           const response = await fetch(`/api/quiz-questions/${questionToEdit.id}/options`);
-          
+
           if (response.ok) {
             const data = await response.json();
             console.log(`Received options for question ${questionToEdit.id}:`, data);
-            
+
             const formattedOptions = data.map((option: any) => ({
               text: option.text,
               isCorrect: option.isCorrect
             }));
-            
+
             if (formattedOptions.length > 0) {
               console.log(`Setting ${formattedOptions.length} options from API`);
               setOptions(formattedOptions);
@@ -121,7 +121,7 @@ export function QuestionFormDialog({
         }
       }
     };
-    
+
     fetchOptions();
   }, [questionToEdit?.id, form, quizId]);
 
@@ -131,7 +131,7 @@ export function QuestionFormDialog({
 
     try {
       console.log("Form data:", data);
-      
+
       // If an image file was uploaded, we need to handle it
       if (data.imageFile && data.imageFile.length > 0) {
         const file = data.imageFile[0];
@@ -142,11 +142,11 @@ export function QuestionFormDialog({
           size: file.size,
           lastModified: new Date(file.lastModified).toString()
         });
-        
+
         // Create a new FormData instance
         const formData = new FormData();
         formData.append("image", file);
-        
+
         // Log FormData for debugging (iterate through entries)
         try {
           console.log("FormData entries:");
@@ -160,7 +160,7 @@ export function QuestionFormDialog({
         } catch (e) {
           console.log("Could not log FormData entries:", e);
         }
-        
+
         try {
           // Upload the image
           console.log("Sending image upload request to /api/upload/image");
@@ -171,7 +171,7 @@ export function QuestionFormDialog({
           });
 
           console.log("Image upload response status:", uploadResponse.status);
-          
+
           if (!uploadResponse.ok) {
             const errorText = await uploadResponse.text();
             console.error("Image upload failed:", errorText);
@@ -185,7 +185,7 @@ export function QuestionFormDialog({
           } else {
             const uploadResult = await uploadResponse.json();
             console.log("Image upload success! Result:", uploadResult);
-            
+
             // The server now returns multiple URL formats to handle different scenarios
             // Use the standard imageUrl format which includes a leading slash
             if (uploadResult.imageUrl) {
@@ -202,27 +202,27 @@ export function QuestionFormDialog({
               imageUrl = `/uploads/images/${uploadResult.filename}`;
               console.log(`Constructed URL from filename: ${imageUrl}`);
             }
-            
+
             // Final validation: ensure URL has leading slash and is properly formatted 
             if (imageUrl) {
               // 1. Ensure it starts with a slash for relative URLs
               if (!imageUrl.startsWith('/')) {
                 imageUrl = '/' + imageUrl;
               }
-              
+
               // 2. Replace any double slashes (except in http://)
               imageUrl = imageUrl.replace(/([^:])\/\//g, '$1/');
-              
+
               // 3. Make sure there aren't any spaces or bad characters
               imageUrl = imageUrl.trim();
-              
+
               console.log(`Final normalized image URL: ${imageUrl}`);
-              
+
               // 4. Add a cache-busting query parameter to prevent browser caching
               // This helps ensure the image is always fetched fresh from the server
               const cacheBust = Date.now();
               imageUrl = `${imageUrl}?v=${cacheBust}`;
-              
+
               // Show success toast with image preview
               toast({
                 title: "Image Uploaded Successfully",
@@ -243,36 +243,36 @@ export function QuestionFormDialog({
       } else if (imagePreview && (imagePreview.startsWith('/uploads/') || imagePreview.startsWith('/api/') || imagePreview.startsWith('http'))) {
         // If we still have an image preview that's an actual file path (not a data URL)
         console.log("Keeping existing image URL from previous upload:", imagePreview);
-        
+
         // Apply same normalization to existing URLs
         let normalizedUrl = imagePreview;
-        
+
         // Remove any existing cache busting or query parameters
         if (normalizedUrl.includes('?')) {
           normalizedUrl = normalizedUrl.split('?')[0];
         }
-        
+
         // Add fresh cache busting parameter
         const cacheBust = Date.now();
         imageUrl = `${normalizedUrl}?v=${cacheBust}`;
-        
+
         console.log("Normalized existing image URL:", imageUrl);
       } else if (questionToEdit?.imageUrl) {
         // If editing a question that already has an image URL
         console.log("Keeping existing image URL from question:", questionToEdit.imageUrl);
-        
+
         // Normalize and add cache busting to existing URL too
         let normalizedUrl = questionToEdit.imageUrl;
-        
+
         // Remove any existing cache busting
         if (normalizedUrl.includes('?')) {
           normalizedUrl = normalizedUrl.split('?')[0];
         }
-        
+
         // Add fresh cache busting parameter
         const cacheBust = Date.now();
         imageUrl = `${normalizedUrl}?v=${cacheBust}`;
-        
+
         console.log("Normalized existing question image URL:", imageUrl);
       } else {
         // No image preview and no file uploaded, set to null
@@ -286,6 +286,7 @@ export function QuestionFormDialog({
         question: data.question,
         type: data.type,
         imageUrl: imageUrl,
+        questionOptions: data.questionOptions
       };
 
       // Create or update the question
@@ -316,19 +317,19 @@ export function QuestionFormDialog({
             // Try to fetch existing options using the newer endpoint
             let existingOptions = [];
             const optionsResponse = await fetch(`/api/quiz-questions/${question.id}/options`);
-            
+
             if (optionsResponse.ok) {
               existingOptions = await optionsResponse.json();
               console.log("Existing options from API:", existingOptions);
-              
+
               if (existingOptions.length > 0) {
                 console.log(`Deleting ${existingOptions.length} existing options for question ${question.id}`);
-                
+
                 // Instead of deleting all existing options and creating new ones, we'll be smarter:
                 // 1. Keep a map of existing options by ID
                 const existingOptionsMap = new Map(existingOptions.map(opt => [opt.id, opt]));
                 console.log("Existing options map:", existingOptionsMap);
-                
+
                 // 2. Only delete options that are no longer needed
                 for (const option of existingOptions) {
                   // When editing, we're creating all new options, so delete all existing ones
@@ -340,7 +341,7 @@ export function QuestionFormDialog({
                         "Content-Type": "application/json"
                       }
                     });
-                    
+
                     if (!deleteResponse.ok) {
                       const errorText = await deleteResponse.text();
                       console.error(`Failed to delete option ${option.id}:`, errorText);
@@ -361,9 +362,9 @@ export function QuestionFormDialog({
             console.error("Error while managing existing options:", error);
           }
         }
-        
+
         console.log("Creating options:", data.questionOptions);
-        
+
         // Now create all new options
         for (const option of data.questionOptions) {
           // Skip empty options
@@ -371,18 +372,18 @@ export function QuestionFormDialog({
             console.log("Skipping empty option");
             continue;
           }
-          
+
           // Try the newer endpoint format
           const endpoint = `/api/quiz-questions/${question.id}/options`;
           console.log(`Creating option for question ${question.id} using endpoint: ${endpoint}`);
-          
+
           const optionData = {
             questionId: question.id,
             text: option.text,
             isCorrect: option.isCorrect,
           };
           console.log("Option data:", optionData);
-          
+
           const response = await fetch(endpoint, {
             method: "POST",
             headers: {
@@ -390,10 +391,10 @@ export function QuestionFormDialog({
             },
             body: JSON.stringify(optionData),
           });
-          
+
           if (!response.ok) {
             console.error("Failed to create option:", await response.text());
-            
+
             // Try fallback to the older endpoint format
             console.log("Trying fallback endpoint");
             const fallbackResponse = await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`, {
@@ -403,7 +404,7 @@ export function QuestionFormDialog({
               },
               body: JSON.stringify(optionData),
             });
-            
+
             if (!fallbackResponse.ok) {
               console.error("Fallback also failed:", await fallbackResponse.text());
             } else {
@@ -427,13 +428,13 @@ export function QuestionFormDialog({
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}/questions`] });
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${quizId}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/quiz-questions`] });
-      
+
       // Explicitly invalidate the options for this question
       if (question && question.id) {
         console.log(`Invalidating cache for question options: ${question.id}`);
         queryClient.invalidateQueries({ queryKey: [`/api/quiz-questions/${question.id}/options`] });
       }
-      
+
       // Close the dialog
       onOpenChange(false);
     } catch (error) {
@@ -597,7 +598,7 @@ export function QuestionFormDialog({
                               <div className="text-sm text-muted-foreground mb-3">
                                 PNG, JPG or GIF up to 5MB
                               </div>
-                              
+
                               {/* Standard file input with styling */}
                               <Input
                                 type="file"
@@ -672,7 +673,7 @@ export function QuestionFormDialog({
                   />
                 </div>
               ))}
-              
+
               <div className="flex space-x-2">
                 <Button
                   type="button"
