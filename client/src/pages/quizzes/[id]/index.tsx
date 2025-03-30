@@ -464,23 +464,41 @@ const QuizDetail = () => {
                               description: "Preparing CSV export...",
                             });
                             
-                            // Directly fetch CSV data - in a real app we would use streaming
-                            const response = await apiRequest.post('/api/export/quiz-scores', {
-                              quizId: Number(id),
-                              format: 'csv'
-                            }, {
-                              responseType: 'blob' // Important for file downloads
+                            // Use vanilla fetch directly for blob data - better browser compatibility
+                            const response = await fetch('/api/export/quiz-scores', {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                quizId: Number(id),
+                                format: 'csv'
+                              }),
+                              credentials: 'include'
                             });
                             
-                            // Create a download link and trigger download
+                            if (!response.ok) {
+                              const errorText = await response.text();
+                              throw new Error(`Export failed: ${response.status} - ${errorText}`);
+                            }
+                            
+                            // Get the blob data
                             const blob = await response.blob();
+                            console.log("Received blob:", blob);
+                            
+                            // Create a download link and trigger download
                             const url = window.URL.createObjectURL(blob);
                             const link = document.createElement('a');
                             link.href = url;
                             link.setAttribute('download', `quiz_${id}_scores.csv`);
                             document.body.appendChild(link);
                             link.click();
-                            link.remove();
+                            
+                            // Clean up
+                            setTimeout(() => {
+                              window.URL.revokeObjectURL(url);
+                              link.remove();
+                            }, 100);
                             
                             toast({
                               title: "Export Successful",

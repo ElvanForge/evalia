@@ -2730,27 +2730,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quiz Scores Export (CSV)
   app.post('/api/export/quiz-scores', requireAuth, async (req, res) => {
     try {
+      console.log("Quiz export request received:", req.body);
+      
       // Use req.user.id instead of req.user?.id to avoid TS errors
       const teacherId = req.user && typeof req.user.id === 'number' ? req.user.id : 0;
       const { quizId, format = 'csv' } = req.body;
       
+      if (!quizId) {
+        return res.status(400).json({ message: "Missing required parameter: quizId" });
+      }
+      
       // Verify the quiz belongs to the teacher
       const quiz = await dbStorage.getQuiz(quizId);
-      if (!quiz || quiz.teacherId !== teacherId) {
+      if (!quiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        console.log(`Authorization failed: Quiz teacherId=${quiz.teacherId}, requesterId=${teacherId}`);
         return res.status(403).json({ message: "Not authorized to export scores for this quiz" });
       }
       
       // Get all submissions for this quiz
+      console.log(`Fetching submissions for quiz ${quizId}`);
       const submissions = await dbStorage.getQuizSubmissionsByQuiz(quizId);
+      console.log(`Found ${submissions.length} submissions for quiz ${quizId}`);
       
       // Filter out incomplete submissions
       const completedSubmissions = submissions.filter(sub => sub.completedAt);
+      console.log(`Found ${completedSubmissions.length} completed submissions`);
       
       if (completedSubmissions.length === 0) {
         return res.status(404).json({ message: "No completed submissions found for this quiz" });
       }
       
       // Get student details for each submission
+      console.log("Gathering submission details...");
       const submissionDetails = await Promise.all(
         completedSubmissions.map(async (submission) => {
           const student = await dbStorage.getStudent(submission.studentId);
@@ -2766,13 +2781,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get all questions for this quiz
       const questions = await dbStorage.getQuizQuestionsByQuiz(quizId);
+      console.log(`Processing ${submissionDetails.length} submissions for export in ${format} format`);
       
       if (format === 'csv') {
-        // Import csv-stringify
-        const { stringify } = require('csv-stringify/sync');
+        // Import csv-stringify - this package is already installed
+        const stringify = require('csv-stringify');
         
         // Prepare data for CSV export
-        const flattenedData: string[][] = [];
+        const flattenedData = [];
         
         // Add header row
         const header = ['Student ID', 'Student Name', 'Score', 'Max Score', 'Percentage', 'Completed At'];
@@ -2780,7 +2796,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Add rows for each student submission
         submissionDetails.forEach(({ submission, student }) => {
-          if (!student) return; // Skip if student not found
+          if (!student) {
+            console.log(`Skipping submission ${submission.id} - student not found`);
+            return; // Skip if student not found
+          }
           
           const studentName = `${student.firstName} ${student.lastName || ''}`.trim();
           // Handle possible string or number values by converting to string first
@@ -2792,6 +2811,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const percentage = maxScoreNum > 0 ? ((scoreNum / maxScoreNum) * 100).toFixed(2) + '%' : 'N/A';
           const completedDate = submission.completedAt ? new Date(submission.completedAt).toLocaleDateString() : 'Unknown';
           
+          console.log(`Adding row for student ${student.id} (${studentName}): score=${scoreNum}/${maxScoreNum}`);
+          
           flattenedData.push([
             String(student.id),
             studentName,
@@ -2802,22 +2823,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]);
         });
         
-        // Convert data to CSV
-        const csvOutput = stringify(flattenedData);
+        console.log(`Converting ${flattenedData.length} rows to CSV`);
         
-        // Set Content-Type and Content-Disposition headers
-        res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', `attachment; filename="quiz_${quizId}_scores.csv"`);
-        
-        // Send the CSV response
-        res.status(200).send(csvOutput);
+        // Use callback style for csv-stringify for better compatibility
+        stringify(flattenedData, (err, output) => {
+          if (err) {
+            console.error('Error generating CSV:', err);
+            return res.status(500).json({ message: "Error generating CSV" });
+          }
+          
+          console.log(`CSV generated, size: ${output.length} bytes`);
+          
+          // Set Content-Type and Content-Disposition headers
+          res.setHeader('Content-Type', 'text/csv');
+          res.setHeader('Content-Disposition', `attachment; filename="quiz_${quizId}_scores.csv"`);
+          
+          // Send the CSV response
+          console.log("Sending CSV response");
+          return res.status(200).send(output);
+        });
       } else {
         // Default to JSON response
-        res.status(200).json(submissionDetails);
+        console.log("Sending JSON response");
+        return res.status(200).json(submissionDetails);
       }
     } catch (error) {
       console.error("Error exporting quiz scores:", error);
-      res.status(500).json({ message: "Server error exporting quiz scores" });
+      return res.status(500).json({ message: "Server error exporting quiz scores" });
     }
   });
 
