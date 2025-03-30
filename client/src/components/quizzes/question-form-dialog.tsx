@@ -246,26 +246,34 @@ export function QuestionFormDialog({
           });
           imageUrl = null;
         }
-      } else if (imagePreview && (imagePreview.startsWith('/uploads/') || imagePreview.startsWith('/api/') || imagePreview.startsWith('http'))) {
-        // If we still have an image preview that's an actual file path (not a data URL)
-        console.log("Keeping existing image URL from previous upload:", imagePreview);
+      } else if (imagePreview) {
+        if (imagePreview.startsWith('data:')) {
+          // If we have a data URL preview from a file that was selected but not uploaded yet
+          console.log("Using image file that was selected but needs to be uploaded");
+          // We'll upload this file in the next submit attempt
+          // No changes needed, just don't set imageUrl to null
+          return;
+        } else if (imagePreview.startsWith('/uploads/') || imagePreview.startsWith('/api/') || imagePreview.startsWith('http')) {
+          // If we still have an image preview that's an actual file path (not a data URL)
+          console.log("Keeping existing image URL from previous upload:", imagePreview);
 
-        // Apply same normalization to existing URLs
-        let normalizedUrl = imagePreview;
+          // Apply same normalization to existing URLs
+          let normalizedUrl = imagePreview;
 
-        // Remove any existing cache busting or query parameters
-        if (normalizedUrl.includes('?')) {
-          normalizedUrl = normalizedUrl.split('?')[0];
+          // Remove any existing cache busting or query parameters
+          if (normalizedUrl.includes('?')) {
+            normalizedUrl = normalizedUrl.split('?')[0];
+          }
+
+          // Add fresh cache busting parameter
+          const cacheBust = Date.now();
+          imageUrl = `${normalizedUrl}?v=${cacheBust}`;
+          
+          // Make sure to update the form value too
+          form.setValue('imageUrl', imageUrl);
+
+          console.log("Normalized existing image URL:", imageUrl);
         }
-
-        // Add fresh cache busting parameter
-        const cacheBust = Date.now();
-        imageUrl = `${normalizedUrl}?v=${cacheBust}`;
-        
-        // Make sure to update the form value too
-        form.setValue('imageUrl', imageUrl);
-
-        console.log("Normalized existing image URL:", imageUrl);
       } else if (questionToEdit?.imageUrl) {
         // If editing a question that already has an image URL
         console.log("Keeping existing image URL from question:", questionToEdit.imageUrl);
