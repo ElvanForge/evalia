@@ -1,0 +1,816 @@
+Replit version 1a31a381, pid2 version 0.0.1155 8518-aca1c035ffb45b70.js:1:217978
+
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      _app-f2ae44c5ffe03ab9.js:13:5278
+[LaunchDarkly] LaunchDarkly client initialized _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Failed to create PluginFactory 
+Object { name: "TikTok Pixel", creationName: "TikTok Pixel", libraryName: "tiktok-pixelDestination", url: "https://cdn.segment.com/next-integrations/actions/tiktok-pixel/cd7d14bb4dc70ff30f2f.js", settings: {…} }
+_app-f2ae44c5ffe03ab9.js:13:5278
+Failed to load Remote Plugin Error: Failed to load https://cdn.segment.com/next-integrations/actions/tiktok-pixel/cd7d14bb4dc70ff30f2f.js
+    onerror https://sp.replit.com/sdk.js/v1/dMePKGC4BqfBivpe0Hvl8IoPpzSHgjdX/sdk.min.js:1
+_app-f2ae44c5ffe03ab9.js:13:5278
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Freplit.com%2F%40numpkins1228%2FEvalia&title=Evalia%20-%20Replit&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=v3” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://m.stripe.com/6. (Reason: CORS request did not succeed). Status code: (null).
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src https://m.stripe.network” autoconsent.js:991:14
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//reports' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//assignments' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//classes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//classes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/new' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/4' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/4/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. 2 _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/5' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/5' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//classes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//assignments' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//reports' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. 2 _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 4 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. 2 _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/2' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//image-test' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//image-tes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//image-te' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//image-t' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//image-' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//image' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//imag' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//ima' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//im' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//i' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/4' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/4/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/4' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//assignments' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//classes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//settings' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//reports' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//assignments' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//classes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/5' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 3 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/5' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+stallwart: failed ping 2 stallwart.build.js:1:886
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 8 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//image-test' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. 2 _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 4 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/3' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 10 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. 3 _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 5 stallwart.build.js:1:886
+stallwart: failed ping 2 stallwart.build.js:1:886
+stallwart: failed ping 1 6 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. 2 _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 3 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 4 stallwart.build.js:1:886
+Content-Security-Policy warnings 4
+Cookie “SOCS” will soon be rejected because it is foreign and does not have the “Partitioned“ attribute. anchor
+Partitioned cookie or storage access was provided to “https://www.google.com/recaptcha/enterprise/anchor?ar=2&k=6LdqhwwoAAAAAFPdw8jCuvY3PaHQItGj3RzOS4fW&co=aHR0cHM6Ly9yZXBsaXQuY29tOjQ0Mw..&hl=en&v=hbAq-YhJxOnlU-7cpgBoAJHb&size=invisible&cb=vzfeuubbt5yx” because it is loaded in the third-party context and dynamic state partitioning is enabled. <anonymous code>:7:45
+Ignoring unsupported entryTypes: longtask. recaptcha__en.js:25:161
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 7 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//classes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//assignments' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//students' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//classes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//settings' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+Feature Policy: Skipping unsupported feature name “layout-animations”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “magnetometer”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “midi”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “navigation-override”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “oversized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “payment”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “sync-xhr”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unsized-media”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “usb”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-read”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-write”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “accelerometer”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “ambient-light-sensor”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “autoplay”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “battery”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “encrypted-media”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “execution-while-not-rendered”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “execution-while-out-of-viewport”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “gyroscope”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “layout-animations”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “magnetometer”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “midi”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “navigation-override”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “oversized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “payment”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “sync-xhr”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unsized-media”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “usb”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-read”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-write”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “accelerometer”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “ambient-light-sensor”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “autoplay”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “battery”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “encrypted-media”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “execution-while-not-rendered”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “execution-while-out-of-viewport”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “gyroscope”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “layout-animations”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “magnetometer”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “midi”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “navigation-override”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “oversized-images”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “payment”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “sync-xhr”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “unsized-media”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “usb”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “clipboard-read”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “clipboard-write”. workspace_iframe.html:145:20
+Partitioned cookie or storage access was provided to “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar33h%3A” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Partitioned cookie or storage access was provided to “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+The script from “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js” was loaded even though its MIME type (“text/plain”) is not a valid JavaScript MIME type. b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev
+The script from “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/__replco/static/devtools/injected.js” was loaded even though its MIME type (“text/plain”) is not a valid JavaScript MIME type. b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev
+Layout was forced before the page was fully loaded. If stylesheets are not yet loaded this may cause a flash of unstyled content. eruda.js:2:105892
+[vite] connecting... eruda.js:2:135516
+[vite] connected. eruda.js:2:135516
+Cookie “cookie-perms” will soon be rejected because it is foreign and does not have the “Partitioned“ attribute. controller-with-preconnect-f26e0b5acbe61ffd5d723f05ddfee4d3.html
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-f26e0b5acbe61ffd5d723f05ddfee4d3.html#__shared_params__[version]=acacia&apiKey=pk_test_51R7qeUGfHwGnKNqPb6QpmGfEEtE8pXsdQ97vt6BwmGrkLAqTjsFnd7q0rVBMuNlfbU0NT4jCDMzCzPKkPYB6p7pC00OsKtVtYe&apiVersion=2025-01-27.acacia&stripeJsId=75701306-065a-4dd4-801e-3b8d9273fd7a&firstStripeInstanceCreatedLatency=3&topOriginForCrossOriginFrame=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev&controllerCount=1&isCheckout=false&stripeJsLoadTime=1743303335321&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=NA&mids[sid]=NA&referrer=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2Fauth%2Flogin&controllerId=__privateStripeController7691” because it is loaded in the third-party context and dynamic state partitioning is enabled. <anonymous code>:7:45
+Cookie warnings 2
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Cookie warnings 2
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2Fdashboard&title=Evalia%20Dashboard&referrer=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2F__replco%2Fworkspace_iframe.html%3FinitialPath%3D%252F%26id%3D%253Ar33h%253A&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2Fdashboard&title=Evalia%20Dashboard&referrer=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2F__replco%2Fworkspace_iframe.html%3FinitialPath%3D%252F%26id%3D%253Ar33h%253A&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://m.stripe.com/6. (Reason: CORS request did not succeed). Status code: (null).
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='” autoconsent.js:991:14
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+No image URL in questionToEdit, clearing preview eruda.js:2:135516
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+Options data from API: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Processing options for question 1: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processing options for question 2: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processed options: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:991:14
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:991:14
+Options data from API: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Processing options for question 1: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processing options for question 2: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processed options: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src https://m.stripe.network” autoconsent.js:991:14
+Direct file selected: 
+FileList [ File ]
+eruda.js:2:135516
+Question image preview loaded from direct API: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbkAAAFsCAYAAABRp8e0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAP+lSURBVHhedP1nlGXZdZgJ7vAR74WPSO+zsrz3DlUF7wFCopM0JFsSKVJsqUWJWjJraX7U/J61enrUoxFn1OppkWoZqluCQEAgQAcPFIDyvjKz0rvIzPDxIt6L9yLm+/Z5N7Oo1X0jT9777j1mn+33Oeee27Pr5ye2NxYa0W5sxnZPxN5j+2JobCja/PX39sRWa5NnzWittGJqrB5L8+txbW45Rkb7Y//BvTE6VovGeiP6+vri6pXFWJxfih1TtXj44Yei07sdr73zZrR62jF7YFeM7ZiMxfWVWFhdi5W1RqxTb99Wb3Sandjc2IzmRit6N3ujr38g+gYHQoCG+gdjaGAoBrjXWG3EVmcrtre3yduMDrDF1lb00vb42ET08NfZ7ETPdkSHfJubm9Ha2IjNVfL1RgwM9wNvnboGY4PyK6urUQf++sRIjE3UYmyyFhPTE9E30BebnY1YaSzHZrtZyg70x9W5K9FutaK/vy/6abPdBkfcn5wai9kdO8BDM5aWVyN6+mOdvgyODMb41HisNVZjs9WkLwOxd9ee2F7vxOLVxbh84WrMX1+N5tpWDPb1x66ZetQ493U6MUgf9u6Yjc5WO9Y21mNxoxHXSa1B8AOswzMTUZ8ej9rEGLSogartaJO31W7Femsd+NuxzZ9HY3U9Nta4B0zR6tDeBvSUru2Ivoih2kj2ZxP4tza3wLuloP1WB/zykxQdatvwbk/09nMepOggeOjvj97ePtptR6fdSdr0gOfenp683oIeW9B3u839rZ7o75G+fdHD8y0qbgFzBadHT5P64Ym+gd4YnBqMfuv…
+eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "what about now?", imageUrl: null, type: "speaking", questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Options data from API: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Processing options for question 1: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processing options for question 2: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processed options: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1/preview' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/Test' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/diagnostic/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/diagnostic/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+[vite] hot updated: /src/components/quizzes/question-form-dialog.tsx eruda.js:2:135516
+[vite] hot updated: /src/index.css?v=j0YFm2CVrcpGSrAqEHtdG eruda.js:2:135516
+stallwart: failed ping 1 stallwart.build.js:1:886
+[vite] hot updated: /src/components/quizzes/question-form-dialog.tsx eruda.js:2:135516
+[vite] hot updated: /src/index.css?v=j0YFm2CVrcpGSrAqEHtdG eruda.js:2:135516
+[vite] hot updated: /src/components/quizzes/question-form-dialog.tsx eruda.js:2:135516
+[vite] hot updated: /src/index.css?v=j0YFm2CVrcpGSrAqEHtdG eruda.js:2:135516
+[vite] hot updated: /src/components/quizzes/question-form-dialog.tsx eruda.js:2:135516
+[vite] hot updated: /src/index.css?v=j0YFm2CVrcpGSrAqEHtdG eruda.js:2:135516
+[vite] server connection lost. Polling for restart... eruda.js:2:135516
+Feature Policy: Skipping unsupported feature name “accelerometer”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “ambient-light-sensor”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “autoplay”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “battery”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “encrypted-media”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “execution-while-not-rendered”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “execution-while-out-of-viewport”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “gyroscope”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “layout-animations”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “magnetometer”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “midi”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “navigation-override”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “oversized-images”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “payment”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “sync-xhr”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “unsized-media”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “usb”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “clipboard-read”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “clipboard-write”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “pointer-lock”. framework-4046efc0e7957815.js:1:44673
+Feature Policy: Skipping unsupported feature name “accelerometer”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “ambient-light-sensor”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “autoplay”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “battery”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “encrypted-media”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “execution-while-not-rendered”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “execution-while-out-of-viewport”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “gyroscope”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “layout-animations”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “magnetometer”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “midi”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “navigation-override”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “oversized-images”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “payment”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “sync-xhr”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “unsized-media”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “usb”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “clipboard-read”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “clipboard-write”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “pointer-lock”. framework-4046efc0e7957815.js:1:131051
+Feature Policy: Skipping unsupported feature name “accelerometer”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “ambient-light-sensor”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “autoplay”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “battery”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “encrypted-media”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “execution-while-not-rendered”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “execution-while-out-of-viewport”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “gyroscope”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “layout-animations”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “magnetometer”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “midi”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “navigation-override”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “oversized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “payment”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “sync-xhr”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unsized-media”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “usb”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-read”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-write”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “accelerometer”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “ambient-light-sensor”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “autoplay”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “battery”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “encrypted-media”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “execution-while-not-rendered”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “execution-while-out-of-viewport”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “gyroscope”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “layout-animations”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “magnetometer”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “midi”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “navigation-override”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “oversized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “payment”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “sync-xhr”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “unsized-media”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “usb”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-read”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “clipboard-write”. workspace_iframe.html
+Feature Policy: Skipping unsupported feature name “accelerometer”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “ambient-light-sensor”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “autoplay”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “battery”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “encrypted-media”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “execution-while-not-rendered”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “execution-while-out-of-viewport”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “gyroscope”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “layout-animations”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “legacy-image-formats”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “magnetometer”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “midi”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “navigation-override”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “oversized-images”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “payment”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “picture-in-picture”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “publickey-credentials”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “sync-xhr”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “unoptimized-images”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “unsized-media”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “usb”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “xr-spatial-tracking”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “clipboard-read”. workspace_iframe.html:145:20
+Feature Policy: Skipping unsupported feature name “clipboard-write”. workspace_iframe.html:145:20
+Partitioned cookie or storage access was provided to “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar36u%3A” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Partitioned cookie or storage access was provided to “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+The script from “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js” was loaded even though its MIME type (“text/plain”) is not a valid JavaScript MIME type. b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev
+The script from “https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev/__replco/static/devtools/injected.js” was loaded even though its MIME type (“text/plain”) is not a valid JavaScript MIME type. b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev
+Layout was forced before the page was fully loaded. If stylesheets are not yet loaded this may cause a flash of unstyled content. eruda.js:2:105892
+[vite] connecting... eruda.js:2:135516
+[vite] connected. eruda.js:2:135516
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-f26e0b5acbe61ffd5d723f05ddfee4d3.html#__shared_params__[version]=acacia&apiKey=pk_test_51R7qeUGfHwGnKNqPb6QpmGfEEtE8pXsdQ97vt6BwmGrkLAqTjsFnd7q0rVBMuNlfbU0NT4jCDMzCzPKkPYB6p7pC00OsKtVtYe&apiVersion=2025-01-27.acacia&stripeJsId=e15c89b2-7e1b-48ab-a6f2-b16555c88f3a&firstStripeInstanceCreatedLatency=5&topOriginForCrossOriginFrame=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev&controllerCount=1&isCheckout=false&stripeJsLoadTime=1743303587753&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=NA&mids[sid]=NA&referrer=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2F&controllerId=__privateStripeController9061” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Cookie warnings 2
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2F&title=Evalia%20-%20Intelligent%20Education%20Analytics&referrer=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2F__replco%2Fworkspace_iframe.html%3FinitialPath%3D%252F%26id%3D%253Ar36u%253A&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2F&title=Evalia%20-%20Intelligent%20Education%20Analytics&referrer=https%3A%2F%2Fb4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev%2F__replco%2Fworkspace_iframe.html%3FinitialPath%3D%252F%26id%3D%253Ar36u%253A&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://m.stripe.com/6. (Reason: CORS request did not succeed). Status code: (null).
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='” autoconsent.js:991:14
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:991:14
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:991:14
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src https://m.stripe.network” autoconsent.js:991:14
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//auth/login' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Cookie warnings 2
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//dashboard' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+Invalid href 'https://b4f27f3e-403a-4851-a33e-77dc50a8f5eb-00-3jzon0uoiysk3.spock.replit.dev//quizzes/1' passed to next/router in page: '/replEnvironmentDesktop'. Repeated forward-slashes (//) or backslashes \ are not valid in the href. _app-f2ae44c5ffe03ab9.js:13:5278
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+Options data from API: undefined eruda.js:2:135516
+Processed options: 
+Object {  }
+eruda.js:2:135516
+No image URL in questionToEdit, clearing preview eruda.js:2:135516
+Options data from API: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Processing options for question 1: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processing options for question 2: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processed options: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Options data from API: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Processing options for question 1: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processing options for question 2: 
+Array [ {…}, {…} ]
+eruda.js:2:135516
+Processed options: 
+Object { 1: (2) […], 2: (2) […] }
+eruda.js:2:135516
+Direct file selected: 
+FileList [ File ]
+eruda.js:2:135516
+Question image preview loaded from direct API: data:image/jpeg;base64,/9j/4gIcSUNDX1BST0ZJTEUAAQEAAAIMbGNtcwIQAABtbnRyUkdCIFhZWiAH3AABABkAAwApADlhY3NwQVBQTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA9tYAAQAAAADTLWxjbXMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApkZXNjAAAA/AAAAF5jcHJ0AAABXAAAAAt3dHB0AAABaAAAABRia3B0AAABfAAAABRyWFlaAAABkAAAABRnWFlaAAABpAAAABRiWFlaAAABuAAAABRyVFJDAAABzAAAAEBnVFJDAAABzAAAAEBiVFJDAAABzAAAAEBkZXNjAAAAAAAAAANjMgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB0ZXh0AAAAAEZCAABYWVogAAAAAAAA9tYAAQAAAADTLVhZWiAAAAAAAAADFgAAAzMAAAKkWFlaIAAAAAAAAG+iAAA49QAAA5BYWVogAAAAAAAAYpkAALeFAAAY2lhZWiAAAAAAAAAkoAAAD4QAALbPY3VydgAAAAAAAAAaAAAAywHJA2MFkghrC/YQPxVRGzQh8SmQMhg7kkYFUXdd7WtwegWJsZp8rGm/fdPD6TD////gABBKRklGAAEBAAABAAEAAP/tADZQaG90b3Nob3AgMy4wADhCSU0EBAAAAAAAGRwCZwAUaldzVDR3Qnc3WU9fVFdqd3hZb2oA/9sAQwADAwMDAwMFAwMFCAUFBQgKCAgICAoNCgoKCgoNEA0NDQ0NDRAQEBAQEBAQExMTExMTFhYWFhYYGBgYGBgYGBgY/9sAQwEEBAQGBg…
+eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "yes", type: "multiple_choice", imageUrl: null, questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Form data: 
+Object { quizId: 1, question: "yes", type: "multiple_choice", imageUrl: null, questionOptions: (2) […] }
+eruda.js:2:135516
+Using image file that was selected but needs to be uploaded eruda.js:2:135516
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/diagnostic/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/diagnostic/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getFullImageUrl } from '@/lib/image-utils';
+import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 
 // Default fallback image as SVG data URI
 const DEFAULT_FALLBACK = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlZGU4ZGQiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzBiYTJiMCIgZm9udC1zaXplPSIxNnB4IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiPkltYWdlIGNvdWxkIG5vdCBiZSBsb2FkZWQ8L3RleHQ+PC9zdmc+";
@@ -54,9 +55,10 @@ export function ImageWithFallback({
       const filename = src.split(/[\/\\]/).pop();
       const cleanFilename = filename?.split('?')[0] || '';
       
-      // Use direct API endpoint for quiz images from the start
+      // Use direct API endpoint for quiz images from the start with proper path joining
       if (cleanFilename) {
-        const apiUrl = `${window.location.origin}/api/images/${cleanFilename}`;
+        const apiPath = joinUrlPaths('/api/images', cleanFilename);
+        const apiUrl = `${window.location.origin}${apiPath}`;
         console.log(`Quiz image: Using direct API endpoint: [${src}] => [${apiUrl}]`);
         setCurrentSrc(apiUrl);
       } else {
@@ -105,7 +107,9 @@ export function ImageWithFallback({
         if (filename) {
           // Clean up any query parameters
           const cleanFilename = filename.split('?')[0];
-          const apiUrl = `${window.location.origin}/api/images/${cleanFilename}`;
+          // Use path joining to ensure proper URL formatting
+          const apiPath = joinUrlPaths('/api/images', cleanFilename);
+          const apiUrl = `${window.location.origin}${apiPath}`;
           console.log(`Image recovery attempt ${nextRetryCount}: Using direct API: ${apiUrl}`);
           setCurrentSrc(apiUrl);
           return;
@@ -119,7 +123,9 @@ export function ImageWithFallback({
         if (filename) {
           // Clean up any query parameters
           const cleanFilename = filename.split('?')[0];
-          const cacheBustUrl = `${window.location.origin}/api/images/${cleanFilename}?t=${Date.now()}`;
+          // Use path joining with cache busting
+          const apiPath = joinUrlPaths('/api/images', cleanFilename) + `?t=${Date.now()}`;
+          const cacheBustUrl = `${window.location.origin}${apiPath}`;
           console.log(`Image recovery attempt ${nextRetryCount}: Using API with cache bust: ${cacheBustUrl}`);
           setCurrentSrc(cacheBustUrl);
           return;
@@ -133,7 +139,9 @@ export function ImageWithFallback({
         if (filename) {
           // Clean up any query parameters
           const cleanFilename = filename.split('?')[0];
-          const directUrl = `${window.location.origin}/uploads/images/${cleanFilename}?direct=1`;
+          // Use path joining for uploads path
+          const uploadsPath = joinUrlPaths('/uploads/images', cleanFilename) + `?direct=1`;
+          const directUrl = `${window.location.origin}${uploadsPath}`;
           console.log(`Image recovery attempt ${nextRetryCount}: Using legacy path: ${directUrl}`);
           setCurrentSrc(directUrl);
           return;

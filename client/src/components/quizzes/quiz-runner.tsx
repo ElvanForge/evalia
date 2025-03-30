@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class } from '@shared/schema';
 import { getImageProps } from '@/lib/image-utils';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
+import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 
 /**
  * Helper function to get the properly formatted URL for quiz images
- * Uses the new direct API endpoint
+ * Uses the new direct API endpoint with proper URL path joining
  */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
@@ -18,8 +19,13 @@ function getQuizImageUrl(url: string | null | undefined): string {
   // Clean up any query parameters
   const cleanFilename = filename?.split('?')[0];
   
+  if (!cleanFilename) return '';
+  
+  // Use path joining to ensure proper URL formatting
+  const apiPath = joinUrlPaths('/api/images', cleanFilename) + `?t=${Date.now()}`;
+  
   // Return the direct API endpoint with cache busting
-  return `${window.location.origin}/api/images/${cleanFilename}?t=${Date.now()}`;
+  return `${window.location.origin}${apiPath}`;
 }
 
 interface QuizRunnerProps {
@@ -200,31 +206,38 @@ export function QuizRunner({
               onLoadError={() => {
                 console.log(`Quiz image failed to load. Trying direct API URL for: ${currentQuestion.imageUrl || 'no image'}`);
                 
-                // Directly log the exact image path we're working with
+                // Directly log the exact image path we're working with using our path utilities
                 const filename = currentQuestion.imageUrl ? currentQuestion.imageUrl.split(/[\/\\]/).pop() : null;
-                const apiUrl = filename ? `/api/images/${filename}` : null;
-                const fullApiUrl = apiUrl ? `${window.location.origin}${apiUrl}` : null;
                 
-                console.log("Image troubleshooting info:", {
-                  originalUrl: currentQuestion.imageUrl || null,
-                  extractedFilename: filename,
-                  apiUrl: apiUrl,
-                  fullApiUrl: fullApiUrl,
-                  questionId: currentQuestion.id
-                });
-                
-                // Try the direct file access URL (as another option)
-                const directUrl = filename ? `${window.location.origin}/uploads/images/${filename}` : null;
-                console.log(`Also trying direct file URL: ${directUrl || 'no direct URL (missing filename)'}`);
-                
-                // Add a message in the console with debugging URLs to help developers
                 if (filename) {
+                  // Clean up any query parameters
+                  const cleanFilename = filename.split('?')[0];
+                  
+                  // Use our URL joining utility for consistent paths
+                  const apiPath = joinUrlPaths('/api/images', cleanFilename);
+                  const fullApiUrl = `${window.location.origin}${apiPath}`;
+                  
+                  // Generate upload direct access path with proper joining
+                  const uploadsPath = joinUrlPaths('/uploads/images', cleanFilename);
+                  const directUrl = `${window.location.origin}${uploadsPath}`;
+                  
+                  console.log("Image troubleshooting info:", {
+                    originalUrl: currentQuestion.imageUrl || null,
+                    extractedFilename: cleanFilename,
+                    apiPath: apiPath,
+                    fullApiUrl: fullApiUrl,
+                    questionId: currentQuestion.id
+                  });
+                  
+                  console.log(`Also trying direct file URL: ${directUrl}`);
+                  
+                  // Add a message in the console with debugging URLs to help developers
                   console.log(`Try accessing these URLs directly to debug:
-                  1. ${fullApiUrl || 'N/A'}
-                  2. ${directUrl || 'N/A'}
+                  1. ${fullApiUrl}
+                  2. ${directUrl}
                   3. ${currentQuestion.imageUrl || 'N/A'}`);
                 } else {
-                  console.log('No image URLs to debug - filename is missing');
+                  console.log('No image URLs to debug - filename could not be extracted from:', currentQuestion.imageUrl);
                 }
               }}
             />
