@@ -157,170 +157,164 @@ export function QuestionFormDialog({
     try {
       console.log("Form data:", data);
 
-      // If an image file was uploaded, we need to handle it
-      if (data.imageFile && data.imageFile.length > 0) {
-        const file = data.imageFile[0];
-        // Log file details for debugging
-        console.log("Uploading image file:", {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          lastModified: new Date(file.lastModified).toString()
-        });
+      // Handle image upload if needed before creating the question
+      // If an image file was uploaded or selected (data URL in preview), we need to handle it
+      // Check both normal file select and data URL in the preview
+      let imageProcessed = false;
+      const needsImageUpload = 
+        (data.imageFile && data.imageFile.length > 0) || 
+        (imagePreview && imagePreview.startsWith('data:'));
 
-        // Create a new FormData instance
-        const formData = new FormData();
-        formData.append("image", file);
-
-        // Log FormData for debugging (but avoid iteration that causes TypeScript error)
-        try {
-          console.log("FormData ready for submission with file:", file.name);
-          // Don't iterate through entries as this causes TypeScript downlevelIteration errors
-          // Just log the basic info we care about
-          console.log(`Image file: ${file.name}, ${file.type}, ${file.size} bytes`);
-        } catch (e) {
-          console.log("Could not log FormData info:", e);
+      if (needsImageUpload) {
+        imageProcessed = true;
+        // Extract file from either the form data or create from data URL
+        let file: File | null = null;
+        
+        if (data.imageFile && data.imageFile.length > 0) {
+          // If using the file input
+          file = data.imageFile[0];
+          console.log("Using file from file input:", file.name);
+        } else if (imagePreview && imagePreview.startsWith('data:')) {
+          // If we have a data URL, convert it to a file
+          // First, extract the MIME type and data
+          const matches = imagePreview.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+          
+          if (matches && matches.length === 3) {
+            const mimeType = matches[1];
+            const base64Data = matches[2];
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mimeType });
+            
+            // Generate a random filename
+            const filename = `image_${Date.now()}.${mimeType.split('/')[1] || 'png'}`;
+            file = new File([blob], filename, { type: mimeType });
+            
+            console.log("Created file from data URL:", filename);
+          } else {
+            console.error("Failed to parse data URL");
+          }
         }
-
-        try {
-          // Upload the image
-          console.log("Sending image upload request to /api/upload/image");
-          const uploadResponse = await fetch("/api/upload/image", {
-            method: "POST",
-            // Let browser set the correct Content-Type with boundary
-            body: formData,
+        
+        if (!file) {
+          console.error("No valid file to upload");
+          toast({
+            title: "Image Upload Error",
+            description: "Could not process the image. Please try a different file.",
+            variant: "destructive",
+          });
+        } else {
+          // Log file details for debugging
+          console.log("Uploading image file:", {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            lastModified: new Date(file.lastModified).toString()
           });
 
-          console.log("Image upload response status:", uploadResponse.status);
+          // Create a new FormData instance
+          const formData = new FormData();
+          formData.append("image", file);
 
-          if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text();
-            console.error("Image upload failed:", errorText);
-            // Don't throw, just show a toast and continue without the image
+          // Log basic info
+          console.log(`Processing image file: ${file.name}, ${file.type}, ${file.size} bytes`);
+
+          // Upload the image
+          console.log("Sending image upload request to /api/upload/image");
+          try {
+            const uploadResponse = await fetch("/api/upload/image", {
+              method: "POST",
+              body: formData,
+            });
+
+            console.log("Image upload response status:", uploadResponse.status);
+
+            if (!uploadResponse.ok) {
+              const errorText = await uploadResponse.text();
+              console.error("Image upload failed:", errorText);
+              toast({
+                title: "Image Upload Failed",
+                description: "Could not upload the image, but will continue with the question.",
+                variant: "destructive",
+              });
+              imageUrl = null;
+            } else {
+              const uploadResult = await uploadResponse.json();
+              console.log("Image upload success! Result:", uploadResult);
+
+              // Process the upload result
+              if (uploadResult.imageUrl) {
+                imageUrl = uploadResult.imageUrl;
+                console.log(`Using server-provided imageUrl: ${imageUrl}`);
+              } 
+              else if (uploadResult.relativeUrl) {
+                imageUrl = `/${uploadResult.relativeUrl}`;
+                console.log(`Using normalized relativeUrl: ${imageUrl}`);
+              }
+              else if (uploadResult.filename) {
+                imageUrl = `/uploads/images/${uploadResult.filename}`;
+                console.log(`Constructed URL from filename: ${imageUrl}`);
+              }
+
+              // Normalize the URL
+              if (imageUrl) {
+                if (!imageUrl.startsWith('/')) {
+                  imageUrl = '/' + imageUrl;
+                }
+                imageUrl = imageUrl.replace(/([^:])\/\//g, '$1/').trim();
+                console.log(`Normalized image URL: ${imageUrl}`);
+                
+                // Add cache busting
+                const cacheBust = Date.now();
+                imageUrl = `${imageUrl}?v=${cacheBust}`;
+              }
+            }
+          } catch (uploadError) {
+            console.error("Error during image upload:", uploadError);
             toast({
-              title: "Image Upload Failed",
+              title: "Image Upload Error",
               description: "Could not upload the image, but will continue with the question.",
               variant: "destructive",
             });
             imageUrl = null;
-          } else {
-            const uploadResult = await uploadResponse.json();
-            console.log("Image upload success! Result:", uploadResult);
-
-            // The server now returns multiple URL formats to handle different scenarios
-            // Use the standard imageUrl format which includes a leading slash
-            if (uploadResult.imageUrl) {
-              imageUrl = uploadResult.imageUrl;
-              console.log(`Using server-provided imageUrl: ${imageUrl}`);
-            } 
-            // Fallback to other URL formats if needed
-            else if (uploadResult.relativeUrl) {
-              imageUrl = `/${uploadResult.relativeUrl}`;
-              console.log(`Using normalized relativeUrl: ${imageUrl}`);
-            }
-            else if (uploadResult.filename) {
-              // Construct a path if only filename was provided
-              imageUrl = `/uploads/images/${uploadResult.filename}`;
-              console.log(`Constructed URL from filename: ${imageUrl}`);
-            }
-
-            // Final validation: ensure URL has leading slash and is properly formatted 
-            if (imageUrl) {
-              // 1. Ensure it starts with a slash for relative URLs
-              if (!imageUrl.startsWith('/')) {
-                imageUrl = '/' + imageUrl;
-              }
-
-              // 2. Replace any double slashes (except in http://)
-              imageUrl = imageUrl.replace(/([^:])\/\//g, '$1/');
-
-              // 3. Make sure there aren't any spaces or bad characters
-              imageUrl = imageUrl.trim();
-
-              console.log(`Final normalized image URL: ${imageUrl}`);
-
-              // 4. Add a cache-busting query parameter to prevent browser caching
-              // This helps ensure the image is always fetched fresh from the server
-              const cacheBust = Date.now();
-              imageUrl = `${imageUrl}?v=${cacheBust}`;
-              
-              // Update the image preview state to show the image
-              setImagePreview(imageUrl);
-              
-              // Update the form's imageUrl field
-              form.setValue('imageUrl', imageUrl);
-
-              // Show success toast with image preview
-              toast({
-                title: "Image Uploaded Successfully",
-                description: "The image has been added to your question.",
-              });
-            }
           }
-        } catch (uploadError) {
-          console.error("Error during image upload:", uploadError);
-          // Don't throw, just show a toast and continue without the image
-          toast({
-            title: "Image Upload Error",
-            description: "Could not upload the image, but will continue with the question.",
-            variant: "destructive",
-          });
-          imageUrl = null;
         }
-      } else if (imagePreview) {
-        if (imagePreview.startsWith('data:')) {
-          // If we have a data URL preview from a file that was selected but not uploaded yet
-          console.log("Using image file that was selected but needs to be uploaded");
-          // We'll upload this file in the next submit attempt
-          // No changes needed, just don't set imageUrl to null
-          return;
-        } else if (imagePreview.startsWith('/uploads/') || imagePreview.startsWith('/api/') || imagePreview.startsWith('http')) {
-          // If we still have an image preview that's an actual file path (not a data URL)
-          console.log("Keeping existing image URL from previous upload:", imagePreview);
-
-          // Apply same normalization to existing URLs
-          let normalizedUrl = imagePreview;
-
-          // Remove any existing cache busting or query parameters
-          if (normalizedUrl.includes('?')) {
-            normalizedUrl = normalizedUrl.split('?')[0];
-          }
-
-          // Add fresh cache busting parameter
-          const cacheBust = Date.now();
-          imageUrl = `${normalizedUrl}?v=${cacheBust}`;
-          
-          // Make sure to update the form value too
-          form.setValue('imageUrl', imageUrl);
-
-          console.log("Normalized existing image URL:", imageUrl);
-        }
-      } else if (questionToEdit?.imageUrl) {
-        // If editing a question that already has an image URL
-        console.log("Keeping existing image URL from question:", questionToEdit.imageUrl);
-
-        // Normalize and add cache busting to existing URL too
-        let normalizedUrl = questionToEdit.imageUrl;
-
-        // Remove any existing cache busting
+      } else if (imagePreview && !imagePreview.startsWith('data:')) {
+        // Using an existing uploaded image (not a data URL preview)
+        console.log("Using existing image URL:", imagePreview);
+        
+        // Normalize the URL
+        let normalizedUrl = imagePreview;
         if (normalizedUrl.includes('?')) {
           normalizedUrl = normalizedUrl.split('?')[0];
         }
-
-        // Add fresh cache busting parameter
+        
+        // Add cache busting
         const cacheBust = Date.now();
         imageUrl = `${normalizedUrl}?v=${cacheBust}`;
+        console.log("Normalized existing image URL:", imageUrl);
+      } else if (questionToEdit?.imageUrl) {
+        // Keep the edited question's image if available
+        console.log("Keeping existing image URL from question:", questionToEdit.imageUrl);
         
-        // Make sure to update the form value too
-        form.setValue('imageUrl', imageUrl);
-
-        console.log("Normalized existing question image URL:", imageUrl);
+        let normalizedUrl = questionToEdit.imageUrl;
+        if (normalizedUrl.includes('?')) {
+          normalizedUrl = normalizedUrl.split('?')[0];
+        }
+        
+        const cacheBust = Date.now();
+        imageUrl = `${normalizedUrl}?v=${cacheBust}`;
+        console.log("Using question's existing image URL:", imageUrl);
       } else {
-        // No image preview and no file uploaded, set to null
+        // No image preview and no file uploaded
         console.log("No image to use");
         imageUrl = null;
-        // Make sure the form value is set to null too
-        form.setValue('imageUrl', null);
       }
 
       // Ensure quiz ID is a valid number
