@@ -137,23 +137,40 @@ export function QuestionFormDialog({
 
         console.log("Uploading image file:", file.name, file.type, file.size);
         
-        // Upload the image
-        const uploadResponse = await fetch("/api/upload/image", {
-          method: "POST",
-          body: formData,
-        });
+        try {
+          // Upload the image
+          const uploadResponse = await fetch("/api/upload/image", {
+            method: "POST",
+            body: formData,
+          });
 
-        console.log("Image upload response status:", uploadResponse.status);
-        
-        if (!uploadResponse.ok) {
-          const errorText = await uploadResponse.text();
-          console.error("Image upload failed:", errorText);
-          throw new Error(`Failed to upload image: ${errorText}`);
+          console.log("Image upload response status:", uploadResponse.status);
+          
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text();
+            console.error("Image upload failed:", errorText);
+            // Don't throw, just show a toast and continue without the image
+            toast({
+              title: "Image Upload Failed",
+              description: "Could not upload the image, but will continue with the question.",
+              variant: "destructive",
+            });
+            imageUrl = null;
+          } else {
+            const uploadResult = await uploadResponse.json();
+            console.log("Image upload result:", uploadResult);
+            imageUrl = uploadResult.imageUrl;
+          }
+        } catch (uploadError) {
+          console.error("Error during image upload:", uploadError);
+          // Don't throw, just show a toast and continue without the image
+          toast({
+            title: "Image Upload Error",
+            description: "Could not upload the image, but will continue with the question.",
+            variant: "destructive",
+          });
+          imageUrl = null;
         }
-
-        const uploadResult = await uploadResponse.json();
-        console.log("Image upload result:", uploadResult);
-        imageUrl = uploadResult.imageUrl;
       } else if (imagePreview && imagePreview.startsWith('/uploads/')) {
         // If we still have an image preview that's an actual file path and not a data URL
         // (from a previously uploaded file), keep it
@@ -202,21 +219,38 @@ export function QuestionFormDialog({
         // For editing questions, first delete all existing options
         if (questionToEdit) {
           try {
-            // Fetch current options
-            const optionsResponse = await fetch(`/api/quizzes/${quizId}/questions/${question.id}/options`);
+            // Try to fetch existing options using the newer endpoint
+            let existingOptions = [];
+            const optionsResponse = await fetch(`/api/quiz-questions/${question.id}/options`);
+            
             if (optionsResponse.ok) {
-              const existingOptions = await optionsResponse.json();
-              console.log("Existing options:", existingOptions);
+              existingOptions = await optionsResponse.json();
+              console.log("Existing options from API:", existingOptions);
               
-              // Delete each existing option
-              for (const option of existingOptions) {
-                await fetch(`/api/quiz-options/${option.id}`, {
-                  method: "DELETE",
-                });
+              if (existingOptions.length > 0) {
+                console.log(`Deleting ${existingOptions.length} existing options for question ${question.id}`);
+                
+                // Delete each existing option
+                for (const option of existingOptions) {
+                  console.log(`Deleting option ${option.id}: ${option.text}`);
+                  const deleteResponse = await fetch(`/api/quiz-options/${option.id}`, {
+                    method: "DELETE",
+                  });
+                  
+                  if (!deleteResponse.ok) {
+                    console.error(`Failed to delete option ${option.id}:`, await deleteResponse.text());
+                  } else {
+                    console.log(`Successfully deleted option ${option.id}`);
+                  }
+                }
+              } else {
+                console.log("No existing options to delete");
               }
+            } else {
+              console.error("Failed to fetch existing options:", await optionsResponse.text());
             }
           } catch (error) {
-            console.error("Error deleting existing options:", error);
+            console.error("Error while managing existing options:", error);
           }
         }
         
