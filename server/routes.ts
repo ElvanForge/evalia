@@ -2825,22 +2825,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Converting ${flattenedData.length} rows to CSV`);
         
-        // Use the synchronous version of stringify for simplicity
+        // Generate CSV manually
         try {
-          const { stringify } = require('csv-stringify/sync');
+          // Create header row
+          let csvOutput = flattenedData[0].join(',') + '\n';
           
-          console.log(`Using stringify/sync to generate CSV`);
-          const output = stringify(flattenedData);
-          console.log(`CSV generated successfully, size: ${output.length} bytes`);
+          // Add data rows (skipping header)
+          for (let i = 1; i < flattenedData.length; i++) {
+            // Add quotes around strings that might contain commas
+            const row = flattenedData[i].map(field => {
+              // If the field is a string and might contain commas or quotes
+              if (typeof field === 'string' && (field.includes(',') || field.includes('"'))) {
+                // Escape quotes by doubling them and wrap in quotes
+                return `"${field.replace(/"/g, '""')}"`;
+              }
+              return field;
+            });
+            
+            csvOutput += row.join(',') + '\n';
+          }
+          
+          console.log(`CSV generated manually, size: ${csvOutput.length} bytes`);
           
           // Set Content-Type and Content-Disposition headers
           res.setHeader('Content-Type', 'text/csv');
           res.setHeader('Content-Disposition', `attachment; filename="quiz_${quizId}_scores.csv"`);
           
-          // Send the CSV response
+          // Send the CSV response directly
           console.log("Sending CSV response");
-          return res.status(200).send(output);
-        } catch (csvError) {
+          return res.status(200).send(csvOutput);
+        } catch (csvError: any) {
           console.error('Error generating CSV:', csvError);
           return res.status(500).json({ message: "Error generating CSV", error: csvError.message });
         }
