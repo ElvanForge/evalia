@@ -100,11 +100,10 @@ const QuizPreview = () => {
       completed: boolean;
     }) => {
       try {
-        // Map our data to what the server expects
-        // The server expects score/maxScore as decimals, not booleans for completion status
+        // Make sure to send numeric values for score and maxScore
         const submissionData = {
-          score: data.score,
-          maxScore: data.maxScore
+          score: Number(data.score),
+          maxScore: Number(data.maxScore)
           // Server automatically sets completedAt when updating
         };
         

@@ -1712,7 +1712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/quiz-submissions/:id", validateRequest(insertQuizSubmissionSchema.partial()), async (req, res) => {
+  app.put("/api/quiz-submissions/:id", async (req, res) => {
     // This endpoint is public too, for student to complete their submission
     try {
       const submissionId = Number(req.params.id);
@@ -1727,6 +1727,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "This submission is already completed" });
       }
       
+      // Extract and validate score and maxScore separately
+      // since they're omitted from the insertQuizSubmissionSchema
+      const { score, maxScore } = req.body;
+      
+      // Perform basic validation
+      if (score !== undefined && (typeof score !== 'number' || score < 0)) {
+        return res.status(400).json({ 
+          message: "Validation error",
+          errors: { score: "Score must be a non-negative number" } 
+        });
+      }
+      
+      if (maxScore !== undefined && (typeof maxScore !== 'number' || maxScore < 0)) {
+        return res.status(400).json({ 
+          message: "Validation error",
+          errors: { maxScore: "Max score must be a non-negative number" } 
+        });
+      }
+      
+      // Update the submission with all fields
       const updatedSubmission = await dbStorage.updateQuizSubmission(submissionId, {
         ...req.body,
         completedAt: new Date() // Set completion time
