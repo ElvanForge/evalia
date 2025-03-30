@@ -561,13 +561,21 @@ export function QuestionFormDialog({
                     <div className="space-y-2">
                       {imagePreview ? (
                         <div className="relative w-full rounded-md overflow-hidden border border-border">
-                          <ImageWithFallback
-                            src={imagePreview}
+                          <img
+                            src={imagePreview && imagePreview.startsWith('data:') 
+                              ? imagePreview // Keep data URLs as is (for newly selected files)
+                              : `${window.location.origin}/uploads/images/${imagePreview?.split('/').pop()?.split('?')[0]}`}
                             alt="Question preview"
                             className="w-full h-auto max-h-[200px] object-contain"
-                            isQuizImage={true}
-                            onLoadSuccess={() => console.log(`Question image preview loaded successfully: ${imagePreview}`)}
-                            onLoadError={() => console.log(`Failed to load question image preview: ${imagePreview}`)}
+                            onLoad={() => console.log(`Question image preview loaded directly: ${imagePreview}`)}
+                            onError={(e) => {
+                              console.log(`Failed to load question image preview, trying fallback: ${imagePreview}`);
+                              const target = e.target as HTMLImageElement;
+                              if (imagePreview && !imagePreview.startsWith('data:')) {
+                                const filename = imagePreview.split('/').pop()?.split('?')[0];
+                                target.src = `${window.location.origin}/uploads/images/${filename}?direct=1&t=${Date.now()}`;
+                              }
+                            }}
                           />
                           <Button
                             type="button"
