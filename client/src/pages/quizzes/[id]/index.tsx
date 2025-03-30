@@ -376,10 +376,14 @@ const QuizDetail = () => {
                       return;
                     }
                     
-                    // Ensure isActive is properly set as a boolean
+                    // Get the current user's ID from useAuth
+                    const { user } = useAuth();
+                    
+                    // Ensure all required fields are present and properly formatted
                     const formattedData = {
                       ...formValues,
                       isActive: formValues.isActive === true,
+                      teacherId: user?.id // Add teacherId from authenticated user
                     };
                     
                     console.log("Formatted data for direct submission:", JSON.stringify(formattedData, null, 2));
