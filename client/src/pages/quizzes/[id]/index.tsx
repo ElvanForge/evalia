@@ -224,22 +224,27 @@ const QuizDetail = () => {
     <Layout title={isEditing ? "Edit Quiz" : getFormattedTitle()}>
       <div className="space-y-6">
         {/* Add Question Dialog */}
-        <QuestionFormDialog
-          open={isAddingQuestion}
-          onOpenChange={(open) => {
-            console.log("Question dialog onOpenChange called with:", open);
-            setIsAddingQuestion(open);
-          }}
-          quizId={parseInt(id as string, 10)}
-          questionToEdit={null}
-        />
+        {isAddingQuestion && (
+          <QuestionFormDialog
+            open={true}
+            onOpenChange={(open) => {
+              console.log("Question dialog onOpenChange called with:", open);
+              setIsAddingQuestion(open);
+            }}
+            quizId={Number(id)}
+            questionToEdit={null}
+          />
+        )}
         
         {/* Edit Question Dialog */}
         {editingQuestion && (
           <QuestionFormDialog
-            open={!!editingQuestion}
-            onOpenChange={(open) => !open && setEditingQuestion(null)}
-            quizId={parseInt(id as string)}
+            open={true}
+            onOpenChange={(open) => {
+              console.log("Edit question dialog onOpenChange called with:", open);
+              if (!open) setEditingQuestion(null);
+            }}
+            quizId={Number(id)}
             questionToEdit={editingQuestion}
           />
         )}

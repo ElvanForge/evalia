@@ -172,18 +172,14 @@ export function QuestionFormDialog({
         const formData = new FormData();
         formData.append("image", file);
 
-        // Log FormData for debugging (iterate through entries)
+        // Log FormData for debugging (but avoid iteration that causes TypeScript error)
         try {
-          console.log("FormData entries:");
-          for (const entry of formData.entries()) {
-            if (entry[1] instanceof File) {
-              console.log(`${entry[0]}: File(${entry[1].name}, ${entry[1].type}, ${entry[1].size} bytes)`);
-            } else {
-              console.log(`${entry[0]}: ${entry[1]}`);
-            }
-          }
+          console.log("FormData ready for submission with file:", file.name);
+          // Don't iterate through entries as this causes TypeScript downlevelIteration errors
+          // Just log the basic info we care about
+          console.log(`Image file: ${file.name}, ${file.type}, ${file.size} bytes`);
         } catch (e) {
-          console.log("Could not log FormData entries:", e);
+          console.log("Could not log FormData info:", e);
         }
 
         try {
@@ -376,8 +372,17 @@ export function QuestionFormDialog({
         // For editing questions, first delete all existing options
         if (questionToEdit) {
           try {
+            // Define a type for quiz options
+            type QuizOption = {
+              id: number;
+              questionId: number;
+              text: string;
+              isCorrect: boolean;
+              order: number;
+            };
+            
             // Try to fetch existing options using the newer endpoint
-            let existingOptions = [];
+            let existingOptions: QuizOption[] = [];
             const optionsResponse = await fetch(`/api/quiz-questions/${question.id}/options`);
 
             if (optionsResponse.ok) {
