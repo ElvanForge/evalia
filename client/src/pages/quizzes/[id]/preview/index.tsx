@@ -234,12 +234,21 @@ const QuizPreview = () => {
     
     // If not in preview mode and we have a submission ID, update the quiz results
     if (!previewMode && submissionId) {
-      updateQuizResultMutation.mutate({
-        submissionId: submissionId,
-        score: correctAnswers,
-        maxScore: totalQuestions,
-        completed: true
-      });
+      try {
+        updateQuizResultMutation.mutate({
+          submissionId: submissionId,
+          score: correctAnswers,
+          maxScore: totalQuestions,
+          completed: true
+        });
+      } catch (error) {
+        console.error("Failed to update quiz results:", error);
+        toast({
+          title: "Quiz completed",
+          description: "But there was an issue saving the final score. The individual answers were recorded.",
+          variant: "default" 
+        });
+      }
     }
   };
 
