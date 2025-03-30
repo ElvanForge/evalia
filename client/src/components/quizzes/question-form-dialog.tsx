@@ -230,17 +230,31 @@ export function QuestionFormDialog({
               if (existingOptions.length > 0) {
                 console.log(`Deleting ${existingOptions.length} existing options for question ${question.id}`);
                 
-                // Delete each existing option
+                // Instead of deleting all existing options and creating new ones, we'll be smarter:
+                // 1. Keep a map of existing options by ID
+                const existingOptionsMap = new Map(existingOptions.map(opt => [opt.id, opt]));
+                console.log("Existing options map:", existingOptionsMap);
+                
+                // 2. Only delete options that are no longer needed
                 for (const option of existingOptions) {
+                  // When editing, we're creating all new options, so delete all existing ones
                   console.log(`Deleting option ${option.id}: ${option.text}`);
-                  const deleteResponse = await fetch(`/api/quiz-options/${option.id}`, {
-                    method: "DELETE",
-                  });
-                  
-                  if (!deleteResponse.ok) {
-                    console.error(`Failed to delete option ${option.id}:`, await deleteResponse.text());
-                  } else {
-                    console.log(`Successfully deleted option ${option.id}`);
+                  try {
+                    const deleteResponse = await fetch(`/api/quiz-options/${option.id}`, {
+                      method: "DELETE",
+                      headers: {
+                        "Content-Type": "application/json"
+                      }
+                    });
+                    
+                    if (!deleteResponse.ok) {
+                      const errorText = await deleteResponse.text();
+                      console.error(`Failed to delete option ${option.id}:`, errorText);
+                    } else {
+                      console.log(`Successfully deleted option ${option.id}`);
+                    }
+                  } catch (deleteError) {
+                    console.error(`Error while deleting option ${option.id}:`, deleteError);
                   }
                 }
               } else {

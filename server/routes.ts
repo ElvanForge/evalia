@@ -1505,7 +1505,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/quiz-options/:id", requireAuth, validateRequest(insertQuizOptionSchema.partial()), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const optionId = Number(req.params.id);
       
       const option = await dbStorage.getQuizOption(optionId);
@@ -1533,25 +1539,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/quiz-options/:id", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Fix: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const optionId = Number(req.params.id);
+      console.log(`Deleting quiz option ${optionId} by teacher ${teacherId}`);
       
       const option = await dbStorage.getQuizOption(optionId);
       if (!option) {
+        console.log(`Option ${optionId} not found`);
         return res.status(404).json({ message: "Option not found" });
       }
       
       const question = await dbStorage.getQuizQuestion(option.questionId);
       if (!question) {
+        console.log(`Question ${option.questionId} not found for option ${optionId}`);
         return res.status(404).json({ message: "Question not found" });
       }
       
       const quiz = await dbStorage.getQuiz(question.quizId);
-      if (!quiz || quiz.teacherId !== teacherId) {
+      if (!quiz) {
+        console.log(`Quiz ${question.quizId} not found for question ${question.id}`);
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+      
+      if (quiz.teacherId !== teacherId) {
+        console.log(`Teacher ${teacherId} not authorized to delete option ${optionId} (quiz belongs to teacher ${quiz.teacherId})`);
         return res.status(403).json({ message: "Not authorized to delete this option" });
       }
       
+      console.log(`Deleting option ${optionId} from database`);
       await dbStorage.deleteQuizOption(optionId);
+      console.log(`Option ${optionId} deleted successfully`);
+      
       res.status(200).json({ message: "Option deleted successfully" });
     } catch (error) {
       console.error("Error deleting quiz option:", error);
