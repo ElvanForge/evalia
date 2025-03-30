@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getImageProps, getFullImageUrl } from "@/lib/image-utils";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { Loader2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -125,13 +126,13 @@ export default function ImageTest() {
                 <div className="border-t border-border pt-4">
                   <div className="text-sm font-medium mb-2">Image Preview:</div>
                   <div className="flex justify-center bg-muted/50 p-4 rounded">
-                    <img 
-                      {...getImageProps({
-                        src: uploadedImageUrl,
-                        alt: "Uploaded image",
-                        className: "max-h-[300px] max-w-full object-contain rounded",
-                        fallbackSrc: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VkZThkZCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMGJhMmIwIiBmb250LXNpemU9IjE0cHgiPkltYWdlIEZhaWxlZDwvdGV4dD48L3N2Zz4="
-                      })}
+                    <ImageWithFallback
+                      src={uploadedImageUrl}
+                      alt="Uploaded image"
+                      className="max-h-[300px] max-w-full object-contain rounded"
+                      isQuizImage={true}
+                      onLoadSuccess={() => console.log(`Uploaded image loaded successfully: ${uploadedImageUrl}`)}
+                      onLoadError={() => console.log(`Failed to load uploaded image: ${uploadedImageUrl}`)}
                     />
                   </div>
                 </div>
@@ -187,12 +188,12 @@ export default function ImageTest() {
               <div className="space-y-2">
                 <Label>Image Preview</Label>
                 <div className="border rounded-md p-4 flex justify-center">
-                  <img 
-                    {...getImageProps({
-                      src: processedUrl,
-                      alt: "Processed image",
-                      className: "max-h-[300px] max-w-full object-contain rounded"
-                    })}
+                  <ImageWithFallback
+                    src={processedUrl}
+                    alt="Processed image"
+                    className="max-h-[300px] max-w-full object-contain rounded"
+                    onLoadSuccess={() => console.log(`Processed image loaded successfully: ${processedUrl}`)}
+                    onLoadError={() => console.log(`Failed to load processed image: ${processedUrl}`)}
                   />
                 </div>
               </div>
@@ -211,12 +212,12 @@ export default function ImageTest() {
               <div key={index} className="space-y-2 border rounded-md p-4">
                 <div className="font-medium truncate">{url}</div>
                 <div className="flex justify-center bg-muted/50 p-2 rounded">
-                  <img 
-                    {...getImageProps({
-                      src: url,
-                      alt: `Test image ${index + 1}`,
-                      className: "max-h-[200px] max-w-full object-contain rounded"
-                    })}
+                  <ImageWithFallback
+                    src={url}
+                    alt={`Test image ${index + 1}`}
+                    className="max-h-[200px] max-w-full object-contain rounded"
+                    onLoadSuccess={() => console.log(`Test image ${index + 1} loaded successfully: ${url}`)}
+                    onLoadError={() => console.log(`Failed to load test image ${index + 1}: ${url}`)}
                   />
                 </div>
                 <div className="text-xs text-muted-foreground break-all">

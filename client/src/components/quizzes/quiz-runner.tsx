@@ -3,6 +3,7 @@ import { Clock, ArrowRight, CheckCircle2, XCircle, AlertCircle } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class } from '@shared/schema';
 import { getImageProps } from '@/lib/image-utils';
+import { ImageWithFallback } from '@/components/ui/image-with-fallback';
 
 interface QuizRunnerProps {
   quiz: Quiz;
@@ -170,14 +171,13 @@ export function QuizRunner({
         <div className="space-y-6 h-full flex flex-col">
           {currentQuestion.imageUrl && (
             <div className="flex justify-center p-4 bg-muted/50 rounded-lg">
-              <img 
-                {...getImageProps({
-                  src: currentQuestion.imageUrl,
-                  alt: `Question ${currentQuestionIndex + 1}`,
-                  className: "rounded-md object-contain max-h-[300px] max-w-full",
-                  fallbackSrc: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlZGU4ZGQiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzBiYTJiMCIgZm9udC1zaXplPSIxNnB4IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiPkltYWdlIGNvdWxkIG5vdCBiZSBsb2FkZWQ8L3RleHQ+PC9zdmc+"
-                })}
-                onLoad={(e) => console.log(`Quiz question image loaded: ${currentQuestion.imageUrl}`)}
+              <ImageWithFallback 
+                src={currentQuestion.imageUrl}
+                alt={`Question ${currentQuestionIndex + 1}`}
+                className="rounded-md object-contain max-h-[300px] max-w-full"
+                isQuizImage={true}
+                onLoadSuccess={() => console.log(`Quiz question image loaded: ${currentQuestion.imageUrl}`)}
+                onLoadError={() => console.log(`Quiz question image failed to load: ${currentQuestion.imageUrl}`)}
               />
             </div>
           )}

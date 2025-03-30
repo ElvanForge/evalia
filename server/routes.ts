@@ -1983,15 +1983,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Static file serving from uploads directory
+  // Static file serving from uploads directory with enhanced handling
   app.use('/uploads', (req, res, next) => {
     console.log('============ STATIC FILE REQUEST ============');
     console.log('Uploads static file request received for:', req.url);
     
+    // Parse the URL to handle query parameters for cache busting
+    const urlParts = req.url.split('?');
+    const filePath = path.join('./uploads', urlParts[0]);
+    
     // Check if file exists before serving
-    const filePath = path.join('./uploads', req.url);
     if (fs.existsSync(filePath)) {
       console.log('File exists at path:', filePath);
+      
+      // Set cache control headers to help with browser caching
+      // If there's a version parameter, we can cache it longer
+      const hasVersionParam = req.query.v || urlParts[1]?.includes('v=');
+      if (hasVersionParam) {
+        // If URL has a version parameter, cache it longer (24 hours)
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      } else {
+        // Otherwise use a shorter cache time (5 minutes)
+        res.setHeader('Cache-Control', 'public, max-age=300');
+      }
+      
+      // Set content type header based on file extension
+      const ext = path.extname(filePath).toLowerCase();
+      const mimeTypes: Record<string, string> = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.webp': 'image/webp'
+      };
+      
+      // Set mime type for the file
+      let contentType = 'application/octet-stream'; // default
+      if (mimeTypes[ext]) {
+        contentType = mimeTypes[ext];
+        res.setHeader('Content-Type', contentType);
+      }
       
       // Ensure file has correct permissions
       try {
@@ -1999,36 +2031,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fs.chmodSync(filePath, 0o644);
         
         // Log file stats for debugging
-        const stats = fs.statSync(filePath);
+        const fileStats = fs.statSync(filePath);
         console.log('File stats:', {
-          size: stats.size,
-          permissions: stats.mode.toString(8),
-          created: stats.birthtime,
-          modified: stats.mtime
+          size: fileStats.size,
+          permissions: fileStats.mode.toString(8),
+          created: fileStats.birthtime,
+          modified: fileStats.mtime
         });
+        
+        console.log('Setting Content-Type:', contentType);
       } catch (error) {
         console.error('Error updating file permissions:', error);
       }
       
-      // Get file mime type
-      let contentType = 'application/octet-stream'; // default
-      const ext = path.extname(filePath).toLowerCase();
-      
-      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
-      else if (ext === '.png') contentType = 'image/png';
-      else if (ext === '.gif') contentType = 'image/gif';
-      else if (ext === '.svg') contentType = 'image/svg+xml';
-      
-      console.log('Setting Content-Type:', contentType);
-      
-      // For debugging only - this won't run for most requests as express.static will handle them
-      res.setHeader('Content-Type', contentType);
-      
-      // Try to serve the file directly (for debugging only)
+      // For debugging only - try to serve the file directly
       if (req.query.direct === '1') {
         console.log('Serving file directly (bypass express.static)');
         try {
           const fileContent = fs.readFileSync(filePath);
+          const stats = fs.statSync(filePath);
           res.setHeader('Content-Length', stats.size);
           res.status(200).end(fileContent);
           return; // Skip remaining middleware

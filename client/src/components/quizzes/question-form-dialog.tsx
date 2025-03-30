@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Image, X, Loader2, Plus } from "lucide-react";
 import { getImageProps } from "@/lib/image-utils";
+import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import {
   Dialog,
   DialogContent,
@@ -202,17 +203,32 @@ export function QuestionFormDialog({
               console.log(`Constructed URL from filename: ${imageUrl}`);
             }
             
-            // Final validation: ensure URL has leading slash
-            if (imageUrl && !imageUrl.startsWith('/')) {
-              imageUrl = '/' + imageUrl;
-              console.log(`Normalized URL with leading slash: ${imageUrl}`);
+            // Final validation: ensure URL has leading slash and is properly formatted 
+            if (imageUrl) {
+              // 1. Ensure it starts with a slash for relative URLs
+              if (!imageUrl.startsWith('/')) {
+                imageUrl = '/' + imageUrl;
+              }
+              
+              // 2. Replace any double slashes (except in http://)
+              imageUrl = imageUrl.replace(/([^:])\/\//g, '$1/');
+              
+              // 3. Make sure there aren't any spaces or bad characters
+              imageUrl = imageUrl.trim();
+              
+              console.log(`Final normalized image URL: ${imageUrl}`);
+              
+              // 4. Add a cache-busting query parameter to prevent browser caching
+              // This helps ensure the image is always fetched fresh from the server
+              const cacheBust = Date.now();
+              imageUrl = `${imageUrl}?v=${cacheBust}`;
+              
+              // Show success toast with image preview
+              toast({
+                title: "Image Uploaded Successfully",
+                description: "The image has been added to your question.",
+              });
             }
-            
-            // Show success toast with image preview
-            toast({
-              title: "Image Uploaded Successfully",
-              description: "The image has been added to your question.",
-            });
           }
         } catch (uploadError) {
           console.error("Error during image upload:", uploadError);
@@ -224,15 +240,40 @@ export function QuestionFormDialog({
           });
           imageUrl = null;
         }
-      } else if (imagePreview && imagePreview.startsWith('/uploads/')) {
-        // If we still have an image preview that's an actual file path and not a data URL
-        // (from a previously uploaded file), keep it
-        console.log("Keeping existing image URL from uploads:", imagePreview);
-        imageUrl = imagePreview;
+      } else if (imagePreview && (imagePreview.startsWith('/uploads/') || imagePreview.startsWith('/api/') || imagePreview.startsWith('http'))) {
+        // If we still have an image preview that's an actual file path (not a data URL)
+        console.log("Keeping existing image URL from previous upload:", imagePreview);
+        
+        // Apply same normalization to existing URLs
+        let normalizedUrl = imagePreview;
+        
+        // Remove any existing cache busting or query parameters
+        if (normalizedUrl.includes('?')) {
+          normalizedUrl = normalizedUrl.split('?')[0];
+        }
+        
+        // Add fresh cache busting parameter
+        const cacheBust = Date.now();
+        imageUrl = `${normalizedUrl}?v=${cacheBust}`;
+        
+        console.log("Normalized existing image URL:", imageUrl);
       } else if (questionToEdit?.imageUrl) {
         // If editing a question that already has an image URL
         console.log("Keeping existing image URL from question:", questionToEdit.imageUrl);
-        imageUrl = questionToEdit.imageUrl;
+        
+        // Normalize and add cache busting to existing URL too
+        let normalizedUrl = questionToEdit.imageUrl;
+        
+        // Remove any existing cache busting
+        if (normalizedUrl.includes('?')) {
+          normalizedUrl = normalizedUrl.split('?')[0];
+        }
+        
+        // Add fresh cache busting parameter
+        const cacheBust = Date.now();
+        imageUrl = `${normalizedUrl}?v=${cacheBust}`;
+        
+        console.log("Normalized existing question image URL:", imageUrl);
       } else {
         // No image preview and no file uploaded, set to null
         console.log("No image to use");
@@ -520,12 +561,13 @@ export function QuestionFormDialog({
                     <div className="space-y-2">
                       {imagePreview ? (
                         <div className="relative w-full rounded-md overflow-hidden border border-border">
-                          <img 
-                            {...getImageProps({
-                              src: imagePreview || '',
-                              alt: "Question preview",
-                              className: "w-full h-auto max-h-[200px] object-contain"
-                            })}
+                          <ImageWithFallback
+                            src={imagePreview}
+                            alt="Question preview"
+                            className="w-full h-auto max-h-[200px] object-contain"
+                            isQuizImage={true}
+                            onLoadSuccess={() => console.log(`Question image preview loaded successfully: ${imagePreview}`)}
+                            onLoadError={() => console.log(`Failed to load question image preview: ${imagePreview}`)}
                           />
                           <Button
                             type="button"
@@ -538,30 +580,33 @@ export function QuestionFormDialog({
                           </Button>
                         </div>
                       ) : (
-                        <div className="border border-dashed border-border rounded-md p-4 text-center">
-                          <Image className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                          <div className="text-sm text-muted-foreground mb-2">
-                            PNG, JPG or GIF up to 5MB
+                        <div className="space-y-4">
+                          {/* Direct file input approach */}
+                          <div className="border border-dashed border-border rounded-md p-4">
+                            <div className="flex items-center justify-center flex-col">
+                              <Image className="h-8 w-8 text-muted-foreground mb-2" />
+                              <div className="text-sm text-muted-foreground mb-3">
+                                PNG, JPG or GIF up to 5MB
+                              </div>
+                              
+                              {/* Standard file input with styling */}
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                ref={fileInputRef}
+                                className="max-w-[250px] cursor-pointer file:cursor-pointer file:mr-2 
+                                          file:rounded-md file:border-0 file:bg-primary 
+                                          file:px-3 file:py-2 file:text-sm 
+                                          file:font-medium file:text-primary-foreground
+                                          hover:file:bg-primary/90 focus:outline-none"
+                                onChange={(e) => {
+                                  console.log("Direct file selected:", e.target.files);
+                                  handleImageChange(e);
+                                  onChange(e.target.files);
+                                }}
+                              />
+                            </div>
                           </div>
-                          <label 
-                            htmlFor="image-upload"
-                            className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-xs text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
-                          >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Select Image
-                            <Input
-                              id="image-upload"
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
-                              ref={fileInputRef}
-                              onChange={(e) => {
-                                console.log("File selected:", e.target.files);
-                                handleImageChange(e);
-                                onChange(e.target.files);
-                              }}
-                            />
-                          </label>
                         </div>
                       )}
                     </div>
