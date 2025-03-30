@@ -43,7 +43,9 @@ export function ImageWithFallback({
 
   // Reset states when src changes
   useEffect(() => {
-    setCurrentSrc(getFullImageUrl(src || ''));
+    const processedUrl = getFullImageUrl(src || '');
+    console.log(`ImageWithFallback: Processing URL [${src}] => [${processedUrl}]`);
+    setCurrentSrc(processedUrl);
     setRetryCount(0);
     setHasError(false);
     setFinallyLoaded(false);
