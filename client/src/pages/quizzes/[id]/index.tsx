@@ -179,7 +179,7 @@ const QuizDetail = () => {
   const updateQuizMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertQuizSchema>) => {
       const response = await fetch(`/api/quizzes/${id}`, {
-        method: "PATCH",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
