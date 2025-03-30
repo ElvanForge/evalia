@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Plus, Loader2, BookText, Edit, Play, PlusCircle, Clock } from "lucide-react";
+import { Plus, Loader2, BookText, Edit, Play, PlusCircle, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
@@ -91,23 +91,34 @@ const QuizzesPage = () => {
                     )}
                   </div>
                 </CardContent>
-                <CardFooter className="flex gap-2 pt-0">
+                <CardFooter className="flex flex-col gap-2 pt-0">
+                  <div className="flex gap-2 w-full">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => setLocation(`/quizzes/${quiz.id}`)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => setLocation(`/quizzes/${quiz.id}/preview`)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Preview
+                    </Button>
+                  </div>
                   <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setLocation(`/quizzes/${quiz.id}`)}
+                    variant="outline"
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setLocation(`/quizzes/${quiz.id}/preview?admin=true`)}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setLocation(`/quizzes/${quiz.id}/preview`)}
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    Preview
+                    <Users className="h-4 w-4 mr-2" />
+                    Administer Quiz
                   </Button>
                 </CardFooter>
               </Card>
