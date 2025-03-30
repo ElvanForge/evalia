@@ -33,6 +33,20 @@ const QuizPreview = () => {
   
   // Add toggle for preview mode vs. grading mode - moved up here to avoid the initialization error
   const [previewMode, setPreviewMode] = useState(true);
+  
+  // Auto-enter fullscreen when in administration mode (not preview)
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Update fullscreen state when preview mode changes
+  useEffect(() => {
+    if (!previewMode) {
+      // When switching to admin mode, auto-enter fullscreen
+      setIsFullscreen(true);
+    } else {
+      // When going back to preview mode, exit fullscreen
+      setIsFullscreen(false);
+    }
+  }, [previewMode]);
 
   // Fetch quiz data
   const {
@@ -99,7 +113,6 @@ const QuizPreview = () => {
     });
   };
 
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || (quiz?.classId && isLoadingClass);
   const error = quizError || questionsError || optionsError;
 

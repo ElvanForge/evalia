@@ -191,16 +191,18 @@ export function QuizRunner({
           </div>
         </div>
         
-        {/* Question text always at the top */}
-        <div className="text-lg font-medium mb-4 w-full">{currentQuestion.question}</div>
+        {/* Question text - centered, larger and more prominent */}
+        <div className="text-2xl font-semibold text-center px-4 py-3 bg-muted/30 rounded-lg w-full">
+          {currentQuestion.question}
+        </div>
         
-        {/* Image container - simplified direct approach with more detailed logging */}
+        {/* Image container - larger with fullscreen capabilities */}
         {currentQuestion.imageUrl && (
-          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[300px]">
+          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[400px]">
             <ImageWithFallback 
               src={currentQuestion.imageUrl}
               alt={`Question ${currentQuestionIndex + 1}`}
-              className="rounded-md object-contain max-h-[280px] max-w-full"
+              className="rounded-md object-contain max-h-[380px] max-w-[90%]"
               isQuizImage={true}
               onLoadSuccess={() => console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`)}
               onLoadError={() => {
