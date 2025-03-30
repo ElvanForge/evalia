@@ -69,6 +69,14 @@ export function QuestionFormDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  // Log when dialog is opened or quiz ID changes
+  useEffect(() => {
+    console.log(`QuestionFormDialog: ${open ? 'opened' : 'closed'} with quiz ID:`, quizId);
+    if (isNaN(quizId)) {
+      console.error("CRITICAL: Invalid quiz ID passed to QuestionFormDialog:", quizId);
+    }
+  }, [open, quizId]);
+  
   // Set the image preview when the question changes
   useEffect(() => {
     if (questionToEdit?.imageUrl) {
@@ -324,12 +332,17 @@ export function QuestionFormDialog({
       
       if (isNaN(numericQuizId)) {
         console.error("Invalid quiz ID:", quizId);
+        toast({
+          title: "Error",
+          description: "Invalid quiz ID. Please try refreshing the page.",
+          variant: "destructive",
+        });
         throw new Error("Invalid quiz ID. Please try refreshing the page.");
       }
       
       console.log("Using quiz ID for new question:", numericQuizId);
       
-      // Prepare the question data
+      // Prepare the question data - exclude questionOptions as they'll be handled separately
       const questionData: InsertQuizQuestion = {
         quizId: numericQuizId,
         question: data.question,

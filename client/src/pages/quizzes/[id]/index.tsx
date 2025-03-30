@@ -226,8 +226,11 @@ const QuizDetail = () => {
         {/* Add Question Dialog */}
         <QuestionFormDialog
           open={isAddingQuestion}
-          onOpenChange={setIsAddingQuestion}
-          quizId={parseInt(id as string)}
+          onOpenChange={(open) => {
+            console.log("Question dialog onOpenChange called with:", open);
+            setIsAddingQuestion(open);
+          }}
+          quizId={parseInt(id as string, 10)}
           questionToEdit={null}
         />
         
@@ -475,7 +478,13 @@ const QuizDetail = () => {
                     Manage quiz questions and answers
                   </CardDescription>
                 </div>
-                <Button size="sm" onClick={() => setIsAddingQuestion(true)}>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    console.log("Add Question button clicked, quiz ID:", id);
+                    setIsAddingQuestion(true);
+                  }}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Question
                 </Button>
