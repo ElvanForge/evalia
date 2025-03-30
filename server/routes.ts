@@ -784,7 +784,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Grade Scale routes
   app.get("/api/grade-scales", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Use req.user.id directly, which is set by the requireAuth middleware
+      const teacherId = req.user?.id || 0;
+      if (!teacherId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       const gradeScales = await dbStorage.getGradeScalesByTeacher(teacherId);
       res.status(200).json(gradeScales);
     } catch (error) {
@@ -795,7 +799,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/grade-scales", requireAuth, validateRequest(insertGradeScaleSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Use req.user.id directly, which is set by the requireAuth middleware
+      const teacherId = req.user?.id || 0;
+      if (!teacherId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       const newGradeScale = await dbStorage.createGradeScale({
         ...req.body,
         teacherId
