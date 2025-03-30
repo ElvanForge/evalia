@@ -352,7 +352,7 @@ const QuizDetail = () => {
                   onClick={() => setLocation(`/quizzes/${id}/preview?admin=true`)}
                 >
                   <Users className="mr-2 h-4 w-4" />
-                  Administer Quiz
+                  Administer Quiz to Students
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

@@ -38,19 +38,20 @@ const QuizPreview = () => {
   // Add toggle for preview mode vs. grading mode - initialized based on URL parameter
   const [previewMode, setPreviewMode] = useState(!isAdminMode);
   
-  // Auto-enter fullscreen when in administration mode (not preview)
-  const [isFullscreen, setIsFullscreen] = useState(isAdminMode);
+  // We'll only enter fullscreen when a student is selected or we're in preview mode
+  // Don't auto-enter fullscreen just because isAdminMode is true
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // Update fullscreen state when preview mode changes
+  // Update fullscreen state when preview mode changes OR when a student is selected
   useEffect(() => {
-    if (!previewMode) {
-      // When switching to admin mode, auto-enter fullscreen
+    if (previewMode) {
+      // In preview mode, user can manually toggle fullscreen
+      // We don't auto-enter fullscreen here
+    } else if (selectedStudentId) {
+      // When in admin mode AND a student is selected, auto-enter fullscreen
       setIsFullscreen(true);
-    } else {
-      // When going back to preview mode, exit fullscreen
-      setIsFullscreen(false);
     }
-  }, [previewMode]);
+  }, [previewMode, selectedStudentId]);
 
   // Make sure id is a number for database queries
   const numericId = id ? parseInt(id, 10) : undefined;
@@ -150,7 +151,14 @@ const QuizPreview = () => {
     });
   };
 
-  const isLoading = isLoadingQuiz || isLoadingQuestions || isLoadingOptions || isLoadingAssignedClasses || (activeClassId && isLoadingClass);
+  // We only add isLoadingStudents to the loading state if we're in admin mode
+  const isLoading = 
+    isLoadingQuiz || 
+    isLoadingQuestions || 
+    isLoadingOptions || 
+    isLoadingAssignedClasses || 
+    (activeClassId && isLoadingClass) || 
+    (!previewMode && activeClassId && isLoadingStudents);
   const error = quizError || questionsError || optionsError;
 
   if (isLoading) {
