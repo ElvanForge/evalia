@@ -121,9 +121,9 @@ export const grades = pgTable("grades", {
   gradedAt: timestamp("gradedAt").defaultNow().notNull(),
 });
 
+// Include gradedAt in the insert schema to fix issues with quiz submissions creating grades
 export const insertGradeSchema = createInsertSchema(grades).omit({
   id: true,
-  gradedAt: true,
 });
 
 // GradeScale table for letter grade conversion

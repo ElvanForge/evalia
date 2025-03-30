@@ -1103,10 +1103,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }));
       
-      // Get recent activities (simplified version)
-      const recentActivities = [];
+      // Get recent grades for activities and grade distribution
+      const recentGrades = await dbStorage.getRecentGrades(20, 0);
       
-      // Get grade distribution (simplified)
+      // Format as activities
+      const recentActivities = recentGrades.map(grade => {
+        return {
+          type: 'grade',
+          id: grade.id,
+          title: `${grade.studentName} - ${grade.assignmentName}`,
+          details: `Score: ${grade.score}/${grade.maxScore}`,
+          timestamp: grade.gradedAt || grade.submittedAt || new Date(),
+          link: `/grades/${grade.id}`
+        };
+      });
+      
+      // Calculate grade distribution
       const gradeDistribution = {
         A: 0,
         B: 0,
@@ -1114,6 +1126,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         D: 0,
         F: 0
       };
+      
+      // Calculate letter grades from recent grades
+      recentGrades.forEach(grade => {
+        const percentage = (parseFloat(grade.score) / parseFloat(grade.maxScore)) * 100;
+        const letterGrade = getLetterGrade(percentage);
+        if (letterGrade in gradeDistribution) {
+          gradeDistribution[letterGrade]++;
+        }
+      });
       
       // Format stats for frontend
       const formattedStats = {
@@ -1826,40 +1847,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quiz = await dbStorage.getQuiz(submission.quizId);
       if (quiz && typeof score === 'number' && typeof maxScore === 'number') {
         try {
-          if (quiz.classId) {
-            // Create an assignment for the quiz if it doesn't exist
-            // First, check if this quiz already has an assignment
-            const assignments = await dbStorage.getAssignmentsByClass(quiz.classId);
-            let quizAssignment = assignments.find(a => 
-              a.name === quiz.title && a.type === 'Quiz'
-            );
+          // Get all classes this quiz is assigned to
+          const classesForQuiz = await dbStorage.getClassesByQuiz(submission.quizId);
+          
+          // If there are no classes or the quiz isn't linked to any classes, use the classId from the quiz object 
+          // (for backward compatibility)
+          const targetClasses = classesForQuiz.length > 0 ? classesForQuiz : 
+                               (quiz.classId ? [{ id: quiz.classId }] : []);
+          
+          if (targetClasses.length > 0) {
+            console.log(`Creating grades for quiz ${quiz.title} in ${targetClasses.length} classes`);
             
-            // If no assignment exists for this quiz, create one
-            if (!quizAssignment) {
-              quizAssignment = await dbStorage.createAssignment({
-                name: quiz.title,
-                description: `Quiz ${quiz.title}`,
-                classId: quiz.classId,
-                type: 'Quiz', // Fixed! Using 'type' instead of 'assignmentType'
-                dueDate: new Date(), // Set to current date since it's already completed
-                maxScore: String(maxScore), // Convert to string for consistency
-                weight: "1" // Default weight as string
-              });
-              console.log(`Created new assignment for quiz: ${quiz.title}`);
+            // For each class this quiz is assigned to, create a grade
+            for (const targetClass of targetClasses) {
+              // Check if there's already an assignment for this quiz in this class
+              const assignments = await dbStorage.getAssignmentsByClass(targetClass.id);
+              let quizAssignment = assignments.find(a => 
+                a.name === quiz.title && a.type === 'Quiz'
+              );
+              
+              // If no assignment exists for this quiz, create one
+              if (!quizAssignment) {
+                quizAssignment = await dbStorage.createAssignment({
+                  name: quiz.title,
+                  description: `Quiz ${quiz.title}`,
+                  classId: targetClass.id,
+                  type: 'Quiz', 
+                  dueDate: new Date(), // Set to current date since it's already completed
+                  maxScore: String(maxScore), // Convert to string for consistency
+                  weight: "1" // Default weight as string
+                });
+                console.log(`Created new assignment for quiz: ${quiz.title} in class ${targetClass.id}`);
+              }
+              
+              // Create a grade entry for this quiz submission
+              // First check if a grade already exists for this student and assignment
+              const existingGrades = await dbStorage.getGradesByStudentAndClass(submission.studentId, targetClass.id);
+              const gradeExists = existingGrades.some(g => g.assignmentId === quizAssignment.id);
+              
+              if (!gradeExists) {
+                const gradeEntry = await dbStorage.createGrade({
+                  studentId: submission.studentId,
+                  assignmentId: quizAssignment.id,
+                  score: String(score), // Convert to string for consistency
+                  comments: `Quiz automatically graded: ${score}/${maxScore} points`,
+                  submittedAt: new Date(), // Use submittedAt
+                  gradedAt: new Date() // Add gradedAt field to make sure it shows up in grade reports
+                });
+                
+                console.log(`Created grade entry for quiz submission: ${gradeEntry.id} in class ${targetClass.id}`);
+              } else {
+                console.log(`Grade already exists for student ${submission.studentId} and assignment ${quizAssignment.id}`);
+              }
             }
-            
-            // Create a grade entry for this quiz submission
-            const gradeEntry = await dbStorage.createGrade({
-              studentId: submission.studentId,
-              assignmentId: quizAssignment.id,
-              score: String(score), // Convert to string for consistency
-              comments: `Quiz automatically graded: ${score}/${maxScore} points`,
-              submittedAt: new Date() // Use submittedAt instead of gradedAt
-            });
-            
-            console.log(`Created grade entry for quiz submission: ${gradeEntry.id}`);
           } else {
-            console.log('Quiz has no associated class, skipping grade creation');
+            console.log('Quiz has no associated classes, skipping grade creation');
           }
         } catch (gradeError) {
           console.error("Error creating grade entry for quiz:", gradeError);
