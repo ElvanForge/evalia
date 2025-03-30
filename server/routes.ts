@@ -1812,11 +1812,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/upload/image', upload.single('image'), (req, res) => {
     console.log('============= IMAGE UPLOAD REQUEST RECEIVED =============');
     try {
+      // Log request details for debugging
+      console.log('Request headers:', {
+        'content-type': req.headers['content-type'],
+        'user-agent': req.headers['user-agent']
+      });
+      
       if (!req.file) {
         console.log('No file found in request');
         console.log('Request body:', req.body);
-        console.log('Request content type:', req.headers['content-type']);
-        return res.status(400).json({ message: 'No file uploaded' });
+        console.log('Request files:', req.files);
+        
+        // Check if request has the image field in body
+        if (req.body && typeof req.body === 'object') {
+          console.log('Body keys:', Object.keys(req.body));
+          if (req.body.image) {
+            console.log('Body contains image field:', typeof req.body.image);
+          }
+        }
+        
+        return res.status(400).json({ 
+          message: 'No file uploaded', 
+          error: 'The file was not received by the server. Please ensure you are uploading a valid image file.'
+        });
       }
       
       // Log detailed file information
@@ -1826,14 +1844,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mimetype: req.file.mimetype,
         size: req.file.size,
         path: req.file.path,
-        destination: req.file.destination
+        destination: req.file.destination,
+        encoding: req.file.encoding,
+        fieldname: req.file.fieldname
       });
       
       // Double-check file exists on disk
       const filePath = path.join(uploadDir, req.file.filename);
       if (!fs.existsSync(filePath)) {
         console.error('File does not exist at expected path:', filePath);
-        return res.status(500).json({ message: 'File upload failed: file not saved to disk' });
+        return res.status(500).json({ 
+          message: 'File upload failed: file not saved to disk',
+          error: 'The file was uploaded but could not be found on the server'
+        });
       }
       
       // Create a nice absolute URL path
@@ -1851,6 +1874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Updated permissions for upload directory and file');
       } catch (permError) {
         console.error('Error setting permissions:', permError);
+        // Non-fatal error, continue
       }
       
       // Verify file is readable
@@ -1862,6 +1886,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           created: fileStats.birthtime,
           modified: fileStats.mtime
         });
+        
+        if (fileStats.size === 0) {
+          console.error('Empty file uploaded');
+          return res.status(400).json({ 
+            message: 'Empty file uploaded',
+            error: 'The uploaded file appears to be empty'
+          });
+        }
         
         // Read a few bytes to confirm file can be read
         const fd = fs.openSync(filePath, 'r');
@@ -1876,23 +1908,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } catch (readError) {
         console.error('Error reading uploaded file:', readError);
+        // Non-fatal error, continue
       }
       
-      // Test if the image is accessible via the URL
-      const testUrl = `http://localhost:5000${imageUrl}`;
+      // Generate test URLs to be used for debugging
+      const serverUrl = `${req.protocol}://${req.get('host')}`;
+      const testUrl = `${serverUrl}${imageUrl}`;
       console.log('Image should be accessible at:', testUrl);
       
-      // Return success response with the URL
-      console.log('Returning image URL to client:', imageUrl);
+      // Return success response with the URL (always starts with /)
+      const normalizedImageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+      console.log('Returning image URL to client:', normalizedImageUrl);
+      
+      // Return a full response with multiple URL formats
       res.status(200).json({ 
         message: 'File uploaded successfully',
-        imageUrl: imageUrl
+        imageUrl: normalizedImageUrl,
+        fullUrl: `${serverUrl}${normalizedImageUrl}`,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        success: true
       });
       
       console.log('============= IMAGE UPLOAD COMPLETED =============');
     } catch (error) {
       console.error('Error uploading file:', error);
-      res.status(500).json({ message: 'Failed to upload file' });
+      res.status(500).json({ 
+        message: 'Failed to upload file', 
+        error: String(error),
+        success: false
+      });
     }
   });
   

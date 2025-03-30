@@ -129,18 +129,43 @@ export function QuestionFormDialog({
     let imageUrl = data.imageUrl;
 
     try {
+      console.log("Form data:", data);
+      
       // If an image file was uploaded, we need to handle it
       if (data.imageFile && data.imageFile.length > 0) {
         const file = data.imageFile[0];
+        // Log file details for debugging
+        console.log("Uploading image file:", {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          lastModified: new Date(file.lastModified).toString()
+        });
+        
+        // Create a new FormData instance
         const formData = new FormData();
         formData.append("image", file);
-
-        console.log("Uploading image file:", file.name, file.type, file.size);
+        
+        // Log FormData for debugging (iterate through entries)
+        try {
+          console.log("FormData entries:");
+          for (const entry of formData.entries()) {
+            if (entry[1] instanceof File) {
+              console.log(`${entry[0]}: File(${entry[1].name}, ${entry[1].type}, ${entry[1].size} bytes)`);
+            } else {
+              console.log(`${entry[0]}: ${entry[1]}`);
+            }
+          }
+        } catch (e) {
+          console.log("Could not log FormData entries:", e);
+        }
         
         try {
           // Upload the image
+          console.log("Sending image upload request to /api/upload/image");
           const uploadResponse = await fetch("/api/upload/image", {
             method: "POST",
+            // Let browser set the correct Content-Type with boundary
             body: formData,
           });
 
@@ -158,8 +183,13 @@ export function QuestionFormDialog({
             imageUrl = null;
           } else {
             const uploadResult = await uploadResponse.json();
-            console.log("Image upload result:", uploadResult);
+            console.log("Image upload success! Result:", uploadResult);
             imageUrl = uploadResult.imageUrl;
+            
+            // Make sure we have a valid URL format
+            if (imageUrl && !imageUrl.startsWith('/')) {
+              imageUrl = '/' + imageUrl;
+            }
           }
         } catch (uploadError) {
           console.error("Error during image upload:", uploadError);
@@ -490,25 +520,25 @@ export function QuestionFormDialog({
                           <div className="text-sm text-muted-foreground mb-2">
                             PNG, JPG or GIF up to 5MB
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fileInputRef.current?.click()}
+                          <label 
+                            htmlFor="image-upload"
+                            className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-xs text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
                           >
                             <Plus className="mr-2 h-4 w-4" />
                             Select Image
-                          </Button>
-                          <Input
-                            type="file"
-                            className="hidden"
-                            accept="image/*"
-                            ref={fileInputRef}
-                            onChange={(e) => {
-                              handleImageChange(e);
-                              onChange(e.target.files);
-                            }}
-                          />
+                            <Input
+                              id="image-upload"
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              ref={fileInputRef}
+                              onChange={(e) => {
+                                console.log("File selected:", e.target.files);
+                                handleImageChange(e);
+                                onChange(e.target.files);
+                              }}
+                            />
+                          </label>
                         </div>
                       )}
                     </div>
