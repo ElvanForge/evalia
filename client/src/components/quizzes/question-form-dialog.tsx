@@ -36,7 +36,17 @@ interface QuestionFormDialogProps {
   questionToEdit?: QuizQuestion | null;
 }
 
-const QuestionFormSchema = insertQuizQuestionSchema.extend({
+// Create a schema for our form that extends the insert schema
+// but with the additional questionOptions field which is not in the database schema
+const QuestionFormSchema = z.object({
+  quizId: z.number({
+    required_error: "Quiz ID is required",
+    invalid_type_error: "Quiz ID must be a number"
+  }),
+  question: z.string().min(1, "Question text is required"),
+  type: z.string().default("multiple_choice"),
+  imageUrl: z.string().nullable().optional(),
+  order: z.number().optional().nullable(),
   questionOptions: z.array(
     z.object({
       text: z.string().min(1, "Option text is required"),
@@ -73,10 +83,17 @@ export function QuestionFormDialog({
 
   const [options, setOptions] = useState<Array<{ text: string, isCorrect: boolean }>>([]);
 
+  // Ensure quiz ID is a valid number right from component initialization
+  const numericQuizId = parseInt(String(quizId), 10);
+  
+  if (isNaN(numericQuizId)) {
+    console.error("Invalid quiz ID in component initialization:", quizId);
+  }
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(QuestionFormSchema),
     defaultValues: {
-      quizId,
+      quizId: isNaN(numericQuizId) ? undefined : numericQuizId, // Avoid setting NaN
       question: questionToEdit?.question || "",
       type: questionToEdit?.type || "multiple_choice",
       imageUrl: questionToEdit?.imageUrl || null,
@@ -302,9 +319,19 @@ export function QuestionFormDialog({
         form.setValue('imageUrl', null);
       }
 
+      // Ensure quiz ID is a valid number
+      const numericQuizId = parseInt(String(quizId), 10);
+      
+      if (isNaN(numericQuizId)) {
+        console.error("Invalid quiz ID:", quizId);
+        throw new Error("Invalid quiz ID. Please try refreshing the page.");
+      }
+      
+      console.log("Using quiz ID for new question:", numericQuizId);
+      
       // Prepare the question data
       const questionData: InsertQuizQuestion = {
-        quizId: data.quizId,
+        quizId: numericQuizId,
         question: data.question,
         type: data.type,
         imageUrl: imageUrl
@@ -498,8 +525,16 @@ export function QuestionFormDialog({
   // Reset form when dialog is closed
   useEffect(() => {
     if (!open) {
+      // Ensure quiz ID is a valid number
+      const numericQuizId = parseInt(String(quizId), 10);
+      
+      if (isNaN(numericQuizId)) {
+        console.error("Invalid quiz ID for form reset:", quizId);
+        return; // Don't reset the form with an invalid ID
+      }
+      
       form.reset({
-        quizId,
+        quizId: numericQuizId,
         question: "",
         type: "multiple_choice",
         imageUrl: null,
