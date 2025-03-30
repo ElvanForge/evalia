@@ -797,7 +797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/grade-scales", requireAuth, validateRequest(insertGradeScaleSchema), async (req, res) => {
+  app.post("/api/grade-scales", requireAuth, async (req, res) => {
     try {
       // Use req.user.id directly, which is set by the requireAuth middleware
       const teacherId = req.user?.id || 0;
@@ -805,10 +805,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
       
+      // Log the request body to debug validation issues
+      console.log("Grade scale creation request body:", JSON.stringify(req.body));
+      
+      // Manual validation for required fields
+      if (!req.body.name || typeof req.body.name !== 'string') {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["name"], message: "Name is required and must be a string" }] 
+        });
+      }
+      
+      if (req.body.isDefault !== undefined && typeof req.body.isDefault !== 'boolean') {
+        req.body.isDefault = Boolean(req.body.isDefault);
+      }
+      
       const newGradeScale = await dbStorage.createGradeScale({
-        ...req.body,
+        name: req.body.name,
+        isDefault: req.body.isDefault === true,
         teacherId
       });
+      
+      console.log("Grade scale created successfully:", JSON.stringify(newGradeScale));
       res.status(201).json(newGradeScale);
     } catch (error) {
       console.error("Error creating grade scale:", error);
@@ -904,10 +922,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/grade-scale-entries", requireAuth, validateRequest(insertGradeScaleEntrySchema), async (req, res) => {
+  app.post("/api/grade-scale-entries", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      // Use req.user.id directly, which is set by the requireAuth middleware
+      const teacherId = req.user?.id || 0;
+      if (!teacherId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Log the request body to debug validation issues
+      console.log("Grade scale entry creation request body:", JSON.stringify(req.body));
+      
       const scaleId = Number(req.body.scaleId);
+      if (!scaleId || isNaN(scaleId)) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["scaleId"], message: "Valid scale ID is required" }] 
+        });
+      }
+      
+      // Validate the required fields
+      if (!req.body.letter || typeof req.body.letter !== 'string') {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["letter"], message: "Letter grade is required and must be a string" }] 
+        });
+      }
+      
+      if (req.body.minScore === undefined || isNaN(Number(req.body.minScore))) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["minScore"], message: "Minimum score is required and must be a number" }] 
+        });
+      }
+      
+      if (req.body.maxScore === undefined || isNaN(Number(req.body.maxScore))) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["maxScore"], message: "Maximum score is required and must be a number" }] 
+        });
+      }
       
       const gradeScale = await dbStorage.getGradeScale(scaleId);
       if (!gradeScale) {
@@ -918,7 +972,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to create entries for this grade scale" });
       }
 
-      const newEntry = await dbStorage.createGradeScaleEntry(req.body);
+      const newEntry = await dbStorage.createGradeScaleEntry({
+        scaleId,
+        letter: req.body.letter,
+        minScore: Number(req.body.minScore),
+        maxScore: Number(req.body.maxScore)
+      });
+      
+      console.log("Grade scale entry created successfully:", JSON.stringify(newEntry));
       res.status(201).json(newEntry);
     } catch (error) {
       console.error("Error creating grade scale entry:", error);
