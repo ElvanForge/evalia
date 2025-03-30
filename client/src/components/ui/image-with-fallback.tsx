@@ -72,37 +72,43 @@ export function ImageWithFallback({
 
     // Different recovery strategies based on retry count
     if (nextRetryCount === 1) {
-      // First attempt: For quiz images, try to fix the path
+      // First attempt: For quiz images, try the direct API endpoint
       if (isQuizImage || (src && (src.includes('/uploads/') || src.includes('uploads/')))) {
         // Extract the filename
         const filename = src.split(/[\/\\]/).pop();
         if (filename) {
-          const fixedUrl = `${window.location.origin}/uploads/images/${filename}`;
-          console.log(`Image recovery attempt ${nextRetryCount}: Using direct path: ${fixedUrl}`);
-          setCurrentSrc(fixedUrl);
+          // Clean up any query parameters
+          const cleanFilename = filename.split('?')[0];
+          const apiUrl = `${window.location.origin}/api/images/${cleanFilename}`;
+          console.log(`Image recovery attempt ${nextRetryCount}: Using direct API: ${apiUrl}`);
+          setCurrentSrc(apiUrl);
           return;
         }
       }
     } 
     else if (nextRetryCount === 2) {
-      // Second attempt: Try cache busting
+      // Second attempt: Try the API with cache busting
       if (isQuizImage || (src && (src.includes('/uploads/') || src.includes('uploads/')))) {
         const filename = src.split(/[\/\\]/).pop();
         if (filename) {
-          const cacheBustUrl = `${window.location.origin}/uploads/images/${filename}?v=${Date.now()}`;
-          console.log(`Image recovery attempt ${nextRetryCount}: Using cache bust: ${cacheBustUrl}`);
+          // Clean up any query parameters
+          const cleanFilename = filename.split('?')[0];
+          const cacheBustUrl = `${window.location.origin}/api/images/${cleanFilename}?t=${Date.now()}`;
+          console.log(`Image recovery attempt ${nextRetryCount}: Using API with cache bust: ${cacheBustUrl}`);
           setCurrentSrc(cacheBustUrl);
           return;
         }
       }
     }
     else if (nextRetryCount === 3) {
-      // Third attempt: Try direct access with query param
+      // Third attempt: Fall back to the legacy path with direct access
       if (isQuizImage || (src && (src.includes('/uploads/') || src.includes('uploads/')))) {
         const filename = src.split(/[\/\\]/).pop();
         if (filename) {
-          const directUrl = `${window.location.origin}/uploads/images/${filename}?direct=1`;
-          console.log(`Image recovery attempt ${nextRetryCount}: Using direct access: ${directUrl}`);
+          // Clean up any query parameters
+          const cleanFilename = filename.split('?')[0];
+          const directUrl = `${window.location.origin}/uploads/images/${cleanFilename}?direct=1`;
+          console.log(`Image recovery attempt ${nextRetryCount}: Using legacy path: ${directUrl}`);
           setCurrentSrc(directUrl);
           return;
         }

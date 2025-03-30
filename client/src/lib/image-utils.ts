@@ -18,8 +18,26 @@ export function getFullImageUrl(imageUrl: string | null | undefined): string {
   
   // For uploaded images that come from our server
   if (imageUrl.includes('/uploads/')) {
-    // Clean the path to ensure consistent format
-    // First, get just the part from /uploads/ onward
+    // Extract just the filename from the path
+    const filenameWithParams = imageUrl.split(/[\/\\]/).pop() || '';
+    const filename = filenameWithParams.split('?')[0]; // Remove any query parameters
+    
+    if (filename) {
+      // Use the new direct API endpoint
+      const apiEndpoint = `/api/images/${filename}?t=${Date.now()}`;
+      
+      // Log for debugging
+      console.log('Processing image path:', { 
+        original: imageUrl, 
+        filename: filename,
+        apiEndpoint: apiEndpoint,
+        fullUrl: `${window.location.origin}${apiEndpoint}`
+      });
+      
+      return `${window.location.origin}${apiEndpoint}`;
+    }
+    
+    // Fallback to traditional method if filename extraction fails
     let cleanedPath;
     
     if (imageUrl.includes('/uploads/images/')) {
@@ -42,8 +60,7 @@ export function getFullImageUrl(imageUrl: string | null | undefined): string {
       }
     }
     
-    // Log for debugging
-    console.log('Processing image path:', { 
+    console.log('Fallback to traditional image path:', { 
       original: imageUrl, 
       cleaned: cleanedPath,
       fullUrl: `${window.location.origin}${cleanedPath}`
@@ -60,9 +77,10 @@ export function getFullImageUrl(imageUrl: string | null | undefined): string {
       imageUrl.endsWith('.gif') || 
       imageUrl.endsWith('.svg')
     )) {
-    const presumedPath = `/uploads/images/${imageUrl}`;
-    console.log('Detected image filename, assuming uploads path:', presumedPath);
-    return `${window.location.origin}${presumedPath}`;
+    // Use the API endpoint directly for simple filenames
+    const apiEndpoint = `/api/images/${imageUrl}?t=${Date.now()}`;
+    console.log('Detected image filename, using API endpoint:', apiEndpoint);
+    return `${window.location.origin}${apiEndpoint}`;
   }
   
   // If it's any other relative path, ensure it has the correct origin
@@ -139,24 +157,27 @@ export function getImageProps(props: ImageWithFallbackProps): React.ImgHTMLAttri
         
         // Special case for quiz images where URLs might be relative or just filenames
         if (!src?.includes('/') && src?.includes('.')) {
-          // Likely just a filename - try to infer full path
-          const inferredUrl = `${window.location.origin}/uploads/images/${src}`;
-          console.log(`Attempt ${retryAttempts}: Using inferred path for filename:`, inferredUrl);
-          target.src = inferredUrl;
+          // Likely just a filename - try using the direct API endpoint
+          const apiUrl = `${window.location.origin}/api/images/${src}?t=${Date.now()}`;
+          console.log(`Attempt ${retryAttempts}: Using direct API for filename:`, apiUrl);
+          target.src = apiUrl;
           return;
         }
         
         // Special case for quiz images and uploads folder
         if (src && (src.includes('/uploads/') || src.includes('uploads/'))) {
-          // First recovery attempt: for quiz images, ensure we have the correct path format
-          if (src.includes('/uploads/images/') || src.includes('uploads/images/')) {
-            // Extract just the filename
-            const filename = src.split(/[\/\\]/).pop();
-            // Construct the direct URL to the image
-            const directUrl = `${window.location.origin}/uploads/images/${filename}`;
+          // Get the filename from the source URL
+          const extractedFilename = src.split(/[\/\\]/).pop();
+          
+          // First recovery attempt: use the direct API endpoint with the filename
+          if (extractedFilename) {
+            // Clean up any query parameters
+            const cleanFilename = extractedFilename.split('?')[0];
+            // Use the API endpoint with cache busting
+            const apiUrl = `${window.location.origin}/api/images/${cleanFilename}?t=${Date.now()}`;
             
-            console.log(`Attempt ${retryAttempts}: Quiz image recovery with direct path:`, directUrl);
-            target.src = directUrl;
+            console.log(`Attempt ${retryAttempts}: Using direct API endpoint:`, apiUrl);
+            target.src = apiUrl;
             return;
           }
           
@@ -167,8 +188,23 @@ export function getImageProps(props: ImageWithFallbackProps): React.ImgHTMLAttri
           );
           
           if (uploadsIndex >= 0) {
-            // Get everything after 'uploads/'
-            let correctPath = src.substring(uploadsIndex);
+            // Extract the filename from the normalized path
+            const path = src.substring(uploadsIndex);
+            const pathFilename = path.split(/[\/\\]/).pop();
+            
+            if (pathFilename) {
+              // Clean up any query parameters
+              const cleanFilename = pathFilename.split('?')[0];
+              // Use the API endpoint
+              const apiUrl = `${window.location.origin}/api/images/${cleanFilename}?t=${Date.now()}`;
+              
+              console.log(`Attempt ${retryAttempts}: Using API with normalized filename:`, apiUrl);
+              target.src = apiUrl;
+              return;
+            }
+            
+            // If we couldn't extract a filename, fall back to the legacy approach
+            let correctPath = path;
             if (!correctPath.startsWith('/')) {
               correctPath = '/' + correctPath;
             }
@@ -179,11 +215,11 @@ export function getImageProps(props: ImageWithFallbackProps): React.ImgHTMLAttri
             return;
           }
           
-          // Third recovery attempt: try a direct query parameter approach for server cache busting
-          const filename = src.split(/[\/\\]/).pop();
-          if (filename) {
-            const cacheBustUrl = `${window.location.origin}/uploads/images/${filename}?t=${Date.now()}`;
-            console.log(`Attempt ${retryAttempts}: Using cache-busted URL:`, cacheBustUrl);
+          // Third recovery attempt: try the uploads static route directly
+          if (extractedFilename) {
+            const cleanFilename = extractedFilename.split('?')[0];
+            const cacheBustUrl = `${window.location.origin}/uploads/images/${cleanFilename}?direct=1&t=${Date.now()}`;
+            console.log(`Attempt ${retryAttempts}: Using legacy static URL:`, cacheBustUrl);
             target.src = cacheBustUrl;
             return;
           }

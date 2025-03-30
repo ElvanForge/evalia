@@ -5,6 +5,23 @@ import { Quiz, QuizQuestion, QuizOption, Class } from '@shared/schema';
 import { getImageProps } from '@/lib/image-utils';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
 
+/**
+ * Helper function to get the properly formatted URL for quiz images
+ * Uses the new direct API endpoint
+ */
+function getQuizImageUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  
+  // Extract the filename from the URL path
+  const filename = url.split(/[\/\\]/).pop();
+  
+  // Clean up any query parameters
+  const cleanFilename = filename?.split('?')[0];
+  
+  // Return the direct API endpoint with cache busting
+  return `${window.location.origin}/api/images/${cleanFilename}?t=${Date.now()}`;
+}
+
 interface QuizRunnerProps {
   quiz: Quiz;
   questions: QuizQuestion[];
@@ -171,21 +188,22 @@ export function QuizRunner({
         {/* Question text always at the top */}
         <div className="text-lg font-medium mb-4 w-full">{currentQuestion.question}</div>
         
-        {/* Image container as a fixed size with direct image URL */}
+        {/* Image container with new direct API endpoint */}
         {currentQuestion.imageUrl && (
           <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[300px]">
             <img 
-              src={`${window.location.origin}/uploads/images/${currentQuestion.imageUrl?.split('/').pop() || 'missing.png'}`}
+              src={getQuizImageUrl(currentQuestion.imageUrl)}
               alt={`Question ${currentQuestionIndex + 1}`}
               className="rounded-md object-contain max-h-[280px] max-w-full"
-              onLoad={() => console.log(`Quiz question image loaded directly: ${currentQuestion.imageUrl}`)}
+              onLoad={() => console.log(`Quiz question image loaded from API: ${currentQuestion.imageUrl}`)}
               onError={(e) => {
-                console.log(`Quiz image failed to load directly, trying fallback: ${currentQuestion.imageUrl}`);
-                // If direct approach fails, try with filename only
+                console.log(`Quiz image failed to load from API, trying fallback: ${currentQuestion.imageUrl}`);
+                // If API approach fails, try with direct static approach
                 const target = e.target as HTMLImageElement;
                 if (currentQuestion.imageUrl) {
                   const filename = currentQuestion.imageUrl.split(/[\/\\]/).pop();
-                  target.src = `${window.location.origin}/uploads/images/${filename}?direct=1&t=${Date.now()}`;
+                  // Try adding a cache-busting parameter
+                  target.src = `${window.location.origin}/api/images/${filename}?t=${Date.now()}`;
                 } else {
                   // Fallback to a default image if imageUrl is somehow null
                   target.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMzAwIDIwMCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNlZGU4ZGQiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzBiYTJiMCIgZm9udC1zaXplPSIxNnB4IiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiPkltYWdlIGNvdWxkIG5vdCBiZSBsb2FkZWQ8L3RleHQ+PC9zdmc+";

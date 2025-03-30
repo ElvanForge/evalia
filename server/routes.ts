@@ -1983,32 +1983,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Static file serving from uploads directory with enhanced handling
-  app.use('/uploads', (req, res, next) => {
-    console.log('============ STATIC FILE REQUEST ============');
-    console.log('Uploads static file request received for:', req.url);
+  // Dedicated direct image serving endpoint - PREFER THIS OVER STATIC FILES
+  app.get('/api/images/:filename', (req, res) => {
+    console.log('============ DIRECT IMAGE REQUEST ============');
+    const filename = req.params.filename;
+    console.log('Requested image filename:', filename);
     
-    // Parse the URL to handle query parameters for cache busting
-    const urlParts = req.url.split('?');
-    const filePath = path.join('./uploads', urlParts[0]);
+    // Security check to prevent path traversal
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      console.error('Attempted path traversal attack with filename:', filename);
+      return res.status(400).send('Invalid filename');
+    }
     
-    // Check if file exists before serving
-    if (fs.existsSync(filePath)) {
-      console.log('File exists at path:', filePath);
+    // Construct the full image path
+    const imagePath = path.join('./uploads/images', filename);
+    console.log('Full image path:', imagePath);
+    
+    // Check if file exists
+    if (!fs.existsSync(imagePath)) {
+      console.error('Image not found on disk:', imagePath);
       
-      // Set cache control headers to help with browser caching
-      // If there's a version parameter, we can cache it longer
-      const hasVersionParam = req.query.v || urlParts[1]?.includes('v=');
-      if (hasVersionParam) {
-        // If URL has a version parameter, cache it longer (24 hours)
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-      } else {
-        // Otherwise use a shorter cache time (5 minutes)
-        res.setHeader('Cache-Control', 'public, max-age=300');
+      // List other files in the directory for debugging
+      try {
+        const files = fs.readdirSync('./uploads/images');
+        console.log('Available files in uploads/images:', files);
+      } catch (err) {
+        console.error('Error listing files:', err);
       }
       
-      // Set content type header based on file extension
-      const ext = path.extname(filePath).toLowerCase();
+      return res.status(404).send('Image not found');
+    }
+    
+    try {
+      // Get file details
+      const stats = fs.statSync(imagePath);
+      console.log('Image file details:', {
+        size: stats.size,
+        created: stats.birthtime,
+        modified: stats.mtime
+      });
+      
+      // Ensure file permissions
+      fs.chmodSync(imagePath, 0o644);
+      
+      // Determine content type based on file extension
+      const ext = path.extname(imagePath).toLowerCase();
       const mimeTypes: Record<string, string> = {
         '.jpg': 'image/jpeg',
         '.jpeg': 'image/jpeg',
@@ -2022,70 +2041,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let contentType = 'application/octet-stream'; // default
       if (mimeTypes[ext]) {
         contentType = mimeTypes[ext];
-        res.setHeader('Content-Type', contentType);
       }
       
-      // Ensure file has correct permissions
-      try {
-        // Make sure the file is readable by all
-        fs.chmodSync(filePath, 0o644);
-        
-        // Log file stats for debugging
-        const fileStats = fs.statSync(filePath);
-        console.log('File stats:', {
-          size: fileStats.size,
-          permissions: fileStats.mode.toString(8),
-          created: fileStats.birthtime,
-          modified: fileStats.mtime
-        });
-        
-        console.log('Setting Content-Type:', contentType);
-      } catch (error) {
-        console.error('Error updating file permissions:', error);
-      }
+      // Set appropriate headers
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Length', stats.size);
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       
-      // For debugging only - try to serve the file directly
-      if (req.query.direct === '1') {
-        console.log('Serving file directly (bypass express.static)');
-        try {
-          const fileContent = fs.readFileSync(filePath);
-          const stats = fs.statSync(filePath);
-          res.setHeader('Content-Length', stats.size);
-          res.status(200).end(fileContent);
-          return; // Skip remaining middleware
-        } catch (readError) {
-          console.error('Error reading file for direct serving:', readError);
-          // Continue to next middleware
+      // Stream the file directly to the response
+      const fileStream = fs.createReadStream(imagePath);
+      fileStream.pipe(res);
+      
+      console.log('Image streaming started:', filename);
+      fileStream.on('end', () => {
+        console.log('Image streaming completed:', filename);
+        console.log('============ IMAGE SENT SUCCESSFULLY ============');
+      });
+      
+      fileStream.on('error', (err) => {
+        console.error('Error streaming image:', err);
+        // Only send error if headers haven't been sent yet
+        if (!res.headersSent) {
+          res.status(500).send('Error streaming image');
         }
-      }
-    } else {
-      console.log('File does not exist at path:', filePath);
-      // Log the list of files in the uploads/images directory to debug
-      try {
-        const uploadsDir = './uploads/images';
-        if (fs.existsSync(uploadsDir)) {
-          const files = fs.readdirSync(uploadsDir);
-          console.log('Files in uploads directory:', files);
-        } else {
-          console.log('Uploads directory does not exist');
-        }
-      } catch (error) {
-        console.error('Error listing files in uploads directory:', error);
-      }
+      });
+    } catch (error) {
+      console.error('Error serving image:', error);
+      res.status(500).send('Server error');
     }
-    
-    console.log('Continuing to express.static middleware');
-    next();
-  }, express.static('uploads', {
+  });
+  
+  // Keep static file middleware as a fallback
+  app.use('/uploads', express.static('uploads', {
     setHeaders: (res, filePath) => {
       // Set explicit cache control to prevent caching issues
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      
-      // Log the headers we're setting
-      console.log(`Setting headers for ${filePath}`);
-      console.log('============ STATIC FILE SERVED ============');
+      console.log(`Static file headers set for: ${filePath}`);
     }
   }));
   
