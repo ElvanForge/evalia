@@ -1167,17 +1167,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const quizId = Number(req.params.id);
+      console.log(`PUT /api/quizzes/${quizId} - Request body:`, JSON.stringify(req.body, null, 2));
       
       const quiz = await dbStorage.getQuiz(quizId);
       if (!quiz) {
+        console.log(`Quiz with ID ${quizId} not found`);
         return res.status(404).json({ message: "Quiz not found" });
       }
       
       if (quiz.teacherId !== teacherId) {
+        console.log(`Unauthorized update attempt - Quiz belongs to teacher ${quiz.teacherId}, request from ${teacherId}`);
         return res.status(403).json({ message: "Not authorized to update this quiz" });
       }
       
+      // Log the current quiz state
+      console.log("Current quiz state:", JSON.stringify(quiz, null, 2));
+      
       const updatedQuiz = await dbStorage.updateQuiz(quizId, req.body);
+      console.log("Updated quiz:", JSON.stringify(updatedQuiz, null, 2));
+      
       res.status(200).json(updatedQuiz);
     } catch (error) {
       console.error("Error updating quiz:", error);

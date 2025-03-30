@@ -178,6 +178,8 @@ const QuizDetail = () => {
   // Update quiz mutation
   const updateQuizMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertQuizSchema>) => {
+      console.log("Updating quiz with data:", JSON.stringify(data, null, 2)); 
+      
       const response = await fetch(`/api/quizzes/${id}`, {
         method: "PUT",
         headers: {
@@ -187,12 +189,17 @@ const QuizDetail = () => {
       });
       
       if (!response.ok) {
-        throw new Error("Failed to update quiz");
+        const errorText = await response.text();
+        console.error("Quiz update failed:", errorText);
+        throw new Error(`Failed to update quiz: ${errorText}`);
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log("Update result:", JSON.stringify(result, null, 2));
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Quiz successfully updated:", data);
       toast({
         title: "Quiz Updated",
         description: "Your quiz has been updated successfully.",
@@ -201,7 +208,8 @@ const QuizDetail = () => {
       queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/quizzes"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Quiz update error:", error);
       toast({
         title: "Update Failed",
         description: "There was a problem updating your quiz.",

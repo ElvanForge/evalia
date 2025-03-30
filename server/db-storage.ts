@@ -594,11 +594,22 @@ export class DBStorage implements IStorage {
   }
 
   async updateQuiz(id: number, quiz: Partial<InsertQuiz>): Promise<Quiz | undefined> {
+    console.log(`db-storage.updateQuiz - id:${id}, updating with data:`, JSON.stringify(quiz, null, 2));
+    
+    // Ensure boolean fields are correctly typed
+    if (quiz.isActive !== undefined) {
+      console.log(`Setting isActive to ${quiz.isActive} (type: ${typeof quiz.isActive})`);
+      // Force to boolean if it's not already
+      quiz.isActive = Boolean(quiz.isActive);
+    }
+    
     const [updatedQuiz] = await db
       .update(schema.quizzes)
       .set(quiz)
       .where(eq(schema.quizzes.id, id))
       .returning();
+    
+    console.log("db-storage.updateQuiz - returned quiz:", JSON.stringify(updatedQuiz, null, 2));
     return updatedQuiz;
   }
 
