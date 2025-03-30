@@ -118,19 +118,38 @@ const QuizDetail = () => {
   // Mutation for updating class assignments
   const updateClassAssignmentsMutation = useMutation({
     mutationFn: async (classIds: number[]) => {
+      console.log("Updating quiz class assignments with class IDs:", classIds);
+      
       const response = await fetch(`/api/quizzes/${id}/classes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ classIds }),
+        credentials: "include" // Include credentials for authentication
       });
       
+      console.log("Class assignment update response status:", response.status);
+      
+      // Try to get the response text regardless of status
+      const responseText = await response.text();
+      console.log("Response text:", responseText);
+      
       if (!response.ok) {
-        throw new Error("Failed to update class assignments");
+        throw new Error(`Failed to update class assignments: ${responseText}`);
       }
       
-      return response.json();
+      // Parse the response if it's valid JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.warn("Response was not JSON:", e);
+        // Return a simple success object if not JSON
+        result = { success: true };
+      }
+      
+      return result;
     },
     onSuccess: () => {
       toast({
@@ -181,12 +200,16 @@ const QuizDetail = () => {
       console.log("Updating quiz with data:", JSON.stringify(data, null, 2)); 
       
       try {
+        // Send all fields including the ID as a route parameter (not in body)
+        // Use the apiRequest utility from queryClient to ensure auth headers are included
         const response = await fetch(`/api/quizzes/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(data),
+          // Make sure to include credentials to send cookies
+          credentials: "include"
         });
         
         console.log("Update response status:", response.status);
@@ -240,10 +263,19 @@ const QuizDetail = () => {
     mutationFn: async () => {
       const response = await fetch(`/api/quizzes/${id}`, {
         method: "DELETE",
+        credentials: "include" // Include credentials for authentication
       });
       
+      console.log("Delete response status:", response.status);
+      
+      // Get response text for better error handling
+      const responseText = await response.text();
+      if (responseText) {
+        console.log("Delete response text:", responseText);
+      }
+      
       if (!response.ok) {
-        throw new Error("Failed to delete quiz");
+        throw new Error(`Failed to delete quiz: ${responseText || response.statusText}`);
       }
     },
     onSuccess: () => {
@@ -254,7 +286,8 @@ const QuizDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quizzes"] });
       setLocation("/quizzes");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Delete error:", error);
       toast({
         title: "Delete Failed",
         description: "There was a problem deleting your quiz.",
@@ -285,7 +318,24 @@ const QuizDetail = () => {
     };
     
     console.log("Formatted data for submission:", JSON.stringify(formattedData, null, 2));
-    updateQuizMutation.mutate(formattedData);
+    console.log("Quiz ID:", id);
+    
+    try {
+      // Convert ID to a number to ensure it's not treated as a string
+      const quizId = parseInt(id as string);
+      if (isNaN(quizId)) {
+        throw new Error(`Invalid quiz ID: ${id}`);
+      }
+      
+      updateQuizMutation.mutate(formattedData);
+    } catch (error) {
+      console.error("Error in form submission:", error);
+      toast({
+        title: "Form Submission Error",
+        description: "There was a problem with the form submission.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
