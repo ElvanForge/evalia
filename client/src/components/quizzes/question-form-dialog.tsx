@@ -222,6 +222,12 @@ export function QuestionFormDialog({
               // This helps ensure the image is always fetched fresh from the server
               const cacheBust = Date.now();
               imageUrl = `${imageUrl}?v=${cacheBust}`;
+              
+              // Update the image preview state to show the image
+              setImagePreview(imageUrl);
+              
+              // Update the form's imageUrl field
+              form.setValue('imageUrl', imageUrl);
 
               // Show success toast with image preview
               toast({
@@ -255,6 +261,9 @@ export function QuestionFormDialog({
         // Add fresh cache busting parameter
         const cacheBust = Date.now();
         imageUrl = `${normalizedUrl}?v=${cacheBust}`;
+        
+        // Make sure to update the form value too
+        form.setValue('imageUrl', imageUrl);
 
         console.log("Normalized existing image URL:", imageUrl);
       } else if (questionToEdit?.imageUrl) {
@@ -272,12 +281,17 @@ export function QuestionFormDialog({
         // Add fresh cache busting parameter
         const cacheBust = Date.now();
         imageUrl = `${normalizedUrl}?v=${cacheBust}`;
+        
+        // Make sure to update the form value too
+        form.setValue('imageUrl', imageUrl);
 
         console.log("Normalized existing question image URL:", imageUrl);
       } else {
         // No image preview and no file uploaded, set to null
         console.log("No image to use");
         imageUrl = null;
+        // Make sure the form value is set to null too
+        form.setValue('imageUrl', null);
       }
 
       // Prepare the question data
@@ -454,7 +468,10 @@ export function QuestionFormDialog({
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+        const dataUrl = e.target?.result as string;
+        setImagePreview(dataUrl);
+        // We don't set imageUrl field here yet because we need to upload the file first
+        // The actual URL will be set after successful upload in the onSubmit handler
       };
       reader.readAsDataURL(file);
     }
