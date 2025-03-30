@@ -188,7 +188,7 @@ export function QuizRunner({
         {/* Question text always at the top */}
         <div className="text-lg font-medium mb-4 w-full">{currentQuestion.question}</div>
         
-        {/* Image container - simplified direct approach */}
+        {/* Image container - simplified direct approach with more detailed logging */}
         {currentQuestion.imageUrl && (
           <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[300px]">
             <ImageWithFallback 
@@ -197,7 +197,32 @@ export function QuizRunner({
               className="rounded-md object-contain max-h-[280px] max-w-full"
               isQuizImage={true}
               onLoadSuccess={() => console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`)}
-              onLoadError={() => console.log(`Quiz image failed to load: ${currentQuestion.imageUrl}`)}
+              onLoadError={() => {
+                console.log(`Quiz image failed to load. Trying direct API URL for: ${currentQuestion.imageUrl}`);
+                
+                // Directly log the exact image path we're working with
+                const filename = currentQuestion.imageUrl.split(/[\/\\]/).pop();
+                const apiUrl = `/api/images/${filename}`;
+                const fullApiUrl = `${window.location.origin}${apiUrl}`;
+                
+                console.log("Image troubleshooting info:", {
+                  originalUrl: currentQuestion.imageUrl,
+                  extractedFilename: filename,
+                  apiUrl: apiUrl,
+                  fullApiUrl: fullApiUrl,
+                  questionId: currentQuestion.id
+                });
+                
+                // Try the direct file access URL (as another option)
+                const directUrl = `${window.location.origin}/uploads/images/${filename}`;
+                console.log(`Also trying direct file URL: ${directUrl}`);
+                
+                // Add a message in the console with debugging URLs to help developers
+                console.log(`Try accessing these URLs directly to debug:
+                1. ${fullApiUrl}
+                2. ${directUrl}
+                3. ${currentQuestion.imageUrl}`);
+              }}
             />
           </div>
         )}

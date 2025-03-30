@@ -33,23 +33,49 @@ export function ImageWithFallback({
   // Default fallback based on image type
   const defaultFallback = fallbackSrc || (isQuizImage ? QUIZ_FALLBACK : DEFAULT_FALLBACK);
   
-  // Start with the processed original URL
-  const [currentSrc, setCurrentSrc] = useState<string>(getFullImageUrl(src || ''));
+  // Start with the original URL
+  const [currentSrc, setCurrentSrc] = useState<string>('');
   const [retryCount, setRetryCount] = useState<number>(0);
   const [hasError, setHasError] = useState<boolean>(false);
   const [finallyLoaded, setFinallyLoaded] = useState<boolean>(false);
   
-  const maxRetries = 3;
+  const maxRetries = 3; // Maximum number of retries before using fallback
 
   // Reset states when src changes
   useEffect(() => {
-    const processedUrl = getFullImageUrl(src || '');
-    console.log(`ImageWithFallback: Processing URL [${src}] => [${processedUrl}]`);
-    setCurrentSrc(processedUrl);
+    if (!src) {
+      setCurrentSrc(defaultFallback);
+      setHasError(true);
+      return;
+    }
+    
+    // Special handling for quiz images - use direct API endpoint immediately
+    if (isQuizImage && src) {
+      const filename = src.split(/[\/\\]/).pop();
+      const cleanFilename = filename?.split('?')[0] || '';
+      
+      // Use direct API endpoint for quiz images from the start
+      if (cleanFilename) {
+        const apiUrl = `${window.location.origin}/api/images/${cleanFilename}`;
+        console.log(`Quiz image: Using direct API endpoint: [${src}] => [${apiUrl}]`);
+        setCurrentSrc(apiUrl);
+      } else {
+        // Fallback to normal processing if we can't extract a filename
+        const processedUrl = getFullImageUrl(src);
+        console.log(`ImageWithFallback: Processing URL [${src}] => [${processedUrl}]`);
+        setCurrentSrc(processedUrl);
+      }
+    } else {
+      // Normal image processing for non-quiz images
+      const processedUrl = getFullImageUrl(src);
+      console.log(`ImageWithFallback: Processing URL [${src}] => [${processedUrl}]`);
+      setCurrentSrc(processedUrl);
+    }
+    
     setRetryCount(0);
     setHasError(false);
     setFinallyLoaded(false);
-  }, [src]);
+  }, [src, isQuizImage, defaultFallback]);
 
   const handleError = () => {
     if (retryCount >= maxRetries) {
