@@ -1726,6 +1726,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (!req.file) {
         console.log('No file found in request');
+        console.log('Request body:', req.body);
+        console.log('Request content type:', req.headers['content-type']);
         return res.status(400).json({ message: 'No file uploaded' });
       }
       
@@ -1746,18 +1748,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: 'File upload failed: file not saved to disk' });
       }
       
-      // Return the file path that can be used in the frontend
+      // Create a nice absolute URL path
       const imageUrl = `/uploads/images/${req.file.filename}`;
       
       console.log('Image URL:', imageUrl);
       console.log('Full file path:', path.resolve(filePath));
       
-      // Set appropriate file permissions
+      // Verify file permissions
       fs.chmodSync(filePath, 0o666);
       
+      // Verify file is readable
+      try {
+        const fileStats = fs.statSync(filePath);
+        console.log('File stats:', {
+          size: fileStats.size,
+          permissions: fileStats.mode.toString(8),
+          created: fileStats.birthtime,
+          modified: fileStats.mtime
+        });
+        
+        // Read a few bytes to confirm file can be read
+        const fd = fs.openSync(filePath, 'r');
+        const buffer = Buffer.alloc(Math.min(fileStats.size, 32)); // Read up to 32 bytes
+        fs.readSync(fd, buffer, 0, buffer.length, 0);
+        fs.closeSync(fd);
+        console.log('File is readable, first bytes:', buffer.toString('hex').substring(0, 50));
+      } catch (readError) {
+        console.error('Error reading uploaded file:', readError);
+      }
+      
+      // Return success response with the URL
       res.status(200).json({ 
         message: 'File uploaded successfully',
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        absolutePath: path.resolve(filePath)
       });
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -1773,12 +1797,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const filePath = path.join('./uploads', req.url);
     if (fs.existsSync(filePath)) {
       console.log('File exists at path:', filePath);
+      
+      // Ensure file has correct permissions
+      try {
+        fs.chmodSync(filePath, 0o666);
+        
+        // Log file stats for debugging
+        const stats = fs.statSync(filePath);
+        console.log('File stats:', {
+          size: stats.size,
+          permissions: stats.mode.toString(8),
+          created: stats.birthtime,
+          modified: stats.mtime
+        });
+      } catch (error) {
+        console.error('Error updating file permissions:', error);
+      }
+      
+      // Get file mime type
+      let contentType = 'application/octet-stream'; // default
+      const ext = path.extname(filePath).toLowerCase();
+      
+      if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+      else if (ext === '.png') contentType = 'image/png';
+      else if (ext === '.gif') contentType = 'image/gif';
+      else if (ext === '.svg') contentType = 'image/svg+xml';
+      
+      // For debugging only - this won't run for most requests as express.static will handle them
+      res.setHeader('Content-Type', contentType);
     } else {
       console.log('File does not exist at path:', filePath);
     }
     
     next();
-  }, express.static('uploads'));
+  }, express.static('uploads', {
+    setHeaders: (res, filePath) => {
+      // Set explicit cache control to prevent caching issues
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      // Log the headers we're setting
+      console.log(`Setting headers for ${filePath}`);
+    }
+  }));
   
   // School routes
   app.get('/api/schools', requireAuth, async (req, res) => {

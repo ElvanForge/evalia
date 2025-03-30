@@ -16,7 +16,22 @@ export function getFullImageUrl(imageUrl: string | null | undefined): string {
     return imageUrl;
   }
   
-  // If it's a relative path, ensure it has the correct origin
+  // For uploaded images that come from our server
+  if (imageUrl.includes('/uploads/')) {
+    // Normalize path to ensure it starts with a slash
+    const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+    
+    // If the path contains '/uploads/' twice, fix it
+    if ((normalizedPath.match(/\/uploads\//g) || []).length > 1) {
+      const fixedPath = normalizedPath.substring(normalizedPath.lastIndexOf('/uploads/'));
+      console.log('Fixed duplicate uploads path:', fixedPath);
+      return `${window.location.origin}${fixedPath}`;
+    }
+    
+    return `${window.location.origin}${normalizedPath}`;
+  }
+  
+  // If it's any other relative path, ensure it has the correct origin
   if (!imageUrl.startsWith(`${window.location.origin}`)) {
     return imageUrl.startsWith('/')
       ? `${window.location.origin}${imageUrl}`
@@ -62,9 +77,25 @@ export function getImageProps(props: ImageWithFallbackProps): React.ImgHTMLAttri
       console.error("Image failed to load:", processedSrc, "Original:", src);
       const target = e.target as HTMLImageElement;
       
-      // Try correcting the URL first with absolute path
+      // Special case for uploads folder to ensure correct path
+      if (src && src.includes('/uploads/')) {
+        // Try to normalize the uploads path to fix any path issues
+        const uploadsIndex = src.lastIndexOf('/uploads/');
+        if (uploadsIndex >= 0) {
+          const correctPath = src.substring(uploadsIndex);
+          const fixedUrl = `${window.location.origin}${correctPath}`;
+          console.log("Trying corrected uploads path:", fixedUrl);
+          
+          if (fixedUrl !== target.src) {
+            target.src = fixedUrl;
+            return;
+          }
+        }
+      }
+      
+      // Try correcting the URL with absolute path
       if (src && !src.startsWith('data:') && !src.startsWith('http')) {
-        // Try a different URL format - this is for debugging only
+        // Try a different URL format
         const absoluteUrl = `${window.location.origin}${src.startsWith('/') ? src : '/' + src}`;
         if (absoluteUrl !== target.src) {
           console.log("Trying absolute URL:", absoluteUrl);
