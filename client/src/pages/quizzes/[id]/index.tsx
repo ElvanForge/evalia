@@ -5,8 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { 
-  ArrowLeft, Save, Trash2, Plus, Edit, Loader2, Play, PlusCircle
+  ArrowLeft, Save, Trash2, Plus, Edit, Loader2, Play, PlusCircle, Image
 } from "lucide-react";
+import { getImageProps } from "@/lib/image-utils";
 import Layout from "@/components/layout";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -66,12 +67,21 @@ const QuizDetail = () => {
 
   // Fetch options for all questions
   const {
-    data: options,
+    data: optionsRaw,
     isLoading: isLoadingOptions,
-  } = useQuery<Record<number, QuizOption[]>>({
+  } = useQuery<Record<string, QuizOption[]>>({
     queryKey: [`/api/quizzes/${id}/options`],
     enabled: !!id && !!questions?.length,
   });
+  
+  // Process options to ensure we have a numeric index
+  console.log("Options data from API:", optionsRaw);
+  const options = optionsRaw ? Object.entries(optionsRaw).reduce((acc, [questionId, questionOptions]) => {
+    console.log(`Processing options for question ${questionId}:`, questionOptions);
+    acc[parseInt(questionId)] = questionOptions || [];
+    return acc;
+  }, {} as Record<number, QuizOption[]>) : {};
+  console.log("Processed options:", options);
 
   // Fetch classes for dropdown
   const {
@@ -493,7 +503,7 @@ const QuizDetail = () => {
                               <CardTitle className="text-base">
                                 Question {index + 1}
                               </CardTitle>
-                              <CardDescription className="line-clamp-1">
+                              <CardDescription className="line-clamp-2">
                                 {question.question}
                               </CardDescription>
                             </div>
@@ -528,6 +538,17 @@ const QuizDetail = () => {
                               </AlertDialog>
                             </div>
                           </div>
+                          {question.imageUrl && (
+                            <div className="mt-4">
+                              <img 
+                                {...getImageProps({
+                                  src: question.imageUrl,
+                                  alt: "Question image",
+                                  className: "max-h-40 object-contain rounded-md border border-border"
+                                })}
+                              />
+                            </div>
+                          )}
                         </CardHeader>
                         {isLoadingOptions ? (
                           <CardContent className="pb-4">
