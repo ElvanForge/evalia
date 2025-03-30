@@ -477,12 +477,44 @@ const QuizDetail = () => {
                               credentials: 'include'
                             });
                             
+                            console.log("CSV Export response status:", response.status);
+                            console.log("CSV Export response headers:", 
+                              [...response.headers.entries()].reduce((obj, [key, val]) => {
+                                obj[key] = val; 
+                                return obj;
+                              }, {} as Record<string, string>)
+                            );
+                            
+                            // Handle different response types
+                            const contentType = response.headers.get('content-type');
+                            console.log("Response content-type:", contentType);
+                            
                             if (!response.ok) {
-                              const errorText = await response.text();
-                              throw new Error(`Export failed: ${response.status} - ${errorText}`);
+                              // For error responses, try to parse as JSON first
+                              if (contentType?.includes('application/json')) {
+                                const errorJson = await response.json();
+                                throw new Error(errorJson.message || `Export failed: ${response.status}`);
+                              } else {
+                                const errorText = await response.text();
+                                throw new Error(`Export failed: ${response.status} - ${errorText}`);
+                              }
                             }
                             
-                            // Get the blob data
+                            // For success response with JSON (no submissions etc)
+                            if (contentType?.includes('application/json')) {
+                              const jsonResponse = await response.json();
+                              console.log("Received JSON response:", jsonResponse);
+                              
+                              if (jsonResponse.message) {
+                                toast({
+                                  title: "Export Info",
+                                  description: jsonResponse.message,
+                                });
+                                return; // Exit early
+                              }
+                            }
+                            
+                            // Proceed with CSV blob handling for text/csv content
                             const blob = await response.blob();
                             console.log("Received blob:", blob);
                             
@@ -491,14 +523,14 @@ const QuizDetail = () => {
                             const link = document.createElement('a');
                             link.href = url;
                             link.setAttribute('download', `quiz_${id}_scores.csv`);
+                            
+                            // Append, click, and remove
                             document.body.appendChild(link);
                             link.click();
+                            document.body.removeChild(link);
                             
-                            // Clean up
-                            setTimeout(() => {
-                              window.URL.revokeObjectURL(url);
-                              link.remove();
-                            }, 100);
+                            // Clean up the object URL
+                            window.URL.revokeObjectURL(url);
                             
                             toast({
                               title: "Export Successful",

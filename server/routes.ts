@@ -2825,14 +2825,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log(`Converting ${flattenedData.length} rows to CSV`);
         
-        // Use callback style for csv-stringify for better compatibility
-        stringify(flattenedData, (err, output) => {
-          if (err) {
-            console.error('Error generating CSV:', err);
-            return res.status(500).json({ message: "Error generating CSV" });
-          }
+        // Use the synchronous version of stringify for simplicity
+        try {
+          const { stringify } = require('csv-stringify/sync');
           
-          console.log(`CSV generated, size: ${output.length} bytes`);
+          console.log(`Using stringify/sync to generate CSV`);
+          const output = stringify(flattenedData);
+          console.log(`CSV generated successfully, size: ${output.length} bytes`);
           
           // Set Content-Type and Content-Disposition headers
           res.setHeader('Content-Type', 'text/csv');
@@ -2841,7 +2840,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Send the CSV response
           console.log("Sending CSV response");
           return res.status(200).send(output);
-        });
+        } catch (csvError) {
+          console.error('Error generating CSV:', csvError);
+          return res.status(500).json({ message: "Error generating CSV", error: csvError.message });
+        }
       } else {
         // Default to JSON response
         console.log("Sending JSON response");
