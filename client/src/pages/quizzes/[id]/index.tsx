@@ -251,6 +251,7 @@ const QuizDetail = () => {
   };
 
   const onSubmit = (data: z.infer<typeof insertQuizSchema>) => {
+    console.log("Form submission triggered!");
     console.log("Form submitted with data:", JSON.stringify(data, null, 2));
     console.log("isActive value:", data.isActive, "type:", typeof data.isActive);
     
@@ -269,6 +270,12 @@ const QuizDetail = () => {
       if (isNaN(quizId)) {
         throw new Error(`Invalid quiz ID: ${id}`);
       }
+      
+      // Add toast to confirm submission is starting
+      toast({
+        title: "Saving Changes",
+        description: "Updating quiz information...",
+      });
       
       updateQuizMutation.mutate(formattedData);
     } catch (error) {
@@ -348,8 +355,70 @@ const QuizDetail = () => {
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
-                  form="quiz-edit-form"
+                  type="button"
+                  onClick={async () => {
+                    console.log("Manual save button clicked");
+                    const formValues = form.getValues();
+                    console.log("Form values:", formValues);
+                    
+                    // Validate the form
+                    const formState = await form.trigger();
+                    console.log("Form validation state:", formState);
+                    console.log("Form errors:", form.formState.errors);
+                    
+                    if (!formState) {
+                      console.error("Form validation failed");
+                      toast({
+                        title: "Form Validation Error",
+                        description: "Please check the form for errors",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    
+                    // Ensure isActive is properly set as a boolean
+                    const formattedData = {
+                      ...formValues,
+                      isActive: formValues.isActive === true,
+                    };
+                    
+                    console.log("Formatted data for direct submission:", JSON.stringify(formattedData, null, 2));
+                    
+                    try {
+                      // Directly call the API without using mutation
+                      const quizId = parseInt(id as string);
+                      const response = await fetch(`/api/quizzes/${quizId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formattedData),
+                        credentials: 'include'
+                      });
+                      
+                      if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Error ${response.status}: ${errorText}`);
+                      }
+                      
+                      const result = await response.json();
+                      console.log("Direct API call success:", result);
+                      
+                      toast({
+                        title: "Quiz Updated",
+                        description: "Your quiz has been updated successfully.",
+                      });
+                      
+                      setIsEditing(false);
+                      queryClient.invalidateQueries({ queryKey: [`/api/quizzes/${id}`] });
+                      queryClient.invalidateQueries({ queryKey: ["/api/quizzes"] });
+                    } catch (error) {
+                      console.error("Error in direct API call:", error);
+                      toast({
+                        title: "Update Error",
+                        description: error instanceof Error ? error.message : "Failed to update quiz",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
                   disabled={updateQuizMutation.isPending}
                 >
                   {updateQuizMutation.isPending && (
@@ -418,7 +487,13 @@ const QuizDetail = () => {
 
         {isEditing ? (
           <Form {...form}>
-            <form id="quiz-edit-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form 
+              id="quiz-edit-form" 
+              onSubmit={(e) => {
+                console.log("Form onSubmit event triggered");
+                form.handleSubmit(onSubmit)(e);
+              }} 
+              className="space-y-6">
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-6">
