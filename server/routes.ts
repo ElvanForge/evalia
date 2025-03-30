@@ -2794,10 +2794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Send the XML response
         res.status(200).send(xml);
       } else if (format === 'csv') {
-        // Import csv-stringify
-        const { stringify } = require('csv-stringify/sync');
-        
-        // Prepare data for CSV export
+        // Prepare data for CSV export - using manual CSV generation
         const flattenedData = [];
         
         // Add header row
@@ -2843,8 +2840,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
         
-        // Convert data to CSV
-        const csvOutput = stringify(flattenedData);
+        // Generate CSV manually
+        let csvOutput = '';
+        
+        // Process each row
+        flattenedData.forEach(row => {
+          // Process each field in the row
+          const processedRow = row.map(field => {
+            // Convert to string if not already
+            const stringField = String(field);
+            
+            // If the field contains commas, quotes, or newlines, it needs special handling
+            if (stringField.includes(',') || stringField.includes('"') || stringField.includes('\n')) {
+              // Escape quotes by doubling them and wrap in quotes
+              return `"${stringField.replace(/"/g, '""')}"`;
+            }
+            return stringField;
+          });
+          
+          // Join the processed fields with commas and add a newline
+          csvOutput += processedRow.join(',') + '\n';
+        });
         
         // Set Content-Type and Content-Disposition headers
         res.setHeader('Content-Type', 'text/csv');
@@ -2922,10 +2938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Processing ${submissionDetails.length} submissions for export in ${format} format`);
       
       if (format === 'csv') {
-        // Import csv-stringify - this package is already installed
-        const stringify = require('csv-stringify');
-        
-        // Prepare data for CSV export
+        // Prepare data for CSV export using manual CSV generation
         const flattenedData = [];
         
         // Add header row
