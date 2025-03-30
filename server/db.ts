@@ -18,7 +18,7 @@ export const db = drizzle(pool, { schema });
 export async function runMigrations() {
   console.log('Running migrations...');
   try {
-    // Create schema using direct SQL instead of migrations
+    // Create session table first using direct SQL
     await pool.query(`
       CREATE TABLE IF NOT EXISTS "session" (
         "sid" varchar NOT NULL COLLATE "default",
@@ -27,6 +27,35 @@ export async function runMigrations() {
         CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
       );
     `);
+    
+    // Check if teachers table exists and if so, add new subscription-related columns
+    try {
+      // Check for existing columns
+      const checkResult = await pool.query(`
+        SELECT column_name FROM information_schema.columns 
+        WHERE table_name = 'teachers' 
+        AND column_name = 'stripeCustomerId';
+      `);
+      
+      // Add subscription columns if they don't exist
+      if (checkResult.rows.length === 0) {
+        console.log('Adding Stripe subscription columns to teachers table...');
+        await pool.query(`
+          ALTER TABLE teachers 
+          ADD COLUMN IF NOT EXISTS "stripeCustomerId" text,
+          ADD COLUMN IF NOT EXISTS "stripeSubscriptionId" text,
+          ADD COLUMN IF NOT EXISTS "subscriptionPlan" text DEFAULT 'free',
+          ADD COLUMN IF NOT EXISTS "subscriptionStatus" text DEFAULT 'inactive',
+          ADD COLUMN IF NOT EXISTS "isBetaTester" boolean DEFAULT false;
+        `);
+        console.log('Added Stripe subscription columns successfully');
+      } else {
+        console.log('Stripe subscription columns already exist');
+      }
+    } catch (err) {
+      // Table probably doesn't exist yet, which is fine
+      console.log('Teachers table not found, will be created during schema push');
+    }
     
     console.log('Schema push completed successfully');
   } catch (error) {
@@ -41,6 +70,58 @@ export async function initializeDatabase() {
   
   try {
     // Check if admin user exists
+    const adminResult = await db.select().from(schema.teachers)
+      .where(eq(schema.teachers.username, 'admin'))
+      .limit(1);
+    
+    const existingAdmin = adminResult.length > 0;
+
+    // Create admin account for testing and management
+    const bcrypt = await import('bcryptjs');
+    const adminPassword = 'evalia123';
+    const hashedAdminPassword = await bcrypt.hash(adminPassword, 10);
+    
+    if (!existingAdmin) {
+      console.log('Creating default admin account...');
+      
+      // Create a default admin account using direct SQL
+      await pool.query(`
+        INSERT INTO teachers (
+          username, password, "firstName", "lastName", email, role,
+          "subscriptionPlan", "subscriptionStatus", "isBetaTester"
+        ) VALUES (
+          'admin', 
+          $1, 
+          'Admin', 
+          'User', 
+          'admin@evalia.edu', 
+          'admin',
+          'pro',
+          'active',
+          true
+        ) ON CONFLICT (username) DO NOTHING
+      `, [hashedAdminPassword]);
+      
+      console.log('IMPORTANT: Admin account created/updated. Username: admin, Password: evalia123');
+    } else {
+      // Update existing admin account if needed
+      await pool.query(`
+        UPDATE teachers SET 
+          password = $1,
+          "firstName" = 'Admin',
+          "lastName" = 'User',
+          email = 'admin@evalia.edu',
+          role = 'admin',
+          "subscriptionPlan" = 'pro',
+          "subscriptionStatus" = 'active',
+          "isBetaTester" = true
+        WHERE username = 'admin'
+      `, [hashedAdminPassword]);
+      
+      console.log('IMPORTANT: Admin account created/updated. Username: admin, Password: evalia123');
+    }
+    
+    // Check if manager user exists
     const managerResult = await db.select().from(schema.teachers)
       .where(eq(schema.teachers.role, 'manager'))
       .limit(1);
@@ -50,23 +131,24 @@ export async function initializeDatabase() {
     if (!existingManager) {
       console.log('Creating default manager account...');
       
-      // We'll use bcrypt directly for the manager password for better compatibility
-      const bcrypt = await import('bcryptjs');
-      const hashedPassword = await bcrypt.hash('password123', 10);
+      // Create a default manager account
+      const managerPassword = await bcrypt.hash('password123', 10);
       
-      // Create a default manager account using direct SQL
       await pool.query(`
         INSERT INTO teachers (
-          username, password, "firstName", "lastName", email, role
+          username, password, "firstName", "lastName", email, role,
+          "subscriptionPlan", "subscriptionStatus"
         ) VALUES (
           'john.manager', 
           $1, 
           'John', 
           'Manager', 
           'john.manager@evalia.edu', 
-          'manager'
+          'manager',
+          'school',
+          'active'
         ) ON CONFLICT (username) DO NOTHING
-      `, [hashedPassword]);
+      `, [managerPassword]);
       
       console.log('Default manager account created');
     }
@@ -74,6 +156,5 @@ export async function initializeDatabase() {
     console.error('Error initializing database:', error);
   }
 
-  // Additional initialization as needed
-  console.log('Database initialization completed');
+  console.log('Database setup completed successfully');
 }

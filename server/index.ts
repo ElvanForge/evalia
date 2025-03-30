@@ -2,6 +2,29 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
+import fs from "fs";
+
+// Create uploads directory for images if it doesn't exist
+const uploadsDir = path.join(process.cwd(), 'uploads');
+const imagesDir = path.join(uploadsDir, 'images');
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory:', uploadsDir);
+}
+
+if (!fs.existsSync(imagesDir)) {
+  fs.mkdirSync(imagesDir, { recursive: true });
+  console.log('Created uploads/images directory:', imagesDir);
+}
+
+// Set proper permissions
+fs.chmodSync(imagesDir, 0o755);
+console.log('Upload directory exists:', imagesDir);
+console.log('Updated upload directory permissions to 0755');
+
+fs.chmodSync(uploadsDir, 0o755);
+console.log('Updated parent uploads directory permissions to 0755');
 
 const app = express();
 app.use(express.json());
@@ -48,32 +71,6 @@ import { runMigrations, initializeDatabase } from './db';
   try {
     await runMigrations();
     await initializeDatabase();
-    
-    // URGENT FIX: Create a simplified admin account with bcrypt
-    const bcrypt = await import('bcryptjs');
-    const simplePassword = 'evalia123';
-    const hashedPassword = await bcrypt.hash(simplePassword, 10);
-    
-    // Import database connection from db.ts
-    const { pool } = await import('./db');
-    
-    // Force update or create admin account
-    await pool.query(`
-      INSERT INTO teachers (
-        username, password, "firstName", "lastName", email, role
-      ) VALUES (
-        'admin', 
-        $1, 
-        'Admin', 
-        'User', 
-        'admin@evalia.edu', 
-        'manager'
-      ) ON CONFLICT (username) 
-      DO UPDATE SET password = $1
-    `, [hashedPassword]);
-    
-    console.log('IMPORTANT: Admin account created/updated. Username: admin, Password: evalia123');
-    console.log('Database setup completed successfully');
   } catch (error) {
     console.error('Error setting up database:', error);
   }
