@@ -2798,7 +2798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const flattenedData = [];
         
         // Add header row
-        const header = ['Student ID', 'Student Name', 'Assignment', 'Type', 'Score', 'Max Score', 'Percentage', 'Comments', 'Graded At'];
+        const header = ['Student ID', 'Student Name', 'Assignment', 'Type', 'Score', 'Max Score', 'Percentage', 'Letter Grade', 'Comments', 'Graded At'];
         flattenedData.push(header);
         
         // Add rows for each student and grade
@@ -2816,6 +2816,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               '',
               '',
               '',
+              '',
               ''
             ]);
           } else {
@@ -2823,7 +2824,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             grades.forEach(grade => {
               const scoreNum = parseFloat(grade.score);
               const maxScoreNum = parseFloat(grade.maxScore);
-              const percentage = maxScoreNum > 0 ? ((scoreNum / maxScoreNum) * 100).toFixed(2) + '%' : 'N/A';
+              const percentValue = maxScoreNum > 0 ? (scoreNum / maxScoreNum) * 100 : 0;
+              const percentage = maxScoreNum > 0 ? percentValue.toFixed(2) + '%' : 'N/A';
+              
+              // Calculate letter grade
+              const letterGrade = getLetterGrade(percentValue);
               
               flattenedData.push([
                 student.id,
@@ -2833,6 +2838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 grade.score,
                 grade.maxScore,
                 percentage,
+                letterGrade,
                 grade.comments || '',
                 new Date(grade.gradedAt).toLocaleDateString()
               ]);
@@ -2942,7 +2948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const flattenedData = [];
         
         // Add header row
-        const header = ['Student ID', 'Student Name', 'Score', 'Max Score', 'Percentage', 'Completed At'];
+        const header = ['Student ID', 'Student Name', 'Score', 'Max Score', 'Percentage', 'Letter Grade', 'Completed At'];
         flattenedData.push(header);
         
         // Add rows for each student submission
@@ -2959,10 +2965,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const scoreNum = parseFloat(scoreStr);
           const maxScoreNum = parseFloat(maxScoreStr);
           
-          const percentage = maxScoreNum > 0 ? ((scoreNum / maxScoreNum) * 100).toFixed(2) + '%' : 'N/A';
+          const percentValue = maxScoreNum > 0 ? (scoreNum / maxScoreNum) * 100 : 0;
+          const percentage = maxScoreNum > 0 ? percentValue.toFixed(2) + '%' : 'N/A';
+          const letterGrade = getLetterGrade(percentValue);
           const completedDate = submission.completedAt ? new Date(submission.completedAt).toLocaleDateString() : 'Unknown';
           
-          console.log(`Adding row for student ${student.id} (${studentName}): score=${scoreNum}/${maxScoreNum}`);
+          console.log(`Adding row for student ${student.id} (${studentName}): score=${scoreNum}/${maxScoreNum}, grade=${letterGrade}`);
           
           flattenedData.push([
             String(student.id),
@@ -2970,6 +2978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             String(scoreNum),
             String(maxScoreNum),
             percentage,
+            letterGrade,
             completedDate
           ]);
         });
@@ -3158,18 +3167,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Route for processing beta applications
     app.post("/api/beta-application", requireAuth, async (req, res) => {
       try {
-        const userId = req.session.user?.id;
-        if (!userId) {
+        const teacherId = req.user?.id;
+        if (!teacherId) {
           return res.status(401).json({ message: "Authentication required" });
         }
         
-        // Store the beta application (in a real app, this would be stored in a database)
-        // For this demo, we'll just return success
-        console.log(`Beta application received for user ${userId}:`, req.body);
+        console.log(`Beta application received for user ${teacherId}:`, req.body);
+        
+        // Store the application details
+        const { school, role, yearsTeaching, reasonForInterest, howHeard } = req.body;
+        
+        // For demo purposes, we'll auto-approve beta applications
+        // In a real application, an admin would review and approve these
+        const updatedTeacher = await dbStorage.updateBetaTesterStatus(teacherId, true);
+        
+        if (!updatedTeacher) {
+          return res.status(404).json({ message: "Teacher not found" });
+        }
+        
+        // Return success with the updated teacher data (omitting sensitive info)
+        const { password, ...teacherData } = updatedTeacher;
         
         res.status(200).json({ 
-          message: "Beta application received successfully",
-          status: "pending_review"
+          message: "Beta application approved! You now have access to premium features.",
+          status: "approved",
+          teacher: teacherData
         });
       } catch (error: any) {
         console.error("Error processing beta application:", error);
