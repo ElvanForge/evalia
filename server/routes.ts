@@ -224,7 +224,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Student routes
   app.get("/api/students", requireAuth, async (req, res) => {
     try {
-      const students = await dbStorage.getAllStudents();
+      const teacherId = req.user?.id;
+      const isManager = req.user?.role === 'manager';
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      let students = [];
+      
+      if (isManager) {
+        // Managers can see all students
+        students = await dbStorage.getAllStudents();
+      } else {
+        // Get only students from classes taught by this teacher
+        const teacherClasses = await dbStorage.getClassesByTeacher(teacherId);
+        const classIds = teacherClasses.map(c => c.id);
+        
+        if (classIds.length === 0) {
+          students = []; // No classes, no students
+        } else {
+          // Get all students enrolled in any of the teacher's classes
+          const uniqueStudentIds = new Set<number>();
+          for (const classId of classIds) {
+            const enrollments = await dbStorage.getEnrollments(classId);
+            for (const enrollment of enrollments) {
+              uniqueStudentIds.add(enrollment.studentId);
+            }
+          }
+          
+          // Fetch the actual student records
+          const studentPromises = Array.from(uniqueStudentIds).map(
+            studentId => dbStorage.getStudent(studentId)
+          );
+          
+          const studentResults = await Promise.all(studentPromises);
+          students = studentResults.filter(Boolean) as any[]; // Filter out any undefined results
+        }
+      }
+      
       res.status(200).json(students);
     } catch (error) {
       console.error("Error fetching students:", error);
@@ -263,11 +301,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/students/:id", requireAuth, async (req, res) => {
     try {
+      const teacherId = req.user?.id;
+      const isManager = req.user?.role === 'manager';
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const studentId = Number(req.params.id);
       const student = await dbStorage.getStudent(studentId);
       
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
+      }
+
+      // Manager can access any student
+      if (isManager) {
+        return res.status(200).json(student);
+      }
+      
+      // Check if the student is enrolled in any of the teacher's classes
+      const teacherClasses = await dbStorage.getClassesByTeacher(teacherId);
+      const classIds = teacherClasses.map(c => c.id);
+      
+      if (classIds.length === 0) {
+        return res.status(403).json({ message: "Not authorized to view this student" });
+      }
+      
+      // Check if student is enrolled in any of the teacher's classes
+      let isAuthorized = false;
+      for (const classId of classIds) {
+        const enrollments = await dbStorage.getEnrollments(classId);
+        if (enrollments.some(e => e.studentId === studentId)) {
+          isAuthorized = true;
+          break;
+        }
+      }
+      
+      if (!isAuthorized) {
+        return res.status(403).json({ message: "Not authorized to view this student" });
       }
 
       res.status(200).json(student);
@@ -519,7 +591,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/assignments", requireAuth, validateRequest(insertAssignmentSchema), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const classId = Number(req.body.classId);
       
       // Verify the class belongs to the teacher
@@ -538,7 +615,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/assignments/:id", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const assignmentId = Number(req.params.id);
       
       const assignment = await dbStorage.getAssignment(assignmentId);
@@ -561,7 +643,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/assignments/:id", requireAuth, validateRequest(insertAssignmentSchema.partial()), async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const assignmentId = Number(req.params.id);
       
       const assignment = await dbStorage.getAssignment(assignmentId);
@@ -585,7 +672,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/assignments/:id", requireAuth, async (req, res) => {
     try {
-      const teacherId = Number(req.session.teacherId);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const assignmentId = Number(req.params.id);
       
       const assignment = await dbStorage.getAssignment(assignmentId);

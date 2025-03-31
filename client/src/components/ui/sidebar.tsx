@@ -21,6 +21,8 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+// Import logo directly
+import EvaliaLogo from "@/assets/evalia-logo.svg";
 
 type SidebarLinkProps = {
   href: string;
@@ -71,7 +73,7 @@ export function Sidebar() {
     <>
       <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
-          <img src="/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8" />
+          <img src={EvaliaLogo} alt="Evalia Logo" className="h-8 w-8" />
           <span className="ml-2 text-xl font-bold text-[#333333]">Evalia</span>
           {isMobile && (
             <Button
