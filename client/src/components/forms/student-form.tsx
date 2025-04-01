@@ -6,8 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { putRequest } from "@/lib/api-helpers";
+import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import {
@@ -29,11 +28,17 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
   const isEditing = !!student;
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isNewStudent, setIsNewStudent] = useState(true);
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   // Fetch existing students for enrollment option
   const { data: existingStudents } = useQuery<Student[]>({
     queryKey: ["/api/students"],
     enabled: !!classId, // Only fetch if we're adding to a class
+  });
+
+  // Fetch classes for selection
+  const { data: classes } = useQuery<any[]>({
+    queryKey: ["/api/classes"],
   });
 
   // Create form for new student
@@ -409,7 +414,6 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
                     onClick={() => {
                       console.log("Enroll button clicked, form state:", enrollmentForm.formState);
                       console.log("Current studentId value:", enrollmentForm.getValues().studentId);
-                      // The actual submission is handled by form.handleSubmit(onSubmitEnrollment)
                     }}
                   >
                     {enrollmentMutation.isPending
@@ -447,14 +451,6 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
       </div>
     );
   }
-
-  // Fetch classes for the class selector
-  const { data: classes } = useQuery<any[]>({
-    queryKey: ["/api/classes"],
-  });
-
-  // State to track the selected class
-  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   // Regular student form (not for enrollment)
   return (
@@ -569,10 +565,6 @@ export function StudentForm({ student, classId, onSuccess }: StudentFormProps) {
           <Button
             type="submit"
             disabled={studentMutation.isPending}
-            onClick={() => {
-              // Do nothing here, we'll handle the classId in the mutation function
-              // The field doesn't need to be in the form as it's not part of the schema
-            }}
           >
             {studentMutation.isPending
               ? isEditing
