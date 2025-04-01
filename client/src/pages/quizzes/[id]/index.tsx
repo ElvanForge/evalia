@@ -754,15 +754,15 @@ const QuizDetail = () => {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
+              <CardHeader className="flex flex-row items-center justify-between space-x-4">
+                <div className="flex-shrink-0">
                   <CardTitle>Class Assignments</CardTitle>
                   <CardDescription>
                     Assign this quiz to multiple classes
                   </CardDescription>
                 </div>
                 {isEditingClasses ? (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-shrink-0">
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -795,7 +795,7 @@ const QuizDetail = () => {
                   <Button 
                     size="sm" 
                     onClick={() => setIsEditingClasses(true)}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap flex-shrink-0"
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Assignments
@@ -861,8 +861,8 @@ const QuizDetail = () => {
             </Card>
 
             <Card className="md:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
+              <CardHeader className="flex flex-row items-center justify-between space-x-4">
+                <div className="flex-shrink-0">
                   <CardTitle>Questions</CardTitle>
                   <CardDescription>
                     Manage quiz questions and answers
@@ -874,7 +874,7 @@ const QuizDetail = () => {
                     console.log("Add Question button clicked, quiz ID:", id);
                     setIsAddingQuestion(true);
                   }}
-                  className="whitespace-nowrap"
+                  className="whitespace-nowrap flex-shrink-0"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Question
