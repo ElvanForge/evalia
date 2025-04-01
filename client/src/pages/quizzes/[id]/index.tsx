@@ -766,6 +766,7 @@ const QuizDetail = () => {
                     <Button 
                       size="sm" 
                       variant="outline" 
+                      className="whitespace-nowrap"
                       onClick={() => {
                         setIsEditingClasses(false);
                         // Reset to original values
@@ -780,6 +781,7 @@ const QuizDetail = () => {
                     </Button>
                     <Button 
                       size="sm"
+                      className="whitespace-nowrap"
                       onClick={() => updateClassAssignmentsMutation.mutate(selectedClassIds)}
                       disabled={updateClassAssignmentsMutation.isPending}
                     >
@@ -793,6 +795,7 @@ const QuizDetail = () => {
                   <Button 
                     size="sm" 
                     onClick={() => setIsEditingClasses(true)}
+                    className="whitespace-nowrap"
                   >
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Assignments
@@ -871,6 +874,7 @@ const QuizDetail = () => {
                     console.log("Add Question button clicked, quiz ID:", id);
                     setIsAddingQuestion(true);
                   }}
+                  className="whitespace-nowrap"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Question
