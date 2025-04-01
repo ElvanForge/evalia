@@ -149,37 +149,7 @@ export function ClassForm({ class_, onSuccess }: ClassFormProps) {
           )}
         />
 
-        <div className="flex justify-end pt-4 space-x-4">
-          <Button
-            type="button"
-            disabled={mutation.isPending}
-            variant="outline"
-            onClick={async () => {
-              console.log("Manual submit button clicked");
-              // Get current form values
-              const values = form.getValues();
-              console.log("Form values:", values);
-              
-              if (!values.name) {
-                toast({
-                  title: "Error",
-                  description: "Class name is required",
-                  variant: "destructive"
-                });
-                return;
-              }
-              
-              // Manually submit
-              try {
-                await mutation.mutateAsync(values);
-              } catch (error) {
-                console.error("Manual submission error:", error);
-              }
-            }}
-          >
-            Create Class (Manual)
-          </Button>
-        
+        <div className="flex justify-end pt-4">
           <Button
             type="submit"
             disabled={mutation.isPending}

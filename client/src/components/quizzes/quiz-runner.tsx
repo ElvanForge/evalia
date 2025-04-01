@@ -281,17 +281,17 @@ export function QuizRunner({
         </div>
         
         {/* Question text - centered, larger and more prominent */}
-        <div className="text-2xl font-semibold text-center px-4 py-3 bg-muted/30 rounded-lg w-full">
+        <div className="text-3xl font-bold text-center px-6 py-4 bg-muted/40 rounded-lg w-full shadow-sm">
           {currentQuestion.question}
         </div>
         
         {/* Image container - larger with fullscreen capabilities */}
         {currentQuestion.imageUrl && (
-          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[400px]">
+          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[500px]">
             <ImageWithFallback 
               src={currentQuestion.imageUrl}
               alt={`Question ${currentQuestionIndex + 1}`}
-              className="rounded-md object-contain max-h-[380px] max-w-[90%]"
+              className="rounded-md object-contain max-h-[480px] max-w-full"
               isQuizImage={true}
               onLoadSuccess={() => console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`)}
               onLoadError={() => {
@@ -345,19 +345,19 @@ export function QuizRunner({
           <div className="flex justify-center gap-4 mt-6">
             <Button 
               onClick={() => selectAnswer(true)}
-              className="gap-2"
+              className="gap-2 px-8 py-6 text-lg"
               size="lg"
             >
-              <CheckCircle2 className="h-5 w-5" />
+              <CheckCircle2 className="h-6 w-6" />
               Correct
             </Button>
             <Button 
               onClick={() => selectAnswer(false)}
               variant="outline"
-              className="gap-2"
+              className="gap-2 px-8 py-6 text-lg hover:bg-muted/50 hover:border-destructive/50 transition-colors"
               size="lg"
             >
-              <XCircle className="h-5 w-5" />
+              <XCircle className="h-6 w-6" />
               Incorrect
             </Button>
           </div>
@@ -370,7 +370,7 @@ export function QuizRunner({
               <Button
                 key={option.id}
                 variant="outline"
-                className="justify-start h-auto py-3 px-4 text-left"
+                className="justify-start h-auto py-4 px-6 text-left text-lg hover:bg-muted/50 hover:border-primary/50 transition-colors"
                 onClick={() => selectAnswer(option.isCorrect || false, option.id)}
               >
                 {option.text}

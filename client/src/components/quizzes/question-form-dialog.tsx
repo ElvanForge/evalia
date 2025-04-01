@@ -568,7 +568,7 @@ export function QuestionFormDialog({
         }
       }}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{questionToEdit ? "Edit Question" : "Add New Question"}</DialogTitle>
           <DialogDescription>
@@ -589,7 +589,7 @@ export function QuestionFormDialog({
                   <FormControl>
                     <Textarea
                       placeholder="Enter the question"
-                      className="min-h-[80px]"
+                      className="min-h-[120px] max-h-[200px] overflow-y-auto"
                       {...field}
                     />
                   </FormControl>
