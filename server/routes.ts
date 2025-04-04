@@ -314,11 +314,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const studentId = Number(req.params.id);
-      const student = await dbStorage.getStudent(studentId);
       
-      if (!student) {
-        return res.status(404).json({ message: "Student not found" });
+      // Validate student ID is a proper number
+      if (isNaN(studentId) || studentId <= 0) {
+        console.log("Invalid student ID requested:", req.params.id);
+        return res.status(400).json({ message: "Invalid student ID" });
       }
+      
+      try {
+        const student = await dbStorage.getStudent(studentId);
+        
+        if (!student) {
+          return res.status(404).json({ message: "Student not found" });
+        }
 
       // Manager can access any student
       if (isManager) {
@@ -348,8 +356,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       res.status(200).json(student);
+      } catch (dbError) {
+        console.error("Database error fetching student:", dbError);
+        return res.status(500).json({ message: "Error retrieving student from database" });
+      }
     } catch (error) {
-      console.error("Error fetching student:", error);
+      console.error("Error in student endpoint:", error);
       res.status(500).json({ message: "Server error fetching student" });
     }
   });
@@ -3631,6 +3643,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process each class
       for (const classItem of classes) {
         try {
+          if (!classItem || !classItem.id) {
+            console.log("Invalid class record found, skipping");
+            continue;
+          }
+
           // Get students in this class
           const students = await dbStorage.getStudentsByClass(classItem.id);
           
@@ -3639,8 +3656,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // For each student, check their grades
           for (const student of students) {
             try {
-              if (!student || !student.id) {
-                console.log("Invalid student record found, skipping");
+              if (!student || typeof student.id !== 'number' || isNaN(student.id)) {
+                console.log("Invalid student record found, skipping:", student);
                 continue;
               }
 
@@ -3748,8 +3765,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json(alerts);
     } catch (error) {
       console.error("Error in student alerts endpoint:", error);
-      // On error, just return empty array rather than fake data
-      return res.status(200).json([]);
+      // Return a proper error response
+      return res.status(500).json({ message: "Server error fetching student alerts" });
     }
   });
 
