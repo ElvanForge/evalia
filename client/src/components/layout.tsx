@@ -40,47 +40,14 @@ export default function Layout({
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-50">
+    <div className="h-screen flex overflow-hidden bg-white">
       <Sidebar />
       
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
-        {/* Header */}
-        <div className="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
-          <div className="flex-1 px-4 flex justify-between">
-            <div className="flex-1 flex items-center">
-              <div className="w-full max-w-lg lg:max-w-xs">
-                <label htmlFor="search" className="sr-only">Search</label>
-                <div className="relative text-gray-400 focus-within:text-gray-600">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5" />
-                  </div>
-                  <Input
-                    id="search"
-                    placeholder="Search for students, classes..."
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <div className="ml-4 flex items-center md:ml-6">
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-500">
-                <Bell className="h-6 w-6" />
-              </Button>
-            </div>
-          </div>
-        </div>
-        
         {/* Main content */}
-        <main className="flex-1 relative overflow-y-auto focus:outline-none">
-          <div className="py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-              {/* Title is now handled by the PageHeader component */}
-            </div>
-            
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-              {children}
-            </div>
+        <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
+          <div className="max-w-7xl mx-auto">
+            {children}
           </div>
         </main>
       </div>

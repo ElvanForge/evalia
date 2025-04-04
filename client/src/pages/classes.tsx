@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import SectionHeader from "@/components/section-header";
 
 export default function Classes() {
   const { toast } = useToast();
@@ -121,18 +122,23 @@ export default function Classes() {
     </div>
   );
 
+  const addClass = (
+    <Link href="/classes/new">
+      <Button className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90">
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Add Class
+      </Button>
+    </Link>
+  );
+
   return (
     <Layout title="Classes">
-      <div className="mt-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-medium">All Classes</h2>
-          <Link href="/classes/new">
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Class
-            </Button>
-          </Link>
-        </div>
+      <div className="space-y-6">
+        <SectionHeader 
+          title="Classes" 
+          subtitle="Manage your classroom sections"
+          rightContent={addClass}
+        />
 
         <DataTable
           data={classes || []}

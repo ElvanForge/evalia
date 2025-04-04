@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import SectionHeader from "@/components/section-header";
 
 export default function Students() {
   const { toast } = useToast();
@@ -118,26 +119,31 @@ export default function Students() {
     </div>
   );
 
+  const addButton = (
+    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <DialogTrigger asChild>
+        <Button className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Student
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Student</DialogTitle>
+        </DialogHeader>
+        <StudentForm onSuccess={() => setIsAddDialogOpen(false)} />
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <Layout title="Students">
-      <div className="mt-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-medium">All Students</h2>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Student
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Student</DialogTitle>
-              </DialogHeader>
-              <StudentForm onSuccess={() => setIsAddDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </div>
+      <div className="space-y-6">
+        <SectionHeader 
+          title="Students" 
+          subtitle="Manage all your students"
+          rightContent={addButton}
+        />
 
         <DataTable
           data={students || []}

@@ -1,9 +1,10 @@
 import React, { ReactNode } from "react";
 
-interface SectionHeaderProps {
+export interface SectionHeaderProps {
   title: string;
   subtitle?: string;
   rightContent?: ReactNode;
+  leftContent?: ReactNode;
   className?: string;
 }
 
@@ -11,6 +12,7 @@ export default function SectionHeader({
   title, 
   subtitle, 
   rightContent,
+  leftContent,
   className = ""
 }: SectionHeaderProps) {
   return (
@@ -22,11 +24,18 @@ export default function SectionHeader({
             <p className="text-white/80 mt-1">{subtitle}</p>
           )}
         </div>
-        {rightContent && (
-          <div className="flex-shrink-0">
-            {rightContent}
-          </div>
-        )}
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          {leftContent && (
+            <div className="flex-shrink-0">
+              {leftContent}
+            </div>
+          )}
+          {rightContent && (
+            <div className="flex-shrink-0">
+              {rightContent}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

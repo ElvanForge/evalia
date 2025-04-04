@@ -3,11 +3,11 @@ import { useLocation } from "wouter";
 import { Plus, Loader2, BookText, Edit, Play, PlusCircle, Clock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import Layout from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Quiz } from "@shared/schema";
+import SectionHeader from "@/components/section-header";
 
 const QuizzesPage = () => {
   const { user } = useAuth();
@@ -29,11 +29,14 @@ const QuizzesPage = () => {
   return (
     <Layout title="Quizzes">
       <div className="space-y-6">
-        <PageHeader
+        <SectionHeader
           title="Quizzes"
-          description="Create and manage your quizzes"
-          actions={
-            <Button onClick={() => setLocation("/quizzes/new")}>
+          subtitle="Create and manage your quizzes"
+          rightContent={
+            <Button 
+              className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90" 
+              onClick={() => setLocation("/quizzes/new")}
+            >
               <Plus className="mr-2 h-4 w-4" />
               New Quiz
             </Button>

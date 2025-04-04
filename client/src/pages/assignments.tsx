@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { PlusCircle, Pencil, Trash2 } from "lucide-react";
 import { AssignmentForm } from "@/components/forms/assignment-form";
+import SectionHeader from "@/components/section-header";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -148,47 +149,57 @@ export default function Assignments() {
 
   const isLoading = isClassesLoading || isAssignmentsLoading;
 
+  const classFilter = (
+    <div className="flex items-center space-x-2">
+      <span className="text-sm font-medium">Filter by class:</span>
+      <Select 
+        value={selectedClassId} 
+        onValueChange={setSelectedClassId}
+      >
+        <SelectTrigger className="w-[200px]">
+          <SelectValue placeholder="Filter by class" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Classes</SelectItem>
+          {classes?.map((class_) => (
+            <SelectItem key={class_.id} value={class_.id.toString()}>
+              {class_.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const addAssignment = (
+    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <DialogTrigger asChild>
+        <Button className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Assignment
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Assignment</DialogTitle>
+        </DialogHeader>
+        <AssignmentForm 
+          onSuccess={() => setIsAddDialogOpen(false)}
+          defaultClassId={selectedClassId !== "all" ? parseInt(selectedClassId) : undefined}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <Layout title="Assignments">
-      <div className="mt-6 space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="w-full sm:w-auto">
-            <Select 
-              value={selectedClassId} 
-              onValueChange={setSelectedClassId}
-            >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filter by class" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Classes</SelectItem>
-                {classes?.map((class_) => (
-                  <SelectItem key={class_.id} value={class_.id.toString()}>
-                    {class_.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Assignment
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Assignment</DialogTitle>
-              </DialogHeader>
-              <AssignmentForm 
-                onSuccess={() => setIsAddDialogOpen(false)}
-                defaultClassId={selectedClassId !== "all" ? parseInt(selectedClassId) : undefined}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+      <div className="space-y-6">
+        <SectionHeader
+          title="Assignments"
+          subtitle="Manage homework, projects, and other graded work"
+          rightContent={addAssignment}
+          leftContent={classFilter}
+        />
 
         <DataTable
           data={assignments || []}
