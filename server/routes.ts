@@ -47,16 +47,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const validateRequest = (schema: any) => {
     return (req: Request, res: Response, next: express.NextFunction) => {
       try {
+        // Log the incoming data for debugging
+        console.log("Validating request data:", JSON.stringify(req.body));
         schema.parse(req.body);
         next();
       } catch (error) {
         if (error instanceof ZodError) {
           const validationError = fromZodError(error);
+          console.error("Validation error details:", JSON.stringify(validationError.details));
+          console.error("Error format issues:", validationError.details.map(d => `${d.path}: ${d.message}`));
           return res.status(400).json({ 
             message: "Validation error", 
             errors: validationError.details 
           });
         }
+        console.error("Non-zod validation error:", error);
         next(error);
       }
     };
@@ -645,8 +650,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to create assignments for this class" });
       }
+      
+      // Ensure maxScore and weight are sent as strings for database consistency
+      // This is because they're decimal types in the database
+      const assignmentData = {
+        ...req.body,
+        maxScore: req.body.maxScore.toString(),
+        weight: req.body.weight.toString()
+      };
+      
+      console.log("Creating assignment with data:", assignmentData);
 
-      const newAssignment = await dbStorage.createAssignment(req.body);
+      const newAssignment = await dbStorage.createAssignment(assignmentData);
       res.status(201).json(newAssignment);
     } catch (error) {
       console.error("Error creating assignment:", error);
@@ -702,8 +717,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!class_ || class_.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this assignment" });
       }
+      
+      // Ensure maxScore and weight are sent as strings for database consistency
+      const assignmentData = { ...req.body };
+      
+      if (assignmentData.maxScore !== undefined) {
+        assignmentData.maxScore = assignmentData.maxScore.toString();
+      }
+      
+      if (assignmentData.weight !== undefined) {
+        assignmentData.weight = assignmentData.weight.toString();
+      }
+      
+      console.log("Updating assignment with data:", assignmentData);
 
-      const updatedAssignment = await dbStorage.updateAssignment(assignmentId, req.body);
+      const updatedAssignment = await dbStorage.updateAssignment(assignmentId, assignmentData);
       res.status(200).json(updatedAssignment);
     } catch (error) {
       console.error("Error updating assignment:", error);

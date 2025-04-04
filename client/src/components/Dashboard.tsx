@@ -205,9 +205,10 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       if (!newAssignment.name) throw new Error("Assignment name is required");
       if (!newAssignment.classId) throw new Error("Class is required");
       if (!newAssignment.type) throw new Error("Assignment type is required");
+      if (!newAssignment.maxScore) throw new Error("Maximum score is required");
       
       // Convert string values to appropriate types as required by the schema
-      // Schema requires decimal values for maxScore and weight
+      // Schema requires decimal values for maxScore and weight as strings
       const maxScore = parseFloat(newAssignment.maxScore);
       if (isNaN(maxScore) || maxScore <= 0) {
         throw new Error("Max score must be a positive number");
@@ -223,9 +224,9 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         classId: parseInt(newAssignment.classId),
         type: newAssignment.type || 'homework',
         dueDate: newAssignment.dueDate ? new Date(newAssignment.dueDate) : null,
-        weight: weight, // Send as decimal
+        weight: String(weight), // Convert to string for API
         description: newAssignment.description || '',
-        maxScore: maxScore // Send as decimal
+        maxScore: String(maxScore) // Convert to string for API
       };
       
       // Use apiRequest to properly handle authentication
