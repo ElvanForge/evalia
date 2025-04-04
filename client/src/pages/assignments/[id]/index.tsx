@@ -265,9 +265,9 @@ export default function AssignmentDetail() {
                 <CardContent>
                   {grades && grades.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                      <div className="bg-primary/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Class Average</p>
-                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        <p className="text-2xl font-bold text-primary">
                           {grades.filter(g => g.score !== null).length > 0 
                             ? (grades.reduce((acc, grade) => acc + (grade.score || 0), 0) / 
                               grades.filter(g => g.score !== null).length).toFixed(1)
@@ -275,18 +275,18 @@ export default function AssignmentDetail() {
                         </p>
                       </div>
                       
-                      <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                      <div className="bg-primary/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Highest Score</p>
-                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        <p className="text-2xl font-bold text-primary">
                           {grades.filter(g => g.score !== null).length > 0 
                             ? Math.max(...grades.map(g => g.score || 0))
                             : 'N/A'}
                         </p>
                       </div>
                       
-                      <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                      <div className="bg-primary/10 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Lowest Score</p>
-                        <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                        <p className="text-2xl font-bold text-primary">
                           {grades.filter(g => g.score !== null).length > 0 
                             ? Math.min(...grades.filter(g => g.score !== null).map(g => g.score || 0))
                             : 'N/A'}

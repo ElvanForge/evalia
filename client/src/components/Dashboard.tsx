@@ -293,12 +293,14 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       
       {/* At a Glance Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-700 dark:text-gray-300">
-          <span className="inline-block mr-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          </span>
-          At a Glance
-        </h3>
+        <div className="bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium p-3 rounded-t-lg mb-4">
+          <h3 className="text-xl font-semibold flex items-center">
+            <span className="inline-block mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+            At a Glance
+          </h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard 
             title="Total Students" 
@@ -356,15 +358,17 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       {/* Class Cards Section */}
       {classCards.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-700 dark:text-gray-300">
-            <span className="inline-block mr-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M18 3v4c0 2-2 4-4 4s-4-2-4-4V3"/><path d="M10 21h4"/><path d="M14 3h4v4"/><path d="M6 3H2v4"/><path d="M2 7h4"/><path d="M22 7h-4"/><path d="M18 21h4v-4"/><path d="M6 21H2v-4"/><path d="M2 17h4"/><path d="M22 17h-4"/></svg>
-            </span>
-            Your Classes
-            <Button variant="link" size="sm" onClick={() => window.location.href = '/classes'} className="ml-auto">
-              View All
-            </Button>
-          </h3>
+          <div className="bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium p-3 rounded-t-lg mb-4">
+            <h3 className="text-xl font-semibold flex items-center">
+              <span className="inline-block mr-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M18 3v4c0 2-2 4-4 4s-4-2-4-4V3"/><path d="M10 21h4"/><path d="M14 3h4v4"/><path d="M6 3H2v4"/><path d="M2 7h4"/><path d="M22 7h-4"/><path d="M18 21h4v-4"/><path d="M6 21H2v-4"/><path d="M2 17h4"/><path d="M22 17h-4"/></svg>
+              </span>
+              Your Classes
+              <Button variant="link" size="sm" onClick={() => window.location.href = '/classes'} className="ml-auto text-white hover:text-slate-200">
+                View All
+              </Button>
+            </h3>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {classCards.map((classData) => (
               <ClassCard key={classData.id} class={classData} />
@@ -373,149 +377,180 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         </div>
       )}
       
-      {/* Analytics & Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-1">
-          <h3 className="text-xl font-semibold px-5 pt-4 flex items-center text-gray-700 dark:text-gray-300">
+      {/* Quick Grade Entry - Moved directly under Classes section */}
+      <div className="mb-8">
+        <div className="bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium p-3 rounded-t-lg mb-4">
+          <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </span>
-            Grade Distribution
+            Quick Grade Entry
           </h3>
-          <GradeDistribution distribution={gradeDistribution} />
         </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-1">
-          <h3 className="text-xl font-semibold px-5 pt-4 flex items-center text-gray-700 dark:text-gray-300">
-            <span className="inline-block mr-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M12 7.5v1.5"/><path d="M12 15v1.5"/><path d="M12 3v1.5"/><path d="M12 19.5V21"/><path d="M3.6 9H7.5"/><path d="M16.5 9h3.9"/><path d="M3.6 15H7.5"/><path d="M16.5 15h3.9"/><path d="M3 12c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9-9-4.03-9-9z"/><path d="M15 12 A3 3 0 0 1 12 15 A3 3 0 0 1 9 12 A3 3 0 0 1 15 12 z"/></svg>
-            </span>
-            Recent Activity
-          </h3>
-          <RecentActivity activities={recentActivities} />
+        <div className="bg-white dark:bg-gray-800 rounded-b-lg shadow-sm p-4">
+          <p className="text-muted-foreground text-sm mb-4">Enter grades for your most recent assignments</p>
+          
+          <div className="mb-4">
+            <Select value={selectedAssignment} onValueChange={handleAssignmentChange}>
+              <SelectTrigger className="w-full mb-3">
+                <SelectValue placeholder="Select an assignment" />
+              </SelectTrigger>
+              <SelectContent>
+                {assignments && assignments.length > 0 ? (
+                  assignments.map(assignment => (
+                    <SelectItem key={assignment.id} value={assignment.id.toString()}>
+                      {assignment.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="" disabled>No assignments available</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            
+            {isLoadingStudents ? (
+              <div className="flex justify-center p-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : selectedAssignment ? (
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 text-sm">
+                {studentGrades.length > 0 ? (
+                  <>
+                    <p className="font-medium mb-2">
+                      Students Pending Grades: {studentGrades.filter(sg => !sg.score).length}
+                    </p>
+                    <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
+                      <span>Student</span>
+                      <span>Grade</span>
+                    </div>
+                    <div className="border-t border-slate-200 dark:border-slate-700"></div>
+                    
+                    {studentGrades.map(student => (
+                      <div key={student.studentId} className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700">
+                        <span>{student.studentName}</span>
+                        <Input 
+                          type="text" 
+                          className="w-16" 
+                          placeholder="0-100" 
+                          value={student.score}
+                          onChange={(e) => handleGradeChange(student.studentId, e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <p className="text-center py-6 text-muted-foreground">No students found for this assignment</p>
+                )}
+              </div>
+            ) : (
+              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-6 text-center text-muted-foreground">
+                <p>Select an assignment to enter grades</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-auto flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                if (selectedAssignment) {
+                  // Navigate directly to the assignment details page
+                  window.location.href = `/assignments/${selectedAssignment}`;
+                }
+              }}
+              disabled={!selectedAssignment}
+            >
+              View Assignment
+            </Button>
+            <Button 
+              onClick={handleSaveGrades} 
+              disabled={!selectedAssignment || studentGrades.length === 0 || isLoadingStudents || saveGradesMutation.isPending}
+            >
+              {saveGradesMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Grades'
+              )}
+            </Button>
+          </div>
         </div>
       </div>
       
       {/* Recent Assignments Table */}
-      <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
-        <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-700 dark:text-gray-300">
-          <span className="inline-block mr-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
-          </span>
-          Recent Assignments
-        </h3>
+      <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
+        <div className="bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium p-3 rounded-t-lg">
+          <h3 className="text-xl font-semibold flex items-center">
+            <span className="inline-block mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+            </span>
+            Recent Assignments
+          </h3>
+        </div>
+        <div className="p-4">
         <GradeTable 
           assignments={assignments || []} 
           onViewAssignment={handleViewAssignment} 
           onEditAssignment={handleEditAssignment} 
         />
       </div>
+      </div>
       
       {/* Tools Section */}
       <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-4 flex items-center text-gray-700 dark:text-gray-300">
-          <span className="inline-block mr-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-          </span>
-          Quick Tools
-        </h3>
+        <div className="bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium p-3 rounded-t-lg mb-4">
+          <h3 className="text-xl font-semibold flex items-center">
+            <span className="inline-block mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            </span>
+            Quick Tools
+          </h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="flex flex-col bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-xl font-semibold flex items-center text-primary">
                 <span className="inline-block mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
                 </span>
-                Quick Grade Entry
+                View Assignments
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-grow">
-              <p className="text-muted-foreground text-sm mb-4">Enter grades for your most recent assignments</p>
+              <p className="text-muted-foreground text-sm mb-4">Quickly access recent assignments</p>
               
-              <div className="mb-4">
-                <Select value={selectedAssignment} onValueChange={handleAssignmentChange}>
-                  <SelectTrigger className="w-full mb-3">
-                    <SelectValue placeholder="Select an assignment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {assignments && assignments.length > 0 ? (
-                      assignments.map(assignment => (
-                        <SelectItem key={assignment.id} value={assignment.id.toString()}>
-                          {assignment.name}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="" disabled>No assignments available</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                
-                {isLoadingStudents ? (
-                  <div className="flex justify-center p-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  </div>
-                ) : selectedAssignment ? (
-                  <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 text-sm">
-                    {studentGrades.length > 0 ? (
-                      <>
-                        <p className="font-medium mb-2">
-                          Students Pending Grades: {studentGrades.filter(sg => !sg.score).length}
-                        </p>
-                        <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
-                          <span>Student</span>
-                          <span>Grade</span>
-                        </div>
-                        <div className="border-t border-slate-200 dark:border-slate-700"></div>
-                        
-                        {studentGrades.map(student => (
-                          <div key={student.studentId} className="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-700">
-                            <span>{student.studentName}</span>
-                            <Input 
-                              type="text" 
-                              className="w-16" 
-                              placeholder="0-100" 
-                              value={student.score}
-                              onChange={(e) => handleGradeChange(student.studentId, e.target.value)}
-                            />
-                          </div>
-                        ))}
-                      </>
-                    ) : (
-                      <p className="text-center py-6 text-muted-foreground">No students found for this assignment</p>
-                    )}
-                  </div>
+              <div className="space-y-3 mb-4">
+                {assignments && assignments.length > 0 ? (
+                  assignments.slice(0, 3).map(assignment => (
+                    <div key={assignment.id} className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{assignment.name}</span>
+                        <span className="text-xs text-muted-foreground">{assignment.type}</span>
+                      </div>
+                      <div className="flex mt-2">
+                        <Button 
+                          variant="link" 
+                          size="sm" 
+                          className="px-0 text-primary" 
+                          onClick={() => handleViewAssignment(assignment.id)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  ))
                 ) : (
                   <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-6 text-center text-muted-foreground">
-                    <p>Select an assignment to enter grades</p>
+                    <p>No recent assignments</p>
                   </div>
                 )}
               </div>
               
-              <div className="mt-auto flex justify-between">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    if (selectedAssignment) {
-                      // Navigate directly to the assignment details page
-                      window.location.href = `/assignments/${selectedAssignment}`;
-                    }
-                  }}
-                  disabled={!selectedAssignment}
-                >
-                  View Assignment
-                </Button>
-                <Button 
-                  onClick={handleSaveGrades} 
-                  disabled={!selectedAssignment || studentGrades.length === 0 || isLoadingStudents || saveGradesMutation.isPending}
-                >
-                  {saveGradesMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Grades'
-                  )}
+              <div className="mt-auto">
+                <Button className="w-full" onClick={() => window.location.href = '/assignments'}>
+                  All Assignments
                 </Button>
               </div>
             </CardContent>
@@ -643,6 +678,36 @@ export default function Dashboard({ currentUser }: DashboardProps) {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Grade Distribution - Moved to the bottom of the page */}
+      <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
+        <div className="bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium p-3 rounded-t-lg">
+          <h3 className="text-xl font-semibold flex items-center">
+            <span className="inline-block mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </span>
+            Grade Distribution
+          </h3>
+        </div>
+        <div className="p-6">
+          <GradeDistribution distribution={gradeDistribution} />
+        </div>
+      </div>
+
+      {/* Recent Activity Section */}
+      <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
+        <div className="bg-gradient-to-l from-[#0ba2b0] to-[#085a60] text-white font-medium p-3 rounded-t-lg">
+          <h3 className="text-xl font-semibold flex items-center">
+            <span className="inline-block mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 7.5v1.5"/><path d="M12 15v1.5"/><path d="M12 3v1.5"/><path d="M12 19.5V21"/><path d="M3.6 9H7.5"/><path d="M16.5 9h3.9"/><path d="M3.6 15H7.5"/><path d="M16.5 15h3.9"/><path d="M3 12c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9-9-4.03-9-9z"/><path d="M15 12 A3 3 0 0 1 12 15 A3 3 0 0 1 9 12 A3 3 0 0 1 15 12 z"/></svg>
+            </span>
+            Recent Activity
+          </h3>
+        </div>
+        <div className="p-4">
+          <RecentActivity activities={recentActivities} />
         </div>
       </div>
     </div>
