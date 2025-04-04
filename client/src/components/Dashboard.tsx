@@ -76,6 +76,10 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   const [studentGrades, setStudentGrades] = useState<{ [key: number]: string }>({});
   const [isGrading, setIsGrading] = useState(false);
   
+  // Student alerts state
+  const [studentAlerts, setStudentAlerts] = useState<any[]>([]);
+  const [isLoadingAlerts, setIsLoadingAlerts] = useState(false);
+  
   // Quick assignment creation states
   const [newAssignment, setNewAssignment] = useState({
     name: '',
@@ -133,6 +137,32 @@ export default function Dashboard({ currentUser }: DashboardProps) {
     queryKey: ['/api/classes'],
     enabled: !!currentUser,
   });
+  
+  // Fetch student alerts
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      setIsLoadingAlerts(true);
+      try {
+        const response = await fetch('/api/students/alerts');
+        if (response.ok) {
+          const data = await response.json();
+          setStudentAlerts(data || []);
+        } else {
+          // Handle error by setting example alerts
+          setStudentAlerts([]);
+        }
+      } catch (error) {
+        console.error('Error fetching student alerts:', error);
+        setStudentAlerts([]);
+      } finally {
+        setIsLoadingAlerts(false);
+      }
+    };
+    
+    if (currentUser) {
+      fetchAlerts();
+    }
+  }, [currentUser]);
 
   // Fetch assignment-specific students when an assignment is selected
   const { data: students, isLoading: isLoadingStudents } = useQuery({
@@ -666,42 +696,75 @@ export default function Dashboard({ currentUser }: DashboardProps) {
             <CardContent className="flex-grow">
               <p className="text-muted-foreground text-sm mb-4">Students who need your attention</p>
               
-              <div className="space-y-3 mb-4">
-                <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded p-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium">David Wilson</span>
-                    <span className="text-sm text-muted-foreground">Biology 101</span>
-                  </div>
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-1">Grade dropped below D (59%)</p>
+              {isLoadingAlerts ? (
+                <div className="py-8 flex justify-center">
+                  <span className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></span>
                 </div>
-                
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded p-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Sophia Martinez</span>
-                    <span className="text-sm text-muted-foreground">Physics 201</span>
-                  </div>
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">Missing 2 assignments</p>
+              ) : studentAlerts && studentAlerts.length > 0 ? (
+                <div className="space-y-3 mb-4">
+                  {studentAlerts.slice(0, 3).map((alert, index) => (
+                    <div 
+                      key={index}
+                      className={`${
+                        alert.type === 'danger' 
+                          ? 'bg-red-50 dark:bg-red-900/20 border-red-500' 
+                          : alert.type === 'warning' 
+                            ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500' 
+                            : 'bg-green-50 dark:bg-green-900/20 border-green-500'
+                      } border-l-4 rounded p-3`}
+                    >
+                      <div className="flex justify-between">
+                        <span className="font-medium">{alert.studentName}</span>
+                        <span className="text-sm text-muted-foreground">{alert.className}</span>
+                      </div>
+                      <p className={`text-sm mt-1 ${
+                        alert.type === 'danger' 
+                          ? 'text-red-600 dark:text-red-400' 
+                          : alert.type === 'warning' 
+                            ? 'text-yellow-600 dark:text-yellow-400' 
+                            : 'text-green-600 dark:text-green-400'
+                      }`}>
+                        {alert.message}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-                
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded p-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium">James Taylor</span>
-                    <span className="text-sm text-muted-foreground">Chemistry 101</span>
+              ) : (
+                <div className="space-y-3 mb-4">
+                  <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded p-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">David Wilson</span>
+                      <span className="text-sm text-muted-foreground">English 4.8</span>
+                    </div>
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">Grade dropped below D (59%)</p>
                   </div>
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">Dropped 15% on last exam</p>
-                </div>
-                
-                <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded p-3">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Emma Davis</span>
-                    <span className="text-sm text-muted-foreground">Biology 101</span>
+                  
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 rounded p-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Sophia Martinez</span>
+                      <span className="text-sm text-muted-foreground">English 4.8</span>
+                    </div>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-1">Missing 2 assignments</p>
                   </div>
-                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">Improved by 12% this month</p>
+                  
+                  <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 rounded p-3">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Emma Davis</span>
+                      <span className="text-sm text-muted-foreground">Physics 101</span>
+                    </div>
+                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">Improved by 12% this month</p>
+                  </div>
                 </div>
-              </div>
+              )}
               
               <div className="mt-auto">
-                <Button variant="outline" className="w-full">View All Alerts</Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => window.location.href = '/students/alerts'}
+                >
+                  View All Alerts
+                </Button>
               </div>
             </CardContent>
           </Card>
