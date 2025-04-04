@@ -332,26 +332,24 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       </div>
 
       {/* Class Cards Section */}
-      {classCards.length > 0 && (
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg mb-4">
-            <h3 className="text-xl font-semibold flex items-center">
-              <span className="inline-block mr-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M18 3v4c0 2-2 4-4 4s-4-2-4-4V3"/><path d="M10 21h4"/><path d="M14 3h4v4"/><path d="M6 3H2v4"/><path d="M2 7h4"/><path d="M22 7h-4"/><path d="M18 21h4v-4"/><path d="M6 21H2v-4"/><path d="M2 17h4"/><path d="M22 17h-4"/></svg>
-              </span>
-              Your Classes
-              <Button variant="link" size="sm" onClick={() => window.location.href = '/classes'} className="ml-auto text-white hover:text-slate-200">
-                View All
-              </Button>
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {classCards.map((classData) => (
-              <ClassCard key={classData.id} class={classData} />
-            ))}
-          </div>
+      <div className="mb-8">
+        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg mb-4">
+          <h3 className="text-xl font-semibold flex items-center">
+            <span className="inline-block mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M18 3v4c0 2-2 4-4 4s-4-2-4-4V3"/><path d="M10 21h4"/><path d="M14 3h4v4"/><path d="M6 3H2v4"/><path d="M2 7h4"/><path d="M22 7h-4"/><path d="M18 21h4v-4"/><path d="M6 21H2v-4"/><path d="M2 17h4"/><path d="M22 17h-4"/></svg>
+            </span>
+            Your Classes
+            <Button variant="link" size="sm" onClick={() => window.location.href = '/classes'} className="ml-auto text-white hover:text-slate-200">
+              View All
+            </Button>
+          </h3>
         </div>
-      )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {classCards.map((classData) => (
+            <ClassCard key={classData.id} class={classData} />
+          ))}
+        </div>
+      </div>
 
       {/* Quick Tools Section */}
       <div className="mb-8">
