@@ -230,7 +230,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   return (
     <div className="px-4 py-6 max-w-7xl mx-auto">
       {/* Welcome Card */}
-      <div className="mb-8 rounded-xl bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] p-6 text-white shadow-sm">
+      <div className="mb-8 rounded-xl bg-[#0ba2b0] p-6 text-white shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold">Welcome back, {currentUser?.name || 'Teacher'}</h2>
@@ -269,7 +269,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
 
       {/* Stats Overview */}
       <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
-        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg">
+        <div className="bg-[#0ba2b0] text-white font-medium p-3 rounded-t-lg">
           <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z"/><path d="M12 12v.01"/></svg>
@@ -333,7 +333,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
 
       {/* Class Cards Section */}
       <div className="mb-8">
-        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg mb-4">
+        <div className="bg-[#0ba2b0] text-white font-medium p-3 rounded-t-lg mb-4">
           <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M18 3v4c0 2-2 4-4 4s-4-2-4-4V3"/><path d="M10 21h4"/><path d="M14 3h4v4"/><path d="M6 3H2v4"/><path d="M2 7h4"/><path d="M22 7h-4"/><path d="M18 21h4v-4"/><path d="M6 21H2v-4"/><path d="M2 17h4"/><path d="M22 17h-4"/></svg>
@@ -366,7 +366,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
 
       {/* Quick Tools Section */}
       <div className="mb-8">
-        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg mb-4">
+        <div className="bg-[#0ba2b0] text-white font-medium p-3 rounded-t-lg mb-4">
           <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
@@ -549,7 +549,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       
       {/* Quick Grade Entry Form */}
       <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
-        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg">
+        <div className="bg-[#0ba2b0] text-white font-medium p-3 rounded-t-lg">
           <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -650,7 +650,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       
       {/* Recent Assignments Table */}
       <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
-        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg">
+        <div className="bg-[#0ba2b0] text-white font-medium p-3 rounded-t-lg">
           <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
@@ -669,7 +669,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
 
       {/* Grade Distribution - Moved to the bottom of the page */}
       <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
-        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg">
+        <div className="bg-[#0ba2b0] text-white font-medium p-3 rounded-t-lg">
           <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
@@ -684,7 +684,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
 
       {/* Recent Activity Section */}
       <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
-        <div className="bg-gradient-to-r from-[#0ba2b0] to-[#8dd9d2] text-white font-medium p-3 rounded-t-lg">
+        <div className="bg-[#0ba2b0] text-white font-medium p-3 rounded-t-lg">
           <h3 className="text-xl font-semibold flex items-center">
             <span className="inline-block mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M12 7.5v1.5"/><path d="M12 15v1.5"/><path d="M12 3v1.5"/><path d="M12 19.5V21"/><path d="M3.6 9H7.5"/><path d="M16.5 9h3.9"/><path d="M3.6 15H7.5"/><path d="M16.5 15h3.9"/><path d="M3 12c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9-9-4.03-9-9z"/><path d="M15 12 A3 3 0 0 1 12 15 A3 3 0 0 1 9 12 A3 3 0 0 1 15 12 z"/></svg>
