@@ -363,29 +363,30 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
 
       {isGrading && (
         <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+          <div className="mb-4 flex justify-between items-center">
+            <div>
+              <h4 className="text-lg font-medium">
+                {selectedAssignmentDetails?.name || 'Assignment'} Grading
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                {selectedAssignmentDetails?.maxScore && `Maximum score: ${selectedAssignmentDetails.maxScore}`}
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsAddingStudent(true)}
+            >
+              Add Student
+            </Button>
+          </div>
+          
           {isLoadingStudents ? (
             <div className="flex justify-center items-center py-8">
               <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
             </div>
           ) : students && students.length > 0 ? (
             <>
-              <div className="mb-4 flex justify-between items-center">
-                <div>
-                  <h4 className="text-lg font-medium">Enter Grades</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Assignment: {selectedAssignmentDetails?.name || ''} 
-                    {selectedAssignmentDetails?.maxScore && ` (Max score: ${selectedAssignmentDetails.maxScore})`}
-                  </p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsAddingStudent(true)}
-                >
-                  Add Student
-                </Button>
-              </div>
-              
               <div className="space-y-3">
                 {students.map((student: Student) => (
                   <div key={student.id} className="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
@@ -428,16 +429,20 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
               </div>
             </>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
-                No students enrolled in this class. Would you like to add a student?
-              </p>
-              <div className="flex justify-center gap-4">
-                <Button variant="outline" onClick={() => setIsGrading(false)}>
-                  Go Back
-                </Button>
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-md p-6">
+              <div className="flex flex-col items-center justify-center text-center py-6">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-4">
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                  <line x1="19" y1="8" x2="19" y2="14"/>
+                  <line x1="16" y1="11" x2="22" y2="11"/>
+                </svg>
+                <h3 className="text-lg font-medium mb-1">No Students Found</h3>
+                <p className="text-muted-foreground mb-4 max-w-md">
+                  There are no students enrolled in this class yet. Add your first student to start grading.
+                </p>
                 <Button variant="default" onClick={() => setIsAddingStudent(true)}>
-                  Add Student
+                  Add First Student
                 </Button>
               </div>
             </div>
