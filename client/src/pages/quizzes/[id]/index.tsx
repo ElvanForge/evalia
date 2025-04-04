@@ -754,10 +754,10 @@ const QuizDetail = () => {
             </Card>
 
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-x-4">
-                <div className="flex-shrink-0">
-                  <CardTitle>Class Assignments</CardTitle>
-                  <CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between space-x-2">
+                <div className="flex-grow min-w-0 pr-2">
+                  <CardTitle className="text-wrap">Class Assignments</CardTitle>
+                  <CardDescription className="text-wrap">
                     Assign this quiz to multiple classes
                   </CardDescription>
                 </div>
@@ -861,10 +861,10 @@ const QuizDetail = () => {
             </Card>
 
             <Card className="md:col-span-2">
-              <CardHeader className="flex flex-row items-center justify-between space-x-4">
-                <div className="flex-shrink-0">
-                  <CardTitle>Questions</CardTitle>
-                  <CardDescription>
+              <CardHeader className="flex flex-row items-start justify-between space-x-2">
+                <div className="flex-grow min-w-0 pr-2">
+                  <CardTitle className="text-wrap">Questions</CardTitle>
+                  <CardDescription className="text-wrap">
                     Manage quiz questions and answers
                   </CardDescription>
                 </div>
