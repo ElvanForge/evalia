@@ -82,7 +82,8 @@ export default function Dashboard({ currentUser }: DashboardProps) {
     dueDate: '',
     weight: '',
     type: '',
-    description: ''
+    description: '',
+    maxScore: '100'  // Default max score
   });
   const [isCreatingAssignment, setIsCreatingAssignment] = useState(false);
 
@@ -211,7 +212,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         dueDate: newAssignment.dueDate ? new Date(newAssignment.dueDate) : null,
         weight: parseInt(newAssignment.weight) || 10,
         description: newAssignment.description || '',
-        maxScore: 100 // Default max score as number to match schema
+        maxScore: parseInt(newAssignment.maxScore) || 100 // Use the form value or default to 100
       };
       
       const response = await fetch('/api/assignments', {
@@ -237,7 +238,8 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         dueDate: '',
         weight: '',
         type: '',
-        description: ''
+        description: '',
+        maxScore: '100'
       });
       setIsCreatingAssignment(false);
       
@@ -594,7 +596,17 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                   </div>
                 </div>
                 
-
+                <div>
+                  <Label htmlFor="maxScore">Max Score</Label>
+                  <Input 
+                    id="maxScore" 
+                    type="number" 
+                    placeholder="100" 
+                    value={newAssignment.maxScore}
+                    onChange={(e) => setNewAssignment({...newAssignment, maxScore: e.target.value})}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Maximum possible points for this assignment</p>
+                </div>
                 
                 <div>
                   <Label htmlFor="description">Description (Optional)</Label>
