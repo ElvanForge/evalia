@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MarkdownDisplay } from "@/components/ui/markdown-display";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import PageTitle from "@/components/page-title";
+import SectionHeader from "@/components/section-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Lesson plan types
@@ -219,7 +219,7 @@ export default function ExportLessonPlanPage() {
   if (lessonPlanError || !lessonPlan) {
     return (
       <div className="container py-8">
-        <PageTitle title="Error" subtitle="Failed to load lesson plan" />
+        <SectionHeader title="Error" subtitle="Failed to load lesson plan" />
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -241,16 +241,20 @@ export default function ExportLessonPlanPage() {
 
   return (
     <div className="container py-8">
-      <div className="flex items-center mb-6">
+      <SectionHeader 
+        title="Export Lesson Plan" 
+        subtitle="Download your lesson plan as a formatted document" 
+      />
+      
+      <div className="flex mb-4">
         <Button
-          variant="ghost"
-          className="mr-4"
+          variant="outline"
+          className="flex items-center"
           onClick={() => setLocation(`/lesson-plans/${lessonPlanId}`)}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
+          Back to Lesson Plan
         </Button>
-        <PageTitle title="Export Lesson Plan" subtitle="Download your lesson plan as a formatted document" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

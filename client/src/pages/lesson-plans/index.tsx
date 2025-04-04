@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
-import PageTitle from "@/components/page-title";
+import SectionHeader from "@/components/section-header";
 
 // Type for lesson plan
 interface LessonPlan {
@@ -67,7 +67,10 @@ export default function LessonPlansPage() {
   if (isLoading) {
     return (
       <div className="container py-8">
-        <PageTitle title="Lesson Plans" subtitle="Create and manage AI-generated lesson plans" />
+        <SectionHeader 
+          title="Lesson Plans" 
+          subtitle="Create and manage AI-generated lesson plans" 
+        />
         <div className="grid gap-6 mt-6">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="bg-muted/20">
@@ -92,7 +95,10 @@ export default function LessonPlansPage() {
   if (isError) {
     return (
       <div className="container py-8">
-        <PageTitle title="Lesson Plans" subtitle="Create and manage AI-generated lesson plans" />
+        <SectionHeader 
+          title="Lesson Plans" 
+          subtitle="Create and manage AI-generated lesson plans" 
+        />
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -111,23 +117,29 @@ export default function LessonPlansPage() {
     );
   }
 
+  const createButton = (
+    <Button onClick={() => setLocation("/lesson-plans/create")} className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90">
+      <PlusCircle className="mr-2 h-4 w-4" />
+      Create New Lesson Plan
+    </Button>
+  );
+
   return (
     <div className="container py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            className="flex items-center"
-            onClick={() => setLocation("/dashboard")}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Button>
-          <PageTitle title="Lesson Plans" subtitle="Create and manage AI-generated lesson plans" />
-        </div>
-        <Button onClick={() => setLocation("/lesson-plans/create")} className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Create New Lesson Plan
+      <SectionHeader 
+        title="Lesson Plans" 
+        subtitle="Create and manage AI-generated lesson plans"
+        rightContent={createButton} 
+      />
+      
+      <div className="flex mb-4">
+        <Button
+          variant="outline"
+          className="flex items-center"
+          onClick={() => setLocation("/dashboard")}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to Dashboard
         </Button>
       </div>
 

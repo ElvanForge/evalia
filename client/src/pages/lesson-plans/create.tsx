@@ -28,7 +28,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import PageTitle from "@/components/page-title";
+import SectionHeader from "@/components/section-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -219,18 +219,20 @@ export default function CreateLessonPlanPage() {
 
   return (
     <div className="container py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            className="flex items-center"
-            onClick={() => setLocation("/lesson-plans")}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Lesson Plans
-          </Button>
-          <PageTitle title="Create Lesson Plan" subtitle="Set up your new lesson plan" />
-        </div>
+      <SectionHeader
+        title="Create Lesson Plan" 
+        subtitle="Set up your new lesson plan"
+      />
+      
+      <div className="flex mb-4">
+        <Button
+          variant="outline"
+          className="flex items-center"
+          onClick={() => setLocation("/lesson-plans")}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to Lesson Plans
+        </Button>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

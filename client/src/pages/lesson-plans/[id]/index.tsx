@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { MarkdownDisplay } from "@/components/ui/markdown-display";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import PageTitle from "@/components/page-title";
+import SectionHeader from "@/components/section-header";
 import { formatDistanceToNow } from "date-fns";
 
 // Lesson plan types
@@ -131,7 +131,7 @@ export default function ViewLessonPlanPage() {
   if (lessonPlanError || !lessonPlan) {
     return (
       <div className="container py-8">
-        <PageTitle title="Error" subtitle="Failed to load lesson plan" />
+        <SectionHeader title="Error" subtitle="Failed to load lesson plan" />
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -151,44 +151,51 @@ export default function ViewLessonPlanPage() {
     );
   }
 
+  const actionButtons = (
+    <div className="flex space-x-2">
+      <Button
+        variant="outline"
+        onClick={() => setLocation(`/lesson-plans/${lessonPlanId}/edit`)}
+      >
+        <FileEdit className="h-4 w-4 mr-2" />
+        Edit
+      </Button>
+      <Button
+        className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90"
+        disabled={!lessonPlan.content || isExporting}
+        onClick={handleExport}
+      >
+        {isExporting ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Exporting...
+          </>
+        ) : (
+          <>
+            <ArrowUpRight className="h-4 w-4 mr-2" />
+            Export
+          </>
+        )}
+      </Button>
+    </div>
+  );
+
   return (
     <div className="container py-8">
-      <div className="flex items-center mb-6">
+      <SectionHeader 
+        title={lessonPlan.title} 
+        subtitle="Lesson Plan Details" 
+        rightContent={actionButtons}
+      />
+      
+      <div className="flex mb-6">
         <Button
           variant="outline"
-          className="flex items-center mr-4"
+          className="flex items-center"
           onClick={() => setLocation("/lesson-plans")}
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back to Lesson Plans
-        </Button>
-        <PageTitle title={lessonPlan.title} subtitle="Lesson Plan Details" />
-      </div>
-      
-      <div className="flex justify-end space-x-2 mb-6">
-        <Button
-          variant="outline"
-          onClick={() => setLocation(`/lesson-plans/${lessonPlanId}/edit`)}
-        >
-          <FileEdit className="h-4 w-4 mr-2" />
-          Edit
-        </Button>
-        <Button
-          className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90"
-          disabled={!lessonPlan.content || isExporting}
-          onClick={handleExport}
-        >
-          {isExporting ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Exporting...
-            </>
-          ) : (
-            <>
-              <ArrowUpRight className="h-4 w-4 mr-2" />
-              Export
-            </>
-          )}
         </Button>
       </div>
 
