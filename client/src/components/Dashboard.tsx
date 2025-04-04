@@ -165,7 +165,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   }, [currentUser]);
 
   // Fetch assignment-specific students when an assignment is selected
-  const { data: students, isLoading: isLoadingStudents } = useQuery({
+  const { data: students = [], isLoading: isLoadingStudents, refetch: refetchStudents } = useQuery({
     queryKey: ['/api/students/assignment', selectedAssignment],
     queryFn: async ({ queryKey }) => {
       if (!selectedAssignment) return [];
@@ -173,7 +173,9 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       if (!response.ok) {
         throw new Error('Failed to fetch students');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Fetched students:', data); // Debug log
+      return data;
     },
     enabled: !!selectedAssignment,
   });
@@ -342,7 +344,8 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       return;
     }
 
-    setIsGrading(true);
+    // Don't automatically show grading UI when assignment is selected in dropdown
+    // This is now handled by the Start Grading button
   }, [selectedAssignment]);
 
   // Handle student grade input
@@ -827,7 +830,13 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                 <Button 
                   className="w-full" 
                   disabled={!quickGradeClass || !selectedAssignment}
-                  onClick={() => setIsGrading(true)}
+                  onClick={() => {
+                    // Set isGrading first
+                    setIsGrading(true);
+                    // Force refetch of students data for this assignment
+                    refetchStudents();
+                    console.log('Starting grading for assignment:', selectedAssignment);
+                  }}
                 >
                   Start Grading
                 </Button>
@@ -837,50 +846,65 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         </div>
       </div>
       
-      {isGrading && students && students.length > 0 && (
+      {isGrading && (
         <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-          <div className="mb-4">
-            <h4 className="text-lg font-medium">Enter Grades</h4>
-            <p className="text-sm text-muted-foreground">Enter scores for each student</p>
-          </div>
-          
-          <div className="space-y-3">
-            {students.map((student: Student) => (
-              <div key={student.id} className="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
-                <div className="flex-grow">
-                  <p className="font-medium">{student.firstName} {student.lastName}</p>
-                  <p className="text-xs text-muted-foreground">ID: {student.studentNumber || student.id}</p>
-                </div>
-                <div className="w-24">
-                  <Input 
-                    type="text"
-                    placeholder="Score"
-                    value={studentGrades[student.id] || ''}
-                    onChange={(e) => handleGradeChange(student.id, e.target.value)}
-                  />
-                </div>
+          {isLoadingStudents ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
+            </div>
+          ) : students && students.length > 0 ? (
+            <>
+              <div className="mb-4">
+                <h4 className="text-lg font-medium">Enter Grades</h4>
+                <p className="text-sm text-muted-foreground">Enter scores for each student</p>
               </div>
-            ))}
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <Button
-              onClick={() => saveGrades()}
-              disabled={isSavingGrades || Object.keys(studentGrades).length === 0}
-            >
-              {isSavingGrades ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Saving...
-                </>
-              ) : (
-                'Save Grades'
-              )}
-            </Button>
-          </div>
+              
+              <div className="space-y-3">
+                {students.map((student: Student) => (
+                  <div key={student.id} className="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
+                    <div className="flex-grow">
+                      <p className="font-medium">{student.firstName} {student.lastName}</p>
+                      <p className="text-xs text-muted-foreground">ID: {student.studentNumber || student.id}</p>
+                    </div>
+                    <div className="w-24">
+                      <Input 
+                        type="text"
+                        placeholder="Score"
+                        value={studentGrades[student.id] || ''}
+                        onChange={(e) => handleGradeChange(student.id, e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={() => saveGrades()}
+                  disabled={isSavingGrades || Object.keys(studentGrades).length === 0}
+                >
+                  {isSavingGrades ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Grades'
+                  )}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">No students enrolled in this class or assignment.</p>
+              <Button variant="outline" onClick={() => setIsGrading(false)}>
+                Go Back
+              </Button>
+            </div>
+          )}
         </div>
       )}
       
