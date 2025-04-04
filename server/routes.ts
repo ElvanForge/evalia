@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/assignments", requireAuth, validateRequest(insertAssignmentSchema), async (req, res) => {
+  app.post("/api/assignments", requireAuth, async (req, res) => {
     try {
       const teacherId = req.user?.id;
       
@@ -643,7 +643,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
+      // Manual validation for required fields
+      if (!req.body.name || typeof req.body.name !== 'string') {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["name"], message: "Name is required and must be a string" }] 
+        });
+      }
+      
+      if (!req.body.type || typeof req.body.type !== 'string') {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["type"], message: "Type is required and must be a string" }] 
+        });
+      }
+      
+      if (!req.body.classId) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["classId"], message: "Class ID is required" }] 
+        });
+      }
+      
       const classId = Number(req.body.classId);
+      if (isNaN(classId)) {
+        return res.status(400).json({ 
+          message: "Validation error", 
+          errors: [{ path: ["classId"], message: "Class ID must be a number" }] 
+        });
+      }
       
       // Verify the class belongs to the teacher
       const class_ = await dbStorage.getClass(classId);
@@ -651,12 +679,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to create assignments for this class" });
       }
       
-      // Ensure maxScore and weight are sent as strings for database consistency
-      // This is because they're decimal types in the database
+      // Prepare assignment data
       const assignmentData = {
-        ...req.body,
-        maxScore: req.body.maxScore.toString(),
-        weight: req.body.weight.toString()
+        name: req.body.name,
+        type: req.body.type,
+        classId,
+        description: req.body.description || null,
+        // Handle date conversion - support both string date and ISO date string
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null,
+        // Ensure maxScore and weight are sent as strings for database consistency
+        maxScore: String(req.body.maxScore || 100),
+        weight: String(req.body.weight || 10)
       };
       
       console.log("Creating assignment with data:", assignmentData);
@@ -697,7 +730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/assignments/:id", requireAuth, validateRequest(insertAssignmentSchema.partial()), async (req, res) => {
+  app.put("/api/assignments/:id", requireAuth, async (req, res) => {
     try {
       const teacherId = req.user?.id;
       
@@ -718,15 +751,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to update this assignment" });
       }
       
-      // Ensure maxScore and weight are sent as strings for database consistency
-      const assignmentData = { ...req.body };
+      // Prepare assignment data
+      const assignmentData: any = {};
       
-      if (assignmentData.maxScore !== undefined) {
-        assignmentData.maxScore = assignmentData.maxScore.toString();
+      // Only include fields that are provided in the request
+      if (req.body.name !== undefined) {
+        assignmentData.name = req.body.name;
       }
       
-      if (assignmentData.weight !== undefined) {
-        assignmentData.weight = assignmentData.weight.toString();
+      if (req.body.type !== undefined) {
+        assignmentData.type = req.body.type;
+      }
+      
+      if (req.body.description !== undefined) {
+        assignmentData.description = req.body.description;
+      }
+      
+      if (req.body.classId !== undefined) {
+        assignmentData.classId = Number(req.body.classId);
+      }
+      
+      // Handle date conversion - support both string date and ISO date string
+      if (req.body.dueDate !== undefined) {
+        assignmentData.dueDate = req.body.dueDate ? new Date(req.body.dueDate) : null;
+      }
+      
+      // Ensure maxScore and weight are sent as strings for database consistency
+      if (req.body.maxScore !== undefined) {
+        assignmentData.maxScore = String(req.body.maxScore);
+      }
+      
+      if (req.body.weight !== undefined) {
+        assignmentData.weight = String(req.body.weight);
       }
       
       console.log("Updating assignment with data:", assignmentData);

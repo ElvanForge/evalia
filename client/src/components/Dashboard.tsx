@@ -223,7 +223,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         name: newAssignment.name,
         classId: parseInt(newAssignment.classId),
         type: newAssignment.type || 'homework',
-        dueDate: newAssignment.dueDate ? new Date(newAssignment.dueDate) : null,
+        dueDate: newAssignment.dueDate ? newAssignment.dueDate : null,
         weight: String(weight), // Convert to string for API
         description: newAssignment.description || '',
         maxScore: String(maxScore) // Convert to string for API
