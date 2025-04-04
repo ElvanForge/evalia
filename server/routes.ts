@@ -2646,6 +2646,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('============ DIRECT IMAGE REQUEST ============');
     const filename = req.params.filename;
     console.log('Requested image filename:', filename);
+    console.log('Request URL:', req.originalUrl);
+    console.log('Referrer:', req.headers.referer || 'none');
+    
+    // Enable CORS for image requests to help with deployment issues
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
     
     // Security check to prevent path traversal
     if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
@@ -2665,6 +2672,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const files = fs.readdirSync('./uploads/images');
         console.log('Available files in uploads/images:', files);
+        
+        // Look for similar filenames for better debugging
+        const similarFiles = files.filter(file => 
+          file.toLowerCase().includes(filename.toLowerCase()) || 
+          filename.toLowerCase().includes(file.toLowerCase())
+        );
+        
+        if (similarFiles.length > 0) {
+          console.log('Similar filenames found:', similarFiles);
+        }
       } catch (err) {
         console.error('Error listing files:', err);
       }
@@ -2678,11 +2695,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Image file details:', {
         size: stats.size,
         created: stats.birthtime,
-        modified: stats.mtime
+        modified: stats.mtime,
+        path: imagePath,
+        absolutePath: path.resolve(imagePath)
       });
       
       // Ensure file permissions
-      fs.chmodSync(imagePath, 0o644);
+      try {
+        fs.chmodSync(imagePath, 0o644);
+      } catch (permError) {
+        console.warn('Could not change file permissions:', permError.message);
+        // Continue anyway, this is non-critical
+      }
       
       // Determine content type based on file extension
       const ext = path.extname(imagePath).toLowerCase();
@@ -2704,14 +2728,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set appropriate headers
       res.setHeader('Content-Type', contentType);
       res.setHeader('Content-Length', stats.size);
+      res.setHeader('X-Content-Type-Options', 'nosniff'); // Security: Prevent MIME sniffing
       
+      // Always use cache-busting headers for deployment consistency
       // Check if request has a cache-busting query parameter (t or timestamp)
       const hasCacheBusting = req.query.t || req.query.timestamp;
       
       if (hasCacheBusting) {
         // If request has cache busting, allow caching with validation
         // This improves performance while still allowing for cache refreshes
-        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
         res.setHeader('ETag', `"${stats.size}-${stats.mtime.getTime()}"`);
       } else {
         // If no cache busting, use no-cache headers for validation on each request
@@ -2722,20 +2748,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Stream the file directly to the response
       const fileStream = fs.createReadStream(imagePath);
+      
+      // Add timeout handling to prevent hanging requests
+      const timeout = setTimeout(() => {
+        console.error('Image streaming timed out after 10 seconds:', filename);
+        if (!res.headersSent) {
+          res.status(504).send('Streaming timed out');
+        }
+        fileStream.destroy();
+      }, 10000); // 10 second timeout
+      
+      // Pipe the file to the response
       fileStream.pipe(res);
       
       console.log('Image streaming started:', filename);
+      
       fileStream.on('end', () => {
+        clearTimeout(timeout); // Clear the timeout
         console.log('Image streaming completed:', filename);
         console.log('============ IMAGE SENT SUCCESSFULLY ============');
       });
       
       fileStream.on('error', (err) => {
+        clearTimeout(timeout); // Clear the timeout
         console.error('Error streaming image:', err);
         // Only send error if headers haven't been sent yet
         if (!res.headersSent) {
           res.status(500).send('Error streaming image');
         }
+      });
+      
+      // Handle client disconnection
+      req.on('close', () => {
+        clearTimeout(timeout); // Clear the timeout
+        if (fileStream) {
+          fileStream.destroy();
+        }
+        console.log('Client disconnected during image streaming:', filename);
       });
     } catch (error) {
       console.error('Error serving image:', error);

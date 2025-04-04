@@ -287,13 +287,20 @@ export function QuizRunner({
         
         {/* Image container - larger with fullscreen capabilities */}
         {currentQuestion.imageUrl && (
-          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[500px]">
+          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[500px] relative">
+            {/* Add loading state */}
+            <div className="absolute inset-0 flex items-center justify-center z-0">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+            
             <ImageWithFallback 
               src={currentQuestion.imageUrl}
               alt={`Question ${currentQuestionIndex + 1}`}
-              className="rounded-md object-contain max-h-[480px] max-w-full"
+              className="rounded-md object-contain max-h-[480px] max-w-full z-10 relative"
               isQuizImage={true}
-              onLoadSuccess={() => console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`)}
+              onLoadSuccess={() => {
+                console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`);
+              }}
               onLoadError={() => {
                 console.log(`Quiz image failed to load: ${currentQuestion.imageUrl || 'no image'}`);
                 
@@ -305,8 +312,17 @@ export function QuizRunner({
                   const cleanFilename = filename.split('?')[0];
                   const timestamp = Date.now();
                   
-                  // Log all the possible paths we're trying for better troubleshooting
-                  console.log(`Quiz image troubleshooting - Filename: ${cleanFilename}, Question ID: ${currentQuestion.id}`);
+                  // Log detailed troubleshooting info
+                  console.log(`Quiz image troubleshooting - Question ID: ${currentQuestion.id}`);
+                  console.log(`Original imageUrl: ${currentQuestion.imageUrl}`);
+                  console.log(`Extracted filename: ${cleanFilename}`);
+                  
+                  // Log possible URLs that could work
+                  const apiUrl = `${window.location.origin}/api/images/${cleanFilename}?t=${timestamp}`;
+                  const uploadsUrl = `${window.location.origin}/uploads/images/${cleanFilename}?t=${timestamp}`;
+                  
+                  console.log(`Possible direct API URL: ${apiUrl}`);
+                  console.log(`Possible direct uploads URL: ${uploadsUrl}`);
                 }
               }}
             />
