@@ -362,7 +362,12 @@ export default function Reports() {
                         ))}
                       </Pie>
                       <Tooltip 
-                        formatter={(value, name, props) => [`${value} student(s)`, `Grade: ${props.payload.letter}`]}
+                        formatter={(value: any, name: string, props: any) => {
+                          if (props && props.payload && props.payload.letter) {
+                            return [`${value} student(s)`, `Grade: ${props.payload.letter}`];
+                          }
+                          return [`${value}`, name];
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -406,8 +411,15 @@ export default function Reports() {
                         domain={[0, 100]}
                       />
                       <Tooltip
-                        formatter={(value, name, props) => [`${value.toFixed(1)}%`, `Average Score`]}
-                        labelFormatter={(label, props) => props[0].payload.name}
+                        formatter={(value: any, name: string) => {
+                          // Handle both number and string values safely
+                          const formattedValue = typeof value === 'number' ? `${value.toFixed(1)}%` : value;
+                          return [formattedValue, `Average Score`];
+                        }}
+                        labelFormatter={(label: string, props: any) => {
+                          // Safely access props[0] and its properties
+                          return props && props[0] && props[0].payload ? props[0].payload.name : label;
+                        }}
                       />
                       <Bar dataKey="average" name="Average Score">
                         {studentPerformanceData.map((entry, index) => (
@@ -452,10 +464,19 @@ export default function Reports() {
                         tick={{ fontSize: 12 }}
                       />
                       <Tooltip
-                        formatter={(value, name, props) => [
-                          `${value.toFixed(1)}%`, 
-                          `Avg: ${props.payload.average.toFixed(1)}/${props.payload.maxScore} (${props.payload.studentCount} students)`
-                        ]}
+                        formatter={(value: any, name: string, props: any) => {
+                          // Check if payload exists and has the required properties
+                          if (props && props.payload) {
+                            const valuePercent = typeof value === 'number' ? value.toFixed(1) : value;
+                            const avgScore = typeof props.payload.average === 'number' ? props.payload.average.toFixed(1) : props.payload.average;
+                            
+                            return [
+                              `${valuePercent}%`, 
+                              `Avg: ${avgScore}/${props.payload.maxScore} (${props.payload.studentCount} students)`
+                            ];
+                          }
+                          return [`${value}`, name];
+                        }}
                       />
                       <Bar dataKey="percentage" name="Average Score (%)" fill="#3b82f6" />
                     </BarChart>
