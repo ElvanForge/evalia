@@ -306,149 +306,157 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-grow">
-          <p className="text-muted-foreground text-sm mb-4">Quickly enter grades for an assignment</p>
-          
-          <div className="space-y-3">
-            <div>
-              <Label htmlFor="classSelect">Class</Label>
-              <Select 
-                value={selectedClass?.toString() || ""} 
-                onValueChange={(value) => setSelectedClass(parseInt(value))}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose a class" />
-                </SelectTrigger>
-                <SelectContent>
-                  {classes?.map((cls: Class) => (
-                    <SelectItem key={cls.id} value={cls.id.toString()}>
-                      {cls.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="assignmentSelect">Assignment</Label>
-              <Select 
-                value={selectedAssignment?.toString() || ""} 
-                onValueChange={(value) => setSelectedAssignment(parseInt(value))}
-                disabled={!selectedClass || classAssignments.length === 0}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={classAssignments.length === 0 ? "No assignments" : "Select assignment"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {classAssignments.map((assignment: Assignment) => (
-                    <SelectItem key={assignment.id} value={assignment.id.toString()}>
-                      {assignment.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="mt-auto pt-4">
-            <Button 
-              className="w-full" 
-              disabled={!selectedClass || !selectedAssignment}
-              onClick={handleStartGrading}
-            >
-              Start Grading
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {isGrading && (
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-          <div className="mb-4 flex justify-between items-center">
-            <div>
-              <h4 className="text-lg font-medium">
-                {selectedAssignmentDetails?.name || 'Assignment'} Grading
-              </h4>
-              <p className="text-sm text-muted-foreground">
-                {selectedAssignmentDetails?.maxScore && `Maximum score: ${selectedAssignmentDetails.maxScore}`}
-              </p>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setIsAddingStudent(true)}
-            >
-              Add Student
-            </Button>
-          </div>
-          
-          {isLoadingStudents ? (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
-            </div>
-          ) : students && students.length > 0 ? (
+          {!isGrading ? (
             <>
+              <p className="text-muted-foreground text-sm mb-4">Quickly enter grades for an assignment</p>
+              
               <div className="space-y-3">
-                {students.map((student: Student) => (
-                  <div key={student.id} className="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
-                    <div className="flex-grow">
-                      <p className="font-medium">{student.firstName} {student.lastName || ''}</p>
-                      <p className="text-xs text-muted-foreground">ID: {student.studentNumber || student.id}</p>
-                    </div>
-                    <div className="w-24">
-                      <Input 
-                        type="text"
-                        placeholder="Score"
-                        value={studentGrades[student.id] || ''}
-                        onChange={(e) => handleGradeChange(student.id, e.target.value)}
-                      />
-                    </div>
-                  </div>
-                ))}
+                <div>
+                  <Label htmlFor="classSelect">Class</Label>
+                  <Select 
+                    value={selectedClass?.toString() || ""} 
+                    onValueChange={(value) => setSelectedClass(parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose a class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes?.map((cls: Class) => (
+                        <SelectItem key={cls.id} value={cls.id.toString()}>
+                          {cls.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="assignmentSelect">Assignment</Label>
+                  <Select 
+                    value={selectedAssignment?.toString() || ""} 
+                    onValueChange={(value) => setSelectedAssignment(parseInt(value))}
+                    disabled={!selectedClass || classAssignments.length === 0}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={classAssignments.length === 0 ? "No assignments" : "Select assignment"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classAssignments.map((assignment: Assignment) => (
+                        <SelectItem key={assignment.id} value={assignment.id.toString()}>
+                          {assignment.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              <div className="mt-6 flex justify-between">
-                <Button variant="outline" onClick={() => setIsGrading(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => saveGrades()}
-                  disabled={isSavingGrades || Object.keys(studentGrades).length === 0}
+              <div className="mt-auto pt-4">
+                <Button 
+                  className="w-full" 
+                  disabled={!selectedClass || !selectedAssignment}
+                  onClick={handleStartGrading}
                 >
-                  {isSavingGrades ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Grades'
-                  )}
+                  Start Grading
                 </Button>
               </div>
             </>
           ) : (
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-md p-6">
-              <div className="flex flex-col items-center justify-center text-center py-6">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-4">
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
-                  <line x1="19" y1="8" x2="19" y2="14"/>
-                  <line x1="16" y1="11" x2="22" y2="11"/>
-                </svg>
-                <h3 className="text-lg font-medium mb-1">No Students Found</h3>
-                <p className="text-muted-foreground mb-4 max-w-md">
-                  There are no students enrolled in this class yet. Add your first student to start grading.
-                </p>
-                <Button variant="default" onClick={() => setIsAddingStudent(true)}>
-                  Add First Student
+            <>
+              <div className="mb-4 flex justify-between items-center">
+                <div>
+                  <h4 className="text-lg font-medium">
+                    {selectedAssignmentDetails?.name || 'Assignment'} Grading
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedAssignmentDetails?.maxScore && `Maximum score: ${selectedAssignmentDetails.maxScore}`}
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsAddingStudent(true)}
+                >
+                  Add Student
                 </Button>
               </div>
-            </div>
+              
+              {isLoadingStudents ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
+                </div>
+              ) : students && students.length > 0 ? (
+                <>
+                  <div className="space-y-3 max-h-80 overflow-y-auto">
+                    {students.map((student: Student) => (
+                      <div key={student.id} className="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
+                        <div className="flex-grow">
+                          <p className="font-medium">{student.firstName} {student.lastName || ''}</p>
+                          <p className="text-xs text-muted-foreground">ID: {student.studentNumber || student.id}</p>
+                        </div>
+                        <div className="w-24">
+                          <Input 
+                            type="text"
+                            placeholder="Score"
+                            value={studentGrades[student.id] || ''}
+                            onChange={(e) => handleGradeChange(student.id, e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-6 flex justify-between">
+                    <Button variant="outline" onClick={() => setIsGrading(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => saveGrades()}
+                      disabled={isSavingGrades || Object.keys(studentGrades).length === 0}
+                    >
+                      {isSavingGrades ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Grades'
+                      )}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-md p-6">
+                  <div className="flex flex-col items-center justify-center text-center py-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-4">
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+                      <line x1="19" y1="8" x2="19" y2="14"/>
+                      <line x1="16" y1="11" x2="22" y2="11"/>
+                    </svg>
+                    <h3 className="text-lg font-medium mb-1">No Students Found</h3>
+                    <p className="text-muted-foreground mb-4 max-w-md">
+                      There are no students enrolled in this class yet. Add your first student to start grading.
+                    </p>
+                    <Button variant="default" onClick={() => setIsAddingStudent(true)}>
+                      Add First Student
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-4 text-right">
+                <Button variant="ghost" size="sm" onClick={() => setIsGrading(false)}>
+                  Back to Selection
+                </Button>
+              </div>
+            </>
           )}
-        </div>
-      )}
+        </CardContent>
+      </Card>
       
       {/* Add Student Dialog */}
       <Dialog open={isAddingStudent} onOpenChange={setIsAddingStudent}>
