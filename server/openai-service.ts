@@ -62,10 +62,46 @@ export async function analyzeMaterial(materialId: number): Promise<MaterialAnaly
     // Process based on file type
     if (['.txt', '.md', '.rtf'].includes(fileExt)) {
       fileContent = fs.readFileSync(absolutePath, 'utf8');
-    } else if (['.pdf', '.docx', '.doc'].includes(fileExt)) {
-      // For demonstration, we'll assume PDF/DOC content needs to be extracted separately
-      // In a real app, you'd use a library like pdf-parse or mammoth
-      fileContent = `[Content extracted from ${fileExt} file]`;
+    } else if (fileExt === '.pdf') {
+      // Extract content from PDF using OpenAI vision API
+      try {
+        const fileBase64 = fs.readFileSync(absolutePath).toString('base64');
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert at extracting and summarizing educational content from PDF documents. Extract all text, tables, and relevant information from the PDF document provided."
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Extract all the educational content from this PDF document. Include any text, tables, and relevant information that could be used for creating a lesson plan."
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:application/pdf;base64,${fileBase64}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 4000,
+        });
+        
+        fileContent = response.choices[0].message.content || `Failed to extract content from PDF: ${material.fileName}`;
+      } catch (error) {
+        console.error('Error extracting PDF content with OpenAI:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        fileContent = `Error extracting content from PDF: ${material.fileName}. Error: ${errorMessage}`;
+      }
+    } else if (['.docx', '.doc'].includes(fileExt)) {
+      // For DOC/DOCX files, we're still not implementing full extraction yet
+      // In a complete implementation, you would use a library like mammoth
+      fileContent = `[Content extracted from ${fileExt} file: ${material.fileName}]`;
     } else {
       // For other file types, we'll just use the file name
       fileContent = `File: ${material.fileName}`;
