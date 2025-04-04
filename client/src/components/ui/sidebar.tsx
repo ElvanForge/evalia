@@ -18,7 +18,9 @@ import {
   BookText,
   ClipboardCheck,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // Import logo directly
@@ -126,6 +128,14 @@ export function Sidebar() {
             onClick={() => isMobile && setIsOpen(false)}
           >
             Quizzes
+          </SidebarLink>
+          
+          <SidebarLink 
+            href="/lesson-plans" 
+            icon={<BookOpen />}
+            onClick={() => isMobile && setIsOpen(false)}
+          >
+            Lesson Plans
           </SidebarLink>
           
           <SidebarLink 

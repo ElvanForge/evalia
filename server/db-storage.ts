@@ -32,7 +32,13 @@ import type {
   QuizSubmission,
   InsertQuizSubmission,
   QuizAnswer,
-  InsertQuizAnswer
+  InsertQuizAnswer,
+  LessonPlan,
+  InsertLessonPlan,
+  LessonPlanMaterial,
+  InsertLessonPlanMaterial,
+  LessonPlanGeneratedContent,
+  InsertLessonPlanGeneratedContent
 } from '@shared/schema';
 
 // Reusing the pool from db.ts
@@ -831,5 +837,87 @@ export class DBStorage implements IStorage {
         averageGrade: 0
       };
     }
+  }
+
+  // Lesson Plan operations
+  async getLessonPlan(id: number): Promise<LessonPlan | undefined> {
+    const [lessonPlan] = await db.select().from(schema.lessonPlans).where(eq(schema.lessonPlans.id, id));
+    return lessonPlan;
+  }
+
+  async getLessonPlansByTeacher(teacherId: number): Promise<LessonPlan[]> {
+    return db.select().from(schema.lessonPlans).where(eq(schema.lessonPlans.teacherId, teacherId));
+  }
+
+  async getLessonPlansByClass(classId: number): Promise<LessonPlan[]> {
+    return db.select().from(schema.lessonPlans).where(eq(schema.lessonPlans.classId, classId));
+  }
+
+  async createLessonPlan(lessonPlan: InsertLessonPlan): Promise<LessonPlan> {
+    const [newLessonPlan] = await db.insert(schema.lessonPlans).values(lessonPlan).returning();
+    return newLessonPlan;
+  }
+
+  async updateLessonPlan(id: number, lessonPlan: Partial<InsertLessonPlan>): Promise<LessonPlan | undefined> {
+    const [updatedLessonPlan] = await db
+      .update(schema.lessonPlans)
+      .set(lessonPlan)
+      .where(eq(schema.lessonPlans.id, id))
+      .returning();
+    return updatedLessonPlan;
+  }
+
+  async deleteLessonPlan(id: number): Promise<boolean> {
+    const result = await db.delete(schema.lessonPlans).where(eq(schema.lessonPlans.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Lesson Plan Material operations
+  async getLessonPlanMaterial(id: number): Promise<LessonPlanMaterial | undefined> {
+    const [material] = await db.select().from(schema.lessonPlanMaterials).where(eq(schema.lessonPlanMaterials.id, id));
+    return material;
+  }
+
+  async getLessonPlanMaterialsByLessonPlan(lessonPlanId: number): Promise<LessonPlanMaterial[]> {
+    return db.select().from(schema.lessonPlanMaterials).where(eq(schema.lessonPlanMaterials.lessonPlanId, lessonPlanId));
+  }
+
+  async createLessonPlanMaterial(material: InsertLessonPlanMaterial): Promise<LessonPlanMaterial> {
+    const [newMaterial] = await db.insert(schema.lessonPlanMaterials).values(material).returning();
+    return newMaterial;
+  }
+
+  async deleteLessonPlanMaterial(id: number): Promise<boolean> {
+    const result = await db.delete(schema.lessonPlanMaterials).where(eq(schema.lessonPlanMaterials.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  // Lesson Plan Generated Content operations
+  async getLessonPlanGeneratedContent(id: number): Promise<LessonPlanGeneratedContent | undefined> {
+    const [content] = await db.select().from(schema.lessonPlanGeneratedContent).where(eq(schema.lessonPlanGeneratedContent.id, id));
+    return content;
+  }
+
+  async getLessonPlanGeneratedContentsByLessonPlan(lessonPlanId: number): Promise<LessonPlanGeneratedContent[]> {
+    return db.select().from(schema.lessonPlanGeneratedContent).where(eq(schema.lessonPlanGeneratedContent.lessonPlanId, lessonPlanId));
+  }
+
+  async createLessonPlanGeneratedContent(content: InsertLessonPlanGeneratedContent): Promise<LessonPlanGeneratedContent> {
+    const [newContent] = await db.insert(schema.lessonPlanGeneratedContent).values(content).returning();
+    return newContent;
+  }
+
+  async updateLessonPlanGeneratedContentStatus(id: number, isApplied: boolean): Promise<LessonPlanGeneratedContent | undefined> {
+    const [updatedContent] = await db
+      .update(schema.lessonPlanGeneratedContent)
+      .set({ isApplied })
+      .where(eq(schema.lessonPlanGeneratedContent.id, id))
+      .returning();
+    return updatedContent;
+  }
+
+  async deleteLessonPlanGeneratedContent(id: number): Promise<boolean> {
+    const result = await db.delete(schema.lessonPlanGeneratedContent).where(eq(schema.lessonPlanGeneratedContent.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
   }
 }

@@ -27,7 +27,13 @@ import type {
   QuizSubmission,
   InsertQuizSubmission,
   QuizAnswer,
-  InsertQuizAnswer
+  InsertQuizAnswer,
+  LessonPlan,
+  InsertLessonPlan,
+  LessonPlanMaterial,
+  InsertLessonPlanMaterial,
+  LessonPlanGeneratedContent,
+  InsertLessonPlanGeneratedContent
 } from "@shared/schema";
 
 // CRUD Interface for the grade tracking system
@@ -161,6 +167,27 @@ export interface IStorage {
     openAssignments: number,
     averageGrade: number
   }>;
+
+  // Lesson Plan operations
+  getLessonPlan(id: number): Promise<LessonPlan | undefined>;
+  getLessonPlansByTeacher(teacherId: number): Promise<LessonPlan[]>;
+  getLessonPlansByClass(classId: number): Promise<LessonPlan[]>;
+  createLessonPlan(lessonPlan: InsertLessonPlan): Promise<LessonPlan>;
+  updateLessonPlan(id: number, lessonPlan: Partial<InsertLessonPlan>): Promise<LessonPlan | undefined>;
+  deleteLessonPlan(id: number): Promise<boolean>;
+  
+  // Lesson Plan Material operations
+  getLessonPlanMaterial(id: number): Promise<LessonPlanMaterial | undefined>;
+  getLessonPlanMaterialsByLessonPlan(lessonPlanId: number): Promise<LessonPlanMaterial[]>;
+  createLessonPlanMaterial(material: InsertLessonPlanMaterial): Promise<LessonPlanMaterial>;
+  deleteLessonPlanMaterial(id: number): Promise<boolean>;
+  
+  // Lesson Plan Generated Content operations
+  getLessonPlanGeneratedContent(id: number): Promise<LessonPlanGeneratedContent | undefined>;
+  getLessonPlanGeneratedContentsByLessonPlan(lessonPlanId: number): Promise<LessonPlanGeneratedContent[]>;
+  createLessonPlanGeneratedContent(content: InsertLessonPlanGeneratedContent): Promise<LessonPlanGeneratedContent>;
+  updateLessonPlanGeneratedContentStatus(id: number, isApplied: boolean): Promise<LessonPlanGeneratedContent | undefined>;
+  deleteLessonPlanGeneratedContent(id: number): Promise<boolean>;
 }
 
 // Import our database storage implementation

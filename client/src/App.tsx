@@ -35,6 +35,13 @@ import EditAssignment from "@/pages/assignments/[id]/edit";
 // Import the student alerts page
 import StudentAlerts from "@/pages/students/alerts";
 
+// Import lesson plan pages
+import LessonPlans from "@/pages/lesson-plans";
+import CreateLessonPlan from "@/pages/lesson-plans/create";
+import LessonPlanDetail from "@/pages/lesson-plans/[id]";
+import EditLessonPlan from "@/pages/lesson-plans/[id]/edit";
+import ExportLessonPlan from "@/pages/lesson-plans/[id]/export";
+
 function Router() {
   return (
     <Switch>
@@ -65,6 +72,11 @@ function Router() {
       <Route path="/subscribe/:planId" component={Subscribe} />
       <Route path="/beta-application" component={BetaApplication} />
       <Route path="/image-test" component={ImageTest} />
+      <Route path="/lesson-plans" component={LessonPlans} />
+      <Route path="/lesson-plans/create" component={CreateLessonPlan} />
+      <Route path="/lesson-plans/:id" component={LessonPlanDetail} />
+      <Route path="/lesson-plans/:id/edit" component={EditLessonPlan} />
+      <Route path="/lesson-plans/:id/export" component={ExportLessonPlan} />
       <Route component={NotFound} />
     </Switch>
   );

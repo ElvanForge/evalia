@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage as dbStorage } from "./storage";
 import builder from "xmlbuilder";
 import Stripe from "stripe";
+import * as openAIService from "./openai-service";
 
 // Helper function to convert numerical score to letter grade
 function getLetterGrade(score: number): string {
@@ -29,6 +30,9 @@ import {
   insertQuizSubmissionSchema,
   insertQuizAnswerSchema,
   insertSchoolSchema,
+  insertLessonPlanSchema,
+  insertLessonPlanMaterialSchema,
+  insertLessonPlanGeneratedContentSchema,
   USER_ROLES,
 } from "@shared/schema";
 import { ZodError } from "zod";
@@ -3818,6 +3822,342 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching assignments by class:", error);
       res.status(500).json({ message: "Error fetching assignments" });
+    }
+  });
+
+  // Lesson Plan Routes
+  // Get all lesson plans for a teacher
+  app.get("/api/lesson-plans", requireAuth, async (req, res) => {
+    try {
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlans = await dbStorage.getLessonPlansByTeacher(teacherId);
+      res.status(200).json(lessonPlans);
+    } catch (error) {
+      console.error("Error fetching lesson plans:", error);
+      res.status(500).json({ message: "Server error fetching lesson plans" });
+    }
+  });
+
+  // Get a specific lesson plan
+  app.get("/api/lesson-plans/:id", requireAuth, async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view this lesson plan" });
+      }
+      
+      res.status(200).json(lessonPlan);
+    } catch (error) {
+      console.error("Error fetching lesson plan:", error);
+      res.status(500).json({ message: "Server error fetching lesson plan" });
+    }
+  });
+
+  // Create a new lesson plan
+  app.post("/api/lesson-plans", requireAuth, validateRequest(insertLessonPlanSchema), async (req, res) => {
+    try {
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlanData = {
+        ...req.body,
+        teacherId,
+        content: req.body.content || "",
+      };
+      
+      const newLessonPlan = await dbStorage.createLessonPlan(lessonPlanData);
+      res.status(201).json(newLessonPlan);
+    } catch (error) {
+      console.error("Error creating lesson plan:", error);
+      res.status(500).json({ message: "Server error creating lesson plan" });
+    }
+  });
+
+  // Update a lesson plan
+  app.put("/api/lesson-plans/:id", requireAuth, validateRequest(insertLessonPlanSchema.partial()), async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to update this lesson plan" });
+      }
+      
+      const updatedLessonPlan = await dbStorage.updateLessonPlan(lessonPlanId, req.body);
+      res.status(200).json(updatedLessonPlan);
+    } catch (error) {
+      console.error("Error updating lesson plan:", error);
+      res.status(500).json({ message: "Server error updating lesson plan" });
+    }
+  });
+
+  // Delete a lesson plan
+  app.delete("/api/lesson-plans/:id", requireAuth, async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to delete this lesson plan" });
+      }
+      
+      await dbStorage.deleteLessonPlan(lessonPlanId);
+      res.status(200).json({ message: "Lesson plan deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting lesson plan:", error);
+      res.status(500).json({ message: "Server error deleting lesson plan" });
+    }
+  });
+
+  // Upload materials for a lesson plan
+  app.post("/api/lesson-plans/:id/materials", requireAuth, upload.single('file'), async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to upload materials to this lesson plan" });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      const material = {
+        lessonPlanId,
+        fileName: req.file.originalname,
+        fileUrl: req.file.path,
+        fileType: req.file.mimetype,
+        fileSize: req.file.size
+      };
+      
+      const newMaterial = await dbStorage.createLessonPlanMaterial(material);
+      res.status(201).json(newMaterial);
+    } catch (error) {
+      console.error("Error uploading material:", error);
+      res.status(500).json({ message: "Server error uploading material" });
+    }
+  });
+
+  // Get materials for a lesson plan
+  app.get("/api/lesson-plans/:id/materials", requireAuth, async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view materials for this lesson plan" });
+      }
+      
+      const materials = await dbStorage.getLessonPlanMaterialsByLessonPlan(lessonPlanId);
+      res.status(200).json(materials);
+    } catch (error) {
+      console.error("Error fetching materials:", error);
+      res.status(500).json({ message: "Server error fetching materials" });
+    }
+  });
+
+  // Generate lesson plan content with OpenAI
+  app.post("/api/lesson-plans/:id/generate", requireAuth, async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to generate content for this lesson plan" });
+      }
+      
+      // Ensure we have a valid OpenAI API key
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ message: "OpenAI API key not configured" });
+      }
+      
+      const { materialIds } = req.body;
+      
+      const generationOptions = {
+        title: lessonPlan.title,
+        subject: lessonPlan.subject || '',
+        gradeLevel: lessonPlan.gradeLevel || '',
+        duration: lessonPlan.duration || '60 minutes',
+        teacherNotes: req.body.teacherNotes,
+        materialIds: materialIds || []
+      };
+      
+      const generatedContent = await openAIService.generateLessonPlan(generationOptions, lessonPlanId);
+      
+      if (!generatedContent) {
+        return res.status(500).json({ message: "Failed to generate lesson plan content" });
+      }
+      
+      // Update the lesson plan with the generated content
+      const updatedLessonPlan = await dbStorage.updateLessonPlan(lessonPlanId, {
+        content: generatedContent
+      });
+      
+      res.status(200).json({
+        message: "Lesson plan content generated successfully",
+        lessonPlan: updatedLessonPlan
+      });
+    } catch (error) {
+      console.error("Error generating lesson plan content:", error);
+      res.status(500).json({ message: "Server error generating lesson plan content" });
+    }
+  });
+
+  // Generate a specific component for a lesson plan
+  app.post("/api/lesson-plans/:id/generate-component", requireAuth, async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to generate content for this lesson plan" });
+      }
+      
+      // Ensure we have a valid OpenAI API key
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ message: "OpenAI API key not configured" });
+      }
+      
+      const { componentType, context } = req.body;
+      
+      if (!componentType) {
+        return res.status(400).json({ message: "Component type is required" });
+      }
+      
+      const generatedComponent = await openAIService.generateLessonPlanComponent(
+        lessonPlanId,
+        componentType,
+        context || ''
+      );
+      
+      if (!generatedComponent) {
+        return res.status(500).json({ message: `Failed to generate ${componentType} component` });
+      }
+      
+      res.status(200).json({
+        message: `${componentType} component generated successfully`,
+        content: generatedComponent
+      });
+    } catch (error) {
+      console.error("Error generating lesson plan component:", error);
+      res.status(500).json({ message: "Server error generating lesson plan component" });
+    }
+  });
+
+  // Export lesson plan to DOCX/PDF format
+  app.get("/api/lesson-plans/:id/export", requireAuth, async (req, res) => {
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      
+      if (!lessonPlan) {
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to export this lesson plan" });
+      }
+      
+      const exportContent = await openAIService.formatLessonPlanForExport(lessonPlanId);
+      
+      if (!exportContent) {
+        return res.status(500).json({ message: "Failed to format lesson plan for export" });
+      }
+      
+      res.status(200).json({
+        message: "Lesson plan formatted for export successfully",
+        content: exportContent
+      });
+    } catch (error) {
+      console.error("Error exporting lesson plan:", error);
+      res.status(500).json({ message: "Server error exporting lesson plan" });
     }
   });
 
