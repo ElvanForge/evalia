@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Teacher, Class, Assignment, Student } from "@shared/schema";
 import { 
@@ -71,6 +72,17 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   const [selectedAssignment, setSelectedAssignment] = useState<number | null>(null);
   const [studentGrades, setStudentGrades] = useState<{ [key: number]: string }>({});
   const [isGrading, setIsGrading] = useState(false);
+  
+  // Quick assignment creation states
+  const [newAssignment, setNewAssignment] = useState({
+    name: '',
+    classId: '',
+    dueDate: '',
+    weight: '',
+    type: '',
+    description: ''
+  });
+  const [isCreatingAssignment, setIsCreatingAssignment] = useState(false);
 
   const teacherId = currentUser?.id ?? 0;
 
@@ -170,6 +182,51 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       // Keep form state to allow user to retry
     }
   });
+  
+  // Create assignment mutation
+  const { mutate: createAssignment, isPending: isCreatingAssignmentSubmitting } = useMutation({
+    mutationFn: async () => {
+      const assignmentData = {
+        name: newAssignment.name,
+        classId: parseInt(newAssignment.classId),
+        type: newAssignment.type,
+        dueDate: newAssignment.dueDate ? new Date(newAssignment.dueDate) : null,
+        weight: parseInt(newAssignment.weight) || 10,
+        description: newAssignment.description || '',
+        maxScore: "100" // Default max score
+      };
+      
+      const response = await fetch('/api/assignments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(assignmentData),
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Failed to create assignment');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Reset form and show success message
+      setNewAssignment({
+        name: '',
+        classId: '',
+        dueDate: '',
+        weight: '',
+        type: '',
+        description: ''
+      });
+      setIsCreatingAssignment(false);
+    },
+    onError: (error: Error) => {
+      console.error('Error creating assignment:', error);
+    }
+  });
 
   // Handle class selection for quick grading
   useEffect(() => {
@@ -233,7 +290,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       <div className="mb-8 rounded-xl bg-[#0ba2b0] p-6 text-white shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold">Welcome back, {currentUser?.name || 'Teacher'}</h2>
+            <h2 className="text-3xl font-bold">Welcome back, {currentUser?.firstName || 'Teacher'}</h2>
             <p className="mt-1 text-white/80">Here's an overview of your teaching dashboard</p>
           </div>
           <div className="hidden md:block">
@@ -437,12 +494,20 @@ export default function Dashboard({ currentUser }: DashboardProps) {
               <div className="space-y-3 mb-4">
                 <div>
                   <Label htmlFor="assignmentTitle">Title</Label>
-                  <Input id="assignmentTitle" placeholder="Assignment title" />
+                  <Input 
+                    id="assignmentTitle" 
+                    placeholder="Assignment title" 
+                    value={newAssignment.name}
+                    onChange={(e) => setNewAssignment({...newAssignment, name: e.target.value})}
+                  />
                 </div>
                 
                 <div>
                   <Label htmlFor="assignmentClass">Class</Label>
-                  <Select>
+                  <Select
+                    value={newAssignment.classId}
+                    onValueChange={(value) => setNewAssignment({...newAssignment, classId: value})}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a class" />
                     </SelectTrigger>
@@ -461,18 +526,32 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="dueDate">Due Date</Label>
-                    <Input id="dueDate" type="date" />
+                    <Input 
+                      id="dueDate" 
+                      type="date" 
+                      value={newAssignment.dueDate}
+                      onChange={(e) => setNewAssignment({...newAssignment, dueDate: e.target.value})}
+                    />
                   </div>
                   
                   <div>
                     <Label htmlFor="weight">Weight (%)</Label>
-                    <Input id="weight" type="number" placeholder="10" />
+                    <Input 
+                      id="weight" 
+                      type="number" 
+                      placeholder="10" 
+                      value={newAssignment.weight}
+                      onChange={(e) => setNewAssignment({...newAssignment, weight: e.target.value})}
+                    />
                   </div>
                 </div>
                 
                 <div>
                   <Label htmlFor="assignmentType">Type</Label>
-                  <Select>
+                  <Select
+                    value={newAssignment.type}
+                    onValueChange={(value) => setNewAssignment({...newAssignment, type: value})}
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
@@ -485,10 +564,27 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                     </SelectContent>
                   </Select>
                 </div>
+                
+                <div>
+                  <Label htmlFor="description">Description (Optional)</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Add details about this assignment"
+                    className="h-20"
+                    value={newAssignment.description}
+                    onChange={(e) => setNewAssignment({...newAssignment, description: e.target.value})}
+                  />
+                </div>
               </div>
               
               <div className="mt-auto">
-                <Button className="w-full">Create Assignment</Button>
+                <Button 
+                  className="w-full" 
+                  disabled={isCreatingAssignmentSubmitting || !newAssignment.name || !newAssignment.classId || !newAssignment.type}
+                  onClick={() => createAssignment()}
+                >
+                  {isCreatingAssignmentSubmitting ? 'Creating...' : 'Create Assignment'}
+                </Button>
               </div>
             </CardContent>
           </Card>
