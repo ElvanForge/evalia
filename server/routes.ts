@@ -304,6 +304,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get student alerts for the teacher
+  // This specific route needs to come BEFORE the /:id route to avoid being treated as a parameter
+  app.get("/api/students/alerts", requireAuth, async (req, res) => {
+    try {
+      // Get the teacher ID from the authenticated user
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Get the classes taught by this teacher
+      const classes = await dbStorage.getClassesByTeacher(teacherId);
+      
+      if (!classes || classes.length === 0) {
+        // If teacher has no classes, return empty array
+        return res.status(200).json([]);
+      }
+      
+      // Prepare actual alerts based on real student data
+      const alerts = [];
+      
+      // Process each class
+      for (const classItem of classes) {
+        try {
+          if (!classItem || !classItem.id) {
+            console.log("Invalid class record found, skipping");
+            continue;
+          }
+
+          // Get students in this class
+          const students = await dbStorage.getStudentsByClass(classItem.id);
+          
+          if (!students || students.length === 0) continue;
+          
+          // For each student, check their grades
+          for (const student of students) {
+            try {
+              if (!student || typeof student.id !== 'number' || isNaN(student.id)) {
+                console.log("Invalid student record found, skipping:", student);
+                continue;
+              }
+
+              // Get grades for this student in this class
+              const grades = await dbStorage.getGradesByStudentAndClass(student.id, classItem.id);
+              
+              if (!grades || grades.length === 0) {
+                // Missing assignments alert
+                alerts.push({
+                  studentId: student.id,
+                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                  className: classItem.name,
+                  type: 'warning',
+                  message: "No grades recorded yet"
+                });
+                continue;
+              }
+              
+              // Calculate average grade - ensure we handle potential NaN
+              const validGrades = grades.filter(g => g && g.score && !isNaN(parseFloat(g.score)));
+              
+              if (validGrades.length === 0) continue;
+              
+              const totalScore = validGrades.reduce((sum, grade) => sum + parseFloat(grade.score), 0);
+              const avgScore = totalScore / validGrades.length;
+              
+              if (isNaN(avgScore)) continue;
+              
+              // Check for low grades
+              if (avgScore < 60) {
+                alerts.push({
+                  studentId: student.id,
+                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                  className: classItem.name,
+                  type: 'danger',
+                  message: `Overall grade below D (${avgScore.toFixed(1)}%)`
+                });
+              } else if (avgScore < 70) {
+                alerts.push({
+                  studentId: student.id,
+                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                  className: classItem.name,
+                  type: 'warning',
+                  message: `Grade at risk (${avgScore.toFixed(1)}%)`
+                });
+              } else if (avgScore > 90) {
+                alerts.push({
+                  studentId: student.id,
+                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                  className: classItem.name,
+                  type: 'success',
+                  message: `Excellent performance (${avgScore.toFixed(1)}%)`
+                });
+              }
+              
+              // Check for recent grade improvements or declines
+              if (validGrades.length >= 2) {
+                try {
+                  // Sort by graded date
+                  const sortedGrades = [...validGrades].sort((a, b) => 
+                    new Date(b.gradedAt).getTime() - new Date(a.gradedAt).getTime()
+                  );
+                  
+                  const latest = parseFloat(sortedGrades[0].score);
+                  const previous = parseFloat(sortedGrades[1].score);
+                  
+                  if (isNaN(latest) || isNaN(previous)) continue;
+                  
+                  const difference = latest - previous;
+                  
+                  if (difference >= 10) {
+                    alerts.push({
+                      studentId: student.id,
+                      studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                      className: classItem.name,
+                      type: 'success',
+                      message: `Improved by ${difference.toFixed(1)}% on recent assignment`
+                    });
+                  } else if (difference <= -10) {
+                    alerts.push({
+                      studentId: student.id,
+                      studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                      className: classItem.name,
+                      type: 'warning',
+                      message: `Dropped by ${Math.abs(difference).toFixed(1)}% on recent assignment`
+                    });
+                  }
+                } catch (compareError) {
+                  console.error("Error comparing grades:", compareError);
+                  continue;
+                }
+              }
+            } catch (studentError) {
+              console.error(`Error processing student ${student?.id}:`, studentError);
+              continue; // Skip this student but continue with others
+            }
+          }
+        } catch (classError) {
+          console.error(`Error processing class ${classItem?.id}:`, classError);
+          continue; // Skip this class but continue with others
+        }
+      }
+      
+      // Return the actual alerts based on data
+      return res.status(200).json(alerts);
+    } catch (error) {
+      console.error("Error in student alerts endpoint:", error);
+      // Return a proper error response
+      return res.status(500).json({ message: "Server error fetching student alerts" });
+    }
+  });
+
+  // Get a specific student by ID - must come AFTER any specific student routes that match exact patterns
   app.get("/api/students/:id", requireAuth, async (req, res) => {
     try {
       const teacherId = req.user?.id;
@@ -3616,157 +3769,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching assignments by class:", error);
       res.status(500).json({ message: "Error fetching assignments" });
-    }
-  });
-  
-  // Get student alerts for the teacher
-  app.get("/api/students/alerts", requireAuth, async (req, res) => {
-    try {
-      // Get the teacher ID from the authenticated user
-      const teacherId = req.user?.id;
-      
-      if (!teacherId) {
-        return res.status(401).json({ message: "User not authenticated" });
-      }
-
-      // Get the classes taught by this teacher
-      const classes = await dbStorage.getClassesByTeacher(teacherId);
-      
-      if (!classes || classes.length === 0) {
-        // If teacher has no classes, return empty array
-        return res.status(200).json([]);
-      }
-      
-      // Prepare actual alerts based on real student data
-      const alerts = [];
-      
-      // Process each class
-      for (const classItem of classes) {
-        try {
-          if (!classItem || !classItem.id) {
-            console.log("Invalid class record found, skipping");
-            continue;
-          }
-
-          // Get students in this class
-          const students = await dbStorage.getStudentsByClass(classItem.id);
-          
-          if (!students || students.length === 0) continue;
-          
-          // For each student, check their grades
-          for (const student of students) {
-            try {
-              if (!student || typeof student.id !== 'number' || isNaN(student.id)) {
-                console.log("Invalid student record found, skipping:", student);
-                continue;
-              }
-
-              // Get grades for this student in this class
-              const grades = await dbStorage.getGradesByStudentAndClass(student.id, classItem.id);
-              
-              if (!grades || grades.length === 0) {
-                // Missing assignments alert
-                alerts.push({
-                  studentId: student.id,
-                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
-                  className: classItem.name,
-                  type: 'warning',
-                  message: "No grades recorded yet"
-                });
-                continue;
-              }
-              
-              // Calculate average grade - ensure we handle potential NaN
-              const validGrades = grades.filter(g => g && g.score && !isNaN(parseFloat(g.score)));
-              
-              if (validGrades.length === 0) continue;
-              
-              const totalScore = validGrades.reduce((sum, grade) => sum + parseFloat(grade.score), 0);
-              const avgScore = totalScore / validGrades.length;
-              
-              if (isNaN(avgScore)) continue;
-              
-              // Check for low grades
-              if (avgScore < 60) {
-                alerts.push({
-                  studentId: student.id,
-                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
-                  className: classItem.name,
-                  type: 'danger',
-                  message: `Overall grade below D (${avgScore.toFixed(1)}%)`
-                });
-              } else if (avgScore < 70) {
-                alerts.push({
-                  studentId: student.id,
-                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
-                  className: classItem.name,
-                  type: 'warning',
-                  message: `Grade at risk (${avgScore.toFixed(1)}%)`
-                });
-              } else if (avgScore > 90) {
-                alerts.push({
-                  studentId: student.id,
-                  studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
-                  className: classItem.name,
-                  type: 'success',
-                  message: `Excellent performance (${avgScore.toFixed(1)}%)`
-                });
-              }
-              
-              // Check for recent grade improvements or declines
-              if (validGrades.length >= 2) {
-                try {
-                  // Sort by graded date
-                  const sortedGrades = [...validGrades].sort((a, b) => 
-                    new Date(b.gradedAt).getTime() - new Date(a.gradedAt).getTime()
-                  );
-                  
-                  const latest = parseFloat(sortedGrades[0].score);
-                  const previous = parseFloat(sortedGrades[1].score);
-                  
-                  if (isNaN(latest) || isNaN(previous)) continue;
-                  
-                  const difference = latest - previous;
-                  
-                  if (difference >= 10) {
-                    alerts.push({
-                      studentId: student.id,
-                      studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
-                      className: classItem.name,
-                      type: 'success',
-                      message: `Improved by ${difference.toFixed(1)}% on recent assignment`
-                    });
-                  } else if (difference <= -10) {
-                    alerts.push({
-                      studentId: student.id,
-                      studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
-                      className: classItem.name,
-                      type: 'warning',
-                      message: `Dropped by ${Math.abs(difference).toFixed(1)}% on recent assignment`
-                    });
-                  }
-                } catch (compareError) {
-                  console.error("Error comparing grades:", compareError);
-                  continue;
-                }
-              }
-            } catch (studentError) {
-              console.error(`Error processing student ${student?.id}:`, studentError);
-              continue; // Skip this student but continue with others
-            }
-          }
-        } catch (classError) {
-          console.error(`Error processing class ${classItem?.id}:`, classError);
-          continue; // Skip this class but continue with others
-        }
-      }
-      
-      // Return the actual alerts based on data
-      return res.status(200).json(alerts);
-    } catch (error) {
-      console.error("Error in student alerts endpoint:", error);
-      // Return a proper error response
-      return res.status(500).json({ message: "Server error fetching student alerts" });
     }
   });
 

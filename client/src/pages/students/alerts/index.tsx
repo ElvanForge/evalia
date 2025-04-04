@@ -127,8 +127,8 @@ export default function StudentAlertsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <PageHeader
-        heading="Student Alerts"
-        text="Monitor students who need attention or are showing progress"
+        title="Student Alerts"
+        description="Monitor students who need attention or are showing progress"
       />
 
       <div className="mb-6 flex flex-wrap gap-3">
