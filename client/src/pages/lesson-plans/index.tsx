@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { PlusCircle, FileEdit, Trash2, FileText, Clock, Book, ArrowUpRight } from "lucide-react";
+import { PlusCircle, FileEdit, Trash2, FileText, Clock, Book, ArrowUpRight, ChevronLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,9 +113,19 @@ export default function LessonPlansPage() {
 
   return (
     <div className="container py-8">
-      <div className="flex items-center justify-between">
-        <PageTitle title="Lesson Plans" subtitle="Create and manage AI-generated lesson plans" />
-        <Button onClick={() => setLocation("/lesson-plans/create")}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            className="flex items-center"
+            onClick={() => setLocation("/dashboard")}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Dashboard
+          </Button>
+          <PageTitle title="Lesson Plans" subtitle="Create and manage AI-generated lesson plans" />
+        </div>
+        <Button onClick={() => setLocation("/lesson-plans/create")} className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90">
           <PlusCircle className="mr-2 h-4 w-4" />
           Create New Lesson Plan
         </Button>

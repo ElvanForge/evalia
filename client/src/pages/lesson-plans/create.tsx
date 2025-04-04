@@ -219,27 +219,33 @@ export default function CreateLessonPlanPage() {
 
   return (
     <div className="container py-8">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          onClick={() => setLocation("/lesson-plans")}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Button>
-        <PageTitle title="Create Lesson Plan" subtitle="Set up your new lesson plan" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            className="flex items-center"
+            onClick={() => setLocation("/lesson-plans")}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Lesson Plans
+          </Button>
+          <PageTitle title="Create Lesson Plan" subtitle="Set up your new lesson plan" />
+        </div>
       </div>
-
+      
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="details">Lesson Details</TabsTrigger>
-          <TabsTrigger value="pdf">Upload PDF</TabsTrigger>
+        <TabsList className="grid w-full max-w-md grid-cols-2 bg-[#ede8dd]">
+          <TabsTrigger value="details" className="data-[state=active]:bg-[#0ba2b0] data-[state=active]:text-white">
+            Lesson Details
+          </TabsTrigger>
+          <TabsTrigger value="pdf" className="data-[state=active]:bg-[#0ba2b0] data-[state=active]:text-white">
+            Upload PDF
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="details">
-          <Card>
-            <CardHeader>
+          <Card className="border-t-4 border-t-[#0ba2b0]">
+            <CardHeader className="bg-[#ede8dd]/50">
               <CardTitle>Lesson Plan Details</CardTitle>
               <CardDescription>
                 Enter the basic information for your lesson plan. You'll be able to add content and generate with AI in the next step.
@@ -433,8 +439,8 @@ export default function CreateLessonPlanPage() {
         </TabsContent>
 
         <TabsContent value="pdf">
-          <Card>
-            <CardHeader>
+          <Card className="border-t-4 border-t-[#0ba2b0]">
+            <CardHeader className="bg-[#ede8dd]/50">
               <CardTitle>Upload PDF Content</CardTitle>
               <CardDescription>
                 Upload a PDF file to use as content for your lesson plan. Our AI will analyze the PDF and create a lesson plan based on it.

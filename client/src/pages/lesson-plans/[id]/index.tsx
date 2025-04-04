@@ -9,7 +9,8 @@ import {
   FileEdit, 
   FileText,
   ArrowUpRight,
-  Loader2
+  Loader2,
+  Upload
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -152,43 +153,43 @@ export default function ViewLessonPlanPage() {
 
   return (
     <div className="container py-8">
-      <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:items-center sm:justify-between mb-6">
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            className="mr-4"
-            onClick={() => setLocation("/lesson-plans")}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-          <PageTitle title={lessonPlan.title} subtitle="Lesson Plan Details" />
-        </div>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => setLocation(`/lesson-plans/${lessonPlanId}/edit`)}
-          >
-            <FileEdit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-          <Button
-            disabled={!lessonPlan.content || isExporting}
-            onClick={handleExport}
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Exporting...
-              </>
-            ) : (
-              <>
-                <ArrowUpRight className="h-4 w-4 mr-2" />
-                Export
-              </>
-            )}
-          </Button>
-        </div>
+      <div className="flex items-center mb-6">
+        <Button
+          variant="outline"
+          className="flex items-center mr-4"
+          onClick={() => setLocation("/lesson-plans")}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to Lesson Plans
+        </Button>
+        <PageTitle title={lessonPlan.title} subtitle="Lesson Plan Details" />
+      </div>
+      
+      <div className="flex justify-end space-x-2 mb-6">
+        <Button
+          variant="outline"
+          onClick={() => setLocation(`/lesson-plans/${lessonPlanId}/edit`)}
+        >
+          <FileEdit className="h-4 w-4 mr-2" />
+          Edit
+        </Button>
+        <Button
+          className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90"
+          disabled={!lessonPlan.content || isExporting}
+          onClick={handleExport}
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <ArrowUpRight className="h-4 w-4 mr-2" />
+              Export
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
