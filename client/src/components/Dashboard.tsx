@@ -196,21 +196,13 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   };
 
   const handleViewAssignment = (id: number) => {
-    // Find the assignment to get its classId
-    const assignment = assignments?.find(a => a.id === id);
-    if (assignment) {
-      // Navigate to the class page with the assignment ID as a query parameter
-      window.location.href = `/classes/${assignment.classId}?assignment=${id}`;
-    }
+    // Navigate directly to the assignment details page
+    window.location.href = `/assignments/${id}`;
   };
 
   const handleEditAssignment = (id: number) => {
-    // Find the assignment to get its classId
-    const assignment = assignments?.find(a => a.id === id);
-    if (assignment) {
-      // Navigate to the class page with the assignment ID as a query parameter for editing
-      window.location.href = `/classes/${assignment.classId}?assignment=${id}&edit=true`;
-    }
+    // Navigate directly to the assignment edit page
+    window.location.href = `/assignments/${id}/edit`;
   };
 
   const currentDate = format(new Date(), "EEEE, MMMM d, yyyy");
@@ -504,11 +496,8 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                   variant="outline" 
                   onClick={() => {
                     if (selectedAssignment) {
-                      const assignment = assignments?.find(a => a.id.toString() === selectedAssignment);
-                      if (assignment) {
-                        // Navigate to the class page with the assignment ID as a query parameter
-                        window.location.href = `/classes/${assignment.classId}?assignment=${selectedAssignment}`;
-                      }
+                      // Navigate directly to the assignment details page
+                      window.location.href = `/assignments/${selectedAssignment}`;
                     }
                   }}
                   disabled={!selectedAssignment}
