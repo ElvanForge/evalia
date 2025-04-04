@@ -2414,9 +2414,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set appropriate headers
       res.setHeader('Content-Type', contentType);
       res.setHeader('Content-Length', stats.size);
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
+      
+      // Check if request has a cache-busting query parameter (t or timestamp)
+      const hasCacheBusting = req.query.t || req.query.timestamp;
+      
+      if (hasCacheBusting) {
+        // If request has cache busting, allow caching with validation
+        // This improves performance while still allowing for cache refreshes
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+        res.setHeader('ETag', `"${stats.size}-${stats.mtime.getTime()}"`);
+      } else {
+        // If no cache busting, use no-cache headers for validation on each request
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
       
       // Stream the file directly to the response
       const fileStream = fs.createReadStream(imagePath);

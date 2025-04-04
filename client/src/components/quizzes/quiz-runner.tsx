@@ -295,40 +295,18 @@ export function QuizRunner({
               isQuizImage={true}
               onLoadSuccess={() => console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`)}
               onLoadError={() => {
-                console.log(`Quiz image failed to load. Trying direct API URL for: ${currentQuestion.imageUrl || 'no image'}`);
+                console.log(`Quiz image failed to load: ${currentQuestion.imageUrl || 'no image'}`);
                 
-                // Directly log the exact image path we're working with using our path utilities
+                // Extract filename for better error reporting
                 const filename = currentQuestion.imageUrl ? currentQuestion.imageUrl.split(/[\/\\]/).pop() : null;
                 
                 if (filename) {
                   // Clean up any query parameters
                   const cleanFilename = filename.split('?')[0];
+                  const timestamp = Date.now();
                   
-                  // Use our URL joining utility for consistent paths
-                  const apiPath = joinUrlPaths('/api/images', cleanFilename);
-                  const fullApiUrl = `${window.location.origin}${apiPath}`;
-                  
-                  // Generate upload direct access path with proper joining
-                  const uploadsPath = joinUrlPaths('/uploads/images', cleanFilename);
-                  const directUrl = `${window.location.origin}${uploadsPath}`;
-                  
-                  console.log("Image troubleshooting info:", {
-                    originalUrl: currentQuestion.imageUrl || null,
-                    extractedFilename: cleanFilename,
-                    apiPath: apiPath,
-                    fullApiUrl: fullApiUrl,
-                    questionId: currentQuestion.id
-                  });
-                  
-                  console.log(`Also trying direct file URL: ${directUrl}`);
-                  
-                  // Add a message in the console with debugging URLs to help developers
-                  console.log(`Try accessing these URLs directly to debug:
-                  1. ${fullApiUrl}
-                  2. ${directUrl}
-                  3. ${currentQuestion.imageUrl || 'N/A'}`);
-                } else {
-                  console.log('No image URLs to debug - filename could not be extracted from:', currentQuestion.imageUrl);
+                  // Log all the possible paths we're trying for better troubleshooting
+                  console.log(`Quiz image troubleshooting - Filename: ${cleanFilename}, Question ID: ${currentQuestion.id}`);
                 }
               }}
             />

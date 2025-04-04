@@ -50,16 +50,17 @@ export function ImageWithFallback({
       return;
     }
     
-    // Special handling for quiz images - use direct API endpoint immediately
+    // Special handling for quiz images - use direct API endpoint immediately with cache busting
     if (isQuizImage && src) {
       const filename = src.split(/[\/\\]/).pop();
       const cleanFilename = filename?.split('?')[0] || '';
       
-      // Use direct API endpoint for quiz images from the start with proper path joining
+      // Use direct API endpoint for quiz images from the start with proper path joining and cache busting
       if (cleanFilename) {
-        const apiPath = joinUrlPaths('/api/images', cleanFilename);
+        const timestamp = Date.now(); // Add timestamp to prevent caching
+        const apiPath = joinUrlPaths('/api/images', cleanFilename) + `?t=${timestamp}`;
         const apiUrl = `${window.location.origin}${apiPath}`;
-        console.log(`Quiz image: Using direct API endpoint: [${src}] => [${apiUrl}]`);
+        console.log(`Quiz image: Using direct API endpoint with cache busting: [${src}] => [${apiUrl}]`);
         setCurrentSrc(apiUrl);
       } else {
         // Fallback to normal processing if we can't extract a filename
@@ -68,10 +69,14 @@ export function ImageWithFallback({
         setCurrentSrc(processedUrl);
       }
     } else {
-      // Normal image processing for non-quiz images
+      // Normal image processing for non-quiz images with cache busting for uploads
       const processedUrl = getFullImageUrl(src);
-      console.log(`ImageWithFallback: Processing URL [${src}] => [${processedUrl}]`);
-      setCurrentSrc(processedUrl);
+      const finalUrl = processedUrl.includes('/uploads/') || processedUrl.includes('/api/images/') 
+        ? `${processedUrl}${processedUrl.includes('?') ? '&' : '?'}t=${Date.now()}` 
+        : processedUrl;
+      
+      console.log(`ImageWithFallback: Processing URL [${src}] => [${finalUrl}]`);
+      setCurrentSrc(finalUrl);
     }
     
     setRetryCount(0);
