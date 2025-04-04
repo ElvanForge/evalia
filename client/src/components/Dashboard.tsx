@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 import StatCard from "./stats/StatCard";
 import GradeDistribution from "./stats/GradeDistribution";
 import RecentActivity from "./RecentActivity";
@@ -67,6 +68,7 @@ interface Stats {
 }
 
 export default function Dashboard({ currentUser }: DashboardProps) {
+  const { toast } = useToast();
   const [quickGradeClass, setQuickGradeClass] = useState<number | null>(null);
   const [quickGradeClassAssignments, setQuickGradeClassAssignments] = useState<Assignment[]>([]);
   const [selectedAssignment, setSelectedAssignment] = useState<number | null>(null);
@@ -176,24 +178,40 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       setIsGrading(false);
       setSelectedAssignment(null);
       setStudentGrades({});
+      
+      toast({
+        title: "Grades Saved",
+        description: "Student grades have been updated successfully.",
+        variant: "default",
+      });
     },
     onError: (error: Error) => {
       console.error('Error saving grades:', error);
       // Keep form state to allow user to retry
+      toast({
+        title: "Error Saving Grades",
+        description: error.message || "There was a problem saving the grades. Please try again.",
+        variant: "destructive",
+      });
     }
   });
   
   // Create assignment mutation
   const { mutate: createAssignment, isPending: isCreatingAssignmentSubmitting } = useMutation({
     mutationFn: async () => {
+      // Validate required fields
+      if (!newAssignment.name) throw new Error("Assignment name is required");
+      if (!newAssignment.classId) throw new Error("Class is required");
+      if (!newAssignment.type) throw new Error("Assignment type is required");
+      
       const assignmentData = {
         name: newAssignment.name,
         classId: parseInt(newAssignment.classId),
-        type: newAssignment.type,
+        type: newAssignment.type || 'homework',
         dueDate: newAssignment.dueDate ? new Date(newAssignment.dueDate) : null,
         weight: parseInt(newAssignment.weight) || 10,
         description: newAssignment.description || '',
-        maxScore: "100" // Default max score as string to match schema
+        maxScore: 100 // Default max score as number to match schema
       };
       
       const response = await fetch('/api/assignments', {
@@ -222,9 +240,20 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         description: ''
       });
       setIsCreatingAssignment(false);
+      
+      toast({
+        title: "Assignment Created",
+        description: "Your assignment has been created successfully.",
+        variant: "default",
+      });
     },
     onError: (error: Error) => {
       console.error('Error creating assignment:', error);
+      toast({
+        title: "Error creating assignment",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   });
 
@@ -523,6 +552,25 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                   </Select>
                 </div>
                 
+                <div>
+                  <Label htmlFor="assignmentType">Type</Label>
+                  <Select
+                    value={newAssignment.type}
+                    onValueChange={(value) => setNewAssignment({...newAssignment, type: value})}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="homework">Homework</SelectItem>
+                      <SelectItem value="quiz">Quiz</SelectItem>
+                      <SelectItem value="test">Test</SelectItem>
+                      <SelectItem value="project">Project</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="dueDate">Due Date</Label>
@@ -546,24 +594,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                   </div>
                 </div>
                 
-                <div>
-                  <Label htmlFor="assignmentType">Type</Label>
-                  <Select
-                    value={newAssignment.type}
-                    onValueChange={(value) => setNewAssignment({...newAssignment, type: value})}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="homework">Homework</SelectItem>
-                      <SelectItem value="quiz">Quiz</SelectItem>
-                      <SelectItem value="exam">Exam</SelectItem>
-                      <SelectItem value="lab">Lab</SelectItem>
-                      <SelectItem value="project">Project</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+
                 
                 <div>
                   <Label htmlFor="description">Description (Optional)</Label>
