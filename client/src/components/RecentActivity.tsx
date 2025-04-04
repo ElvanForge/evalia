@@ -33,7 +33,8 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {activities.map((activity, index) => {
+          {/* Limit to only the most recent 5 activities */}
+          {activities.slice(0, 5).map((activity, index) => {
             let formattedDate = "Recent";
             try {
               const activityDate = typeof activity.date === 'string' 
