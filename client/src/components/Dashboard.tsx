@@ -345,9 +345,22 @@ export default function Dashboard({ currentUser }: DashboardProps) {
           </h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {classCards.map((classData) => (
-            <ClassCard key={classData.id} class={classData} />
-          ))}
+          {classes && classes.length > 0 ? (
+            classes.map((classItem) => (
+              <ClassCard key={classItem.id} class={classItem} />
+            ))
+          ) : (
+            <div className="col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <p className="text-muted-foreground">No classes available</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => window.location.href = '/classes/new'}
+              >
+                Create Your First Class
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
