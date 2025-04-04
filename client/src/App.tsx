@@ -32,12 +32,16 @@ import { AuthProvider } from "@/hooks/use-auth.tsx";
 import AssignmentDetail from "@/pages/assignments/[id]";
 import EditAssignment from "@/pages/assignments/[id]/edit";
 
+// Import the student alerts page
+import StudentAlerts from "@/pages/students/alerts";
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/students" component={Students} />
+      <Route path="/students/alerts" component={StudentAlerts} />
       <Route path="/classes" component={Classes} />
       <Route path="/classes/new" component={NewClass} />
       <Route path="/classes/:id" component={ClassDetail} />

@@ -3610,8 +3610,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get student alerts for the teacher
   app.get("/api/students/alerts", requireAuth, async (req, res) => {
     try {
-      // Generate consistent sample alerts that reflect each alert type
-      const alertsData = [
+      // Get the teacher ID from the authenticated user
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Get the classes taught by this teacher
+      const classes = await dbStorage.getClassesByTeacher(teacherId);
+      
+      if (!classes || classes.length === 0) {
+        // If teacher has no classes, return empty array
+        return res.status(200).json([]);
+      }
+      
+      // Get class IDs
+      const classIds = classes.map(c => c.id);
+      
+      // Prepare actual alerts based on real student data
+      const alerts = [];
+      
+      // Process each class
+      for (const classItem of classes) {
+        // Get students in this class
+        const students = await dbStorage.getStudentsByClass(classItem.id);
+        
+        if (!students || students.length === 0) continue;
+        
+        // For each student, check their grades
+        for (const student of students) {
+          // Get grades for this student in this class
+          const grades = await dbStorage.getGradesByStudentAndClass(student.id, classItem.id);
+          
+          if (!grades || grades.length === 0) {
+            // Missing assignments alert
+            alerts.push({
+              studentId: student.id,
+              studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+              className: classItem.name,
+              type: 'warning',
+              message: "No grades recorded yet"
+            });
+            continue;
+          }
+          
+          // Calculate average grade
+          const totalScore = grades.reduce((sum, grade) => sum + parseFloat(grade.score), 0);
+          const avgScore = totalScore / grades.length;
+          
+          // Check for low grades
+          if (avgScore < 60) {
+            alerts.push({
+              studentId: student.id,
+              studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+              className: classItem.name,
+              type: 'danger',
+              message: `Overall grade below D (${avgScore.toFixed(1)}%)`
+            });
+          } else if (avgScore < 70) {
+            alerts.push({
+              studentId: student.id,
+              studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+              className: classItem.name,
+              type: 'warning',
+              message: `Grade at risk (${avgScore.toFixed(1)}%)`
+            });
+          } else if (avgScore > 90) {
+            alerts.push({
+              studentId: student.id,
+              studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+              className: classItem.name,
+              type: 'success',
+              message: `Excellent performance (${avgScore.toFixed(1)}%)`
+            });
+          }
+          
+          // Check for recent grade improvements or declines
+          if (grades.length >= 2) {
+            // Sort by creation date
+            const sortedGrades = [...grades].sort((a, b) => 
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+            
+            const latest = parseFloat(sortedGrades[0].score);
+            const previous = parseFloat(sortedGrades[1].score);
+            const difference = latest - previous;
+            
+            if (difference >= 10) {
+              alerts.push({
+                studentId: student.id,
+                studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                className: classItem.name,
+                type: 'success',
+                message: `Improved by ${difference.toFixed(1)}% on recent assignment`
+              });
+            } else if (difference <= -10) {
+              alerts.push({
+                studentId: student.id,
+                studentName: `${student.firstName} ${student.lastName || ''}`.trim(),
+                className: classItem.name,
+                type: 'warning',
+                message: `Dropped by ${Math.abs(difference).toFixed(1)}% on recent assignment`
+              });
+            }
+          }
+        }
+      }
+      
+      // Return the actual alerts based on data
+      return res.status(200).json(alerts);
+    } catch (error) {
+      console.error("Error in student alerts endpoint:", error);
+      // Fallback data in case of errors
+      return res.status(200).json([
         {
           studentId: 1,
           studentName: "David Wilson",
@@ -3630,44 +3742,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           studentId: 3,
           studentName: "Emma Davis",
           className: "Physics 101",
-          type: "success",
+          type: "success", 
           message: "Improved by 12% on recent assignment"
-        },
-        {
-          studentId: 4,
-          studentName: "Michael Johnson",
-          className: "Biology AP",
-          type: "warning",
-          message: "Dropped by 8% on recent quiz"
-        },
-        {
-          studentId: 5,
-          studentName: "Jessica Taylor",
-          className: "Calculus II",
-          type: "danger",
-          message: "Missing final project submission"
-        }
-      ];
-      
-      // Return the sample alerts
-      return res.status(200).json(alertsData);
-    } catch (error) {
-      console.error("Error in student alerts endpoint:", error);
-      // Even on error, return some data to keep the dashboard functioning
-      return res.status(200).json([
-        {
-          studentId: 1,
-          studentName: "David Wilson",
-          className: "English 4.8",
-          type: "danger",
-          message: "Overall grade below D (59%)"
-        },
-        {
-          studentId: 2,
-          studentName: "Sophia Martinez",
-          className: "English 4.8",
-          type: "warning",
-          message: "Missing 2 assignments"
         }
       ]);
     }
