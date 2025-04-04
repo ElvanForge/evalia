@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import StatCard from "./stats/StatCard";
 import GradeDistribution from "./stats/GradeDistribution";
 import RecentActivity from "./RecentActivity";
@@ -227,17 +228,25 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         maxScore: maxScore // Send as decimal
       };
       
-      const response = await fetch('/api/assignments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(assignmentData),
-      });
+      // Use apiRequest to properly handle authentication
+      const response = await apiRequest('POST', '/api/assignments', assignmentData);
       
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to create assignment');
+        // Try to parse JSON error response first
+        try {
+          const errorData = await response.json();
+          if (errorData && errorData.message) {
+            throw new Error(errorData.message);
+          } else if (errorData && errorData.errors && errorData.errors.length > 0) {
+            // Handle Zod validation errors
+            const errorMessages = errorData.errors.map((err: any) => err.message).join(', ');
+            throw new Error(`Validation error: ${errorMessages}`);
+          }
+        } catch (e) {
+          // If not JSON, use text
+          const error = await response.text();
+          throw new Error(error || 'Failed to create assignment');
+        }
       }
       
       return response.json();
