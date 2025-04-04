@@ -193,7 +193,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         dueDate: newAssignment.dueDate ? new Date(newAssignment.dueDate) : null,
         weight: parseInt(newAssignment.weight) || 10,
         description: newAssignment.description || '',
-        maxScore: "100" // Default max score
+        maxScore: "100" // Default max score as string to match schema
       };
       
       const response = await fetch('/api/assignments', {
