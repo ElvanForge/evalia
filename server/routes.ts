@@ -515,6 +515,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Assignment routes
+  // Add endpoint to get grades for a specific assignment
+  app.get("/api/assignments/:id/grades", requireAuth, async (req, res) => {
+    try {
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const assignmentId = Number(req.params.id);
+      
+      // Verify the assignment belongs to a class owned by the teacher
+      const assignment = await dbStorage.getAssignment(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      const class_ = await dbStorage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to view grades for this assignment" });
+      }
+      
+      // Get grades for this assignment with student names
+      const grades = await dbStorage.getGradesByAssignment(assignmentId);
+      
+      // Add student names to the grades
+      const gradesWithNames = await Promise.all(grades.map(async (grade) => {
+        const student = await dbStorage.getStudent(grade.studentId);
+        return {
+          ...grade,
+          studentName: student ? `${student.firstName} ${student.lastName || ''}`.trim() : 'Unknown Student'
+        };
+      }));
+      
+      res.status(200).json(gradesWithNames);
+    } catch (error) {
+      console.error("Error fetching assignment grades:", error);
+      res.status(500).json({ message: "Server error fetching assignment grades" });
+    }
+  });
+
   app.get("/api/assignments", requireAuth, async (req, res) => {
     try {
       // Fix for NaN issue: Use req.user.id instead of req.session.teacherId

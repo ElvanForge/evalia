@@ -28,6 +28,10 @@ import BetaApplication from "@/pages/beta-application";
 import ImageTest from "@/pages/image-test";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
 
+// Import our new assignment pages
+import AssignmentDetail from "@/pages/assignments/[id]";
+import EditAssignment from "@/pages/assignments/[id]/edit";
+
 function Router() {
   return (
     <Switch>
@@ -38,6 +42,8 @@ function Router() {
       <Route path="/classes/new" component={NewClass} />
       <Route path="/classes/:id" component={ClassDetail} />
       <Route path="/assignments" component={Assignments} />
+      <Route path="/assignments/:id" component={AssignmentDetail} />
+      <Route path="/assignments/:id/edit" component={EditAssignment} />
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route path="/auth/login" component={Login} />
