@@ -768,6 +768,72 @@ export default function Dashboard({ currentUser }: DashboardProps) {
               </div>
             </CardContent>
           </Card>
+          
+          {/* Quick Grade Entry Card */}
+          <Card className="flex flex-col bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl font-semibold flex items-center text-primary">
+                <span className="inline-block mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </span>
+                Quick Grade Entry
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <p className="text-muted-foreground text-sm mb-4">Quickly enter grades for an assignment</p>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="classSelect">Class</Label>
+                  <Select 
+                    value={quickGradeClass?.toString() || ""} 
+                    onValueChange={(value) => setQuickGradeClass(parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose a class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes?.map((cls: Class) => (
+                        <SelectItem key={cls.id} value={cls.id.toString()}>
+                          {cls.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="assignmentSelect">Assignment</Label>
+                  <Select 
+                    value={selectedAssignment?.toString() || ""} 
+                    onValueChange={(value) => setSelectedAssignment(parseInt(value))}
+                    disabled={!quickGradeClass || quickGradeClassAssignments.length === 0}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={quickGradeClassAssignments.length === 0 ? "No assignments" : "Select assignment"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {quickGradeClassAssignments.map((assignment: Assignment) => (
+                        <SelectItem key={assignment.id} value={assignment.id.toString()}>
+                          {assignment.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="mt-auto">
+                <Button 
+                  className="w-full" 
+                  disabled={!quickGradeClass || !selectedAssignment}
+                  onClick={() => setIsGrading(true)}
+                >
+                  Start Grading
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
       
