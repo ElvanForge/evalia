@@ -377,10 +377,16 @@ export default function EditLessonPlanPage() {
   }
   
   return (
-    <div className="h-screen flex overflow-hidden bg-[#ede8dd]">
+    <div className="h-screen flex overflow-hidden bg-white">
       <Sidebar />
       
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <div className="bg-[#0ba2b0] py-6 px-6">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-2xl font-bold text-white">Edit Lesson Plan</h1>
+            <p className="text-white/80">{lessonPlan?.title}</p>
+          </div>
+        </div>
         <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center mb-6">
