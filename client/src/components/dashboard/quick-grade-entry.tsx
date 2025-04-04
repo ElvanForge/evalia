@@ -248,6 +248,14 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
     mutationFn: async () => {
       if (!selectedAssignment) throw new Error('No assignment selected');
       
+      // Validate that all scores are valid numbers
+      for (const [studentId, scoreStr] of Object.entries(studentGrades)) {
+        const score = parseFloat(scoreStr);
+        if (isNaN(score)) {
+          throw new Error(`Invalid score format for student ID: ${studentId}. Please enter a valid number.`);
+        }
+      }
+      
       const gradesToSave = Object.entries(studentGrades).map(([studentId, score]) => ({
         studentId: parseInt(studentId),
         assignmentId: selectedAssignment,
@@ -256,20 +264,31 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
       
       if (gradesToSave.length === 0) throw new Error('No grades to save');
       
-      const response = await fetch('/api/grades/batch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(gradesToSave),
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to save grades: ${errorText}`);
+      try {
+        const response = await fetch('/api/grades/batch', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(gradesToSave),
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to save grades: ${errorText}`);
+        }
+        
+        // Try to parse the response as JSON
+        try {
+          return await response.json();
+        } catch (jsonError) {
+          // If response isn't valid JSON, return a basic success object
+          return { success: true, count: gradesToSave.length };
+        }
+      } catch (error) {
+        console.error('Network or API error:', error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: () => {
       // Reset form state after successful save
