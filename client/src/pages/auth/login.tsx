@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ClipboardCheck } from "lucide-react";
+import EvaliaLogo from "@/assets/evalia-logo.svg";
 
 export default function Login() {
   const { login, isLoggingIn } = useAuth();
@@ -52,7 +53,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-2">
-            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-16 w-16" />
+            <img src={EvaliaLogo} alt="Evalia Logo" className="h-16 w-16" />
           </div>
           <CardTitle className="text-2xl font-bold">Evalia</CardTitle>
           <CardDescription>

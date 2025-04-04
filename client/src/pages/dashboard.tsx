@@ -5,6 +5,7 @@ import Dashboard from "@/components/Dashboard";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Teacher } from "@shared/schema";
+import EvaliaLogo from "@/assets/evalia-logo.svg";
 
 export default function DashboardPage() {
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -20,7 +21,7 @@ export default function DashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div>
-            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="mx-auto h-16 w-16" />
+            <img src={EvaliaLogo} alt="Evalia Logo" className="mx-auto h-16 w-16" />
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
               Evalia Teacher Dashboard
             </h2>

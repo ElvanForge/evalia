@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, ArrowRight, Award, BarChart2, BookOpen, Users } from "lucide-react";
 
-// Import the custom illustrations
+// Import the custom illustrations and logo
+import EvaliaLogo from "@/assets/evalia-logo.svg";
 import teacherIllustration from "@assets/images/teacher-illustration.svg";
 import analyticsIllustration from "@assets/images/analytics-illustration.svg";
 import quizIllustration from "@assets/images/quiz-illustration.svg";
@@ -21,7 +22,7 @@ export default function Landing() {
       <nav className="bg-gradient-to-r from-teal-600 to-teal-500 px-6 py-4 shadow">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8 bg-white rounded-full p-1" />
+            <img src={EvaliaLogo} alt="Evalia Logo" className="h-8 w-8 bg-white rounded-full p-1" />
             <span className="ml-2 text-xl font-bold text-white">Evalia</span>
           </div>
           <div className="flex space-x-4">
@@ -463,7 +464,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center">
-                <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-8 w-8 bg-white rounded-full p-1" />
+                <img src={EvaliaLogo} alt="Evalia Logo" className="h-8 w-8 bg-white rounded-full p-1" />
                 <span className="ml-2 text-xl font-bold">Evalia</span>
               </div>
               <p className="mt-2 text-gray-400">

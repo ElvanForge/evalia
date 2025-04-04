@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { SidebarProps } from "@/types";
+import EvaliaLogo from "@/assets/evalia-logo.svg";
 
 export default function Sidebar({ isOpen, onClose, currentUser }: SidebarProps) {
   const [location] = useLocation();
@@ -16,7 +17,7 @@ export default function Sidebar({ isOpen, onClose, currentUser }: SidebarProps) 
       <div className="h-full flex flex-col bg-card shadow-md">
         <div className="p-4 border-b border-border flex justify-between items-center">
           <div className="flex items-center">
-            <img src="/src/assets/evalia-logo.svg" alt="Evalia Logo" className="h-6 w-6 mr-2" />
+            <img src={EvaliaLogo} alt="Evalia Logo" className="h-6 w-6 mr-2" />
             <h1 className="text-xl font-medium">Evalia</h1>
           </div>
           <button 
