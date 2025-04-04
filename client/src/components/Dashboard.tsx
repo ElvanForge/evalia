@@ -196,13 +196,21 @@ export default function Dashboard({ currentUser }: DashboardProps) {
   };
 
   const handleViewAssignment = (id: number) => {
-    // Navigate to assignment details page
-    window.location.href = `/assignments/${id}`;
+    // Find the assignment to get its classId
+    const assignment = assignments?.find(a => a.id === id);
+    if (assignment) {
+      // Navigate to the class page with the assignment ID as a query parameter
+      window.location.href = `/classes/${assignment.classId}?assignment=${id}`;
+    }
   };
 
   const handleEditAssignment = (id: number) => {
-    // Navigate to edit assignment page
-    window.location.href = `/assignments/${id}/edit`;
+    // Find the assignment to get its classId
+    const assignment = assignments?.find(a => a.id === id);
+    if (assignment) {
+      // Navigate to the class page with the assignment ID as a query parameter for editing
+      window.location.href = `/classes/${assignment.classId}?assignment=${id}&edit=true`;
+    }
   };
 
   const currentDate = format(new Date(), "EEEE, MMMM d, yyyy");
@@ -496,7 +504,11 @@ export default function Dashboard({ currentUser }: DashboardProps) {
                   variant="outline" 
                   onClick={() => {
                     if (selectedAssignment) {
-                      window.location.href = `/assignments/${selectedAssignment}`;
+                      const assignment = assignments?.find(a => a.id.toString() === selectedAssignment);
+                      if (assignment) {
+                        // Navigate to the class page with the assignment ID as a query parameter
+                        window.location.href = `/classes/${assignment.classId}?assignment=${selectedAssignment}`;
+                      }
                     }
                   }}
                   disabled={!selectedAssignment}
