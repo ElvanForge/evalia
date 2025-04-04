@@ -8,6 +8,7 @@ import GradeDistribution from "./stats/GradeDistribution";
 import RecentActivity from "./RecentActivity";
 import GradeTable from "./GradeTable";
 import { ClassCard } from "./dashboard/class-card";
+import { QuickGradeEntry } from "./dashboard/quick-grade-entry";
 import { Button } from "@/components/ui/button";
 import { 
   Select,
@@ -773,140 +774,9 @@ export default function Dashboard({ currentUser }: DashboardProps) {
           </Card>
           
           {/* Quick Grade Entry Card */}
-          <Card className="flex flex-col bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xl font-semibold flex items-center text-primary">
-                <span className="inline-block mr-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                </span>
-                Quick Grade Entry
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-muted-foreground text-sm mb-4">Quickly enter grades for an assignment</p>
-              
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="classSelect">Class</Label>
-                  <Select 
-                    value={quickGradeClass?.toString() || ""} 
-                    onValueChange={(value) => setQuickGradeClass(parseInt(value))}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose a class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classes?.map((cls: Class) => (
-                        <SelectItem key={cls.id} value={cls.id.toString()}>
-                          {cls.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="assignmentSelect">Assignment</Label>
-                  <Select 
-                    value={selectedAssignment?.toString() || ""} 
-                    onValueChange={(value) => setSelectedAssignment(parseInt(value))}
-                    disabled={!quickGradeClass || quickGradeClassAssignments.length === 0}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={quickGradeClassAssignments.length === 0 ? "No assignments" : "Select assignment"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {quickGradeClassAssignments.map((assignment: Assignment) => (
-                        <SelectItem key={assignment.id} value={assignment.id.toString()}>
-                          {assignment.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="mt-auto">
-                <Button 
-                  className="w-full" 
-                  disabled={!quickGradeClass || !selectedAssignment}
-                  onClick={() => {
-                    // Set isGrading first
-                    setIsGrading(true);
-                    // Force refetch of students data for this assignment
-                    refetchStudents();
-                    console.log('Starting grading for assignment:', selectedAssignment);
-                  }}
-                >
-                  Start Grading
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <QuickGradeEntry classes={classes || []} />
         </div>
       </div>
-      
-      {isGrading && (
-        <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-          {isLoadingStudents ? (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
-            </div>
-          ) : students && students.length > 0 ? (
-            <>
-              <div className="mb-4">
-                <h4 className="text-lg font-medium">Enter Grades</h4>
-                <p className="text-sm text-muted-foreground">Enter scores for each student</p>
-              </div>
-              
-              <div className="space-y-3">
-                {students.map((student: Student) => (
-                  <div key={student.id} className="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-900 rounded-md">
-                    <div className="flex-grow">
-                      <p className="font-medium">{student.firstName} {student.lastName}</p>
-                      <p className="text-xs text-muted-foreground">ID: {student.studentNumber || student.id}</p>
-                    </div>
-                    <div className="w-24">
-                      <Input 
-                        type="text"
-                        placeholder="Score"
-                        value={studentGrades[student.id] || ''}
-                        onChange={(e) => handleGradeChange(student.id, e.target.value)}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-6 flex justify-end">
-                <Button
-                  onClick={() => saveGrades()}
-                  disabled={isSavingGrades || Object.keys(studentGrades).length === 0}
-                >
-                  {isSavingGrades ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Grades'
-                  )}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No students enrolled in this class or assignment.</p>
-              <Button variant="outline" onClick={() => setIsGrading(false)}>
-                Go Back
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
       
       {/* Recent Assignments Table */}
       <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-0">
