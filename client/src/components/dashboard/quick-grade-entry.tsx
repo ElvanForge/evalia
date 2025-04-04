@@ -8,10 +8,20 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { queryClient } from "@/lib/queryClient";
 
 // Type definitions
 interface Student {
@@ -55,6 +65,17 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
   const [isGrading, setIsGrading] = useState(false);
   const [classAssignments, setClassAssignments] = useState<Assignment[]>([]);
   const [studentGrades, setStudentGrades] = useState<{ [key: number]: string }>({});
+  const [selectedAssignmentDetails, setSelectedAssignmentDetails] = useState<Assignment | null>(null);
+  
+  // State for adding a new student
+  const [isAddingStudent, setIsAddingStudent] = useState(false);
+  const [newStudent, setNewStudent] = useState({
+    firstName: '',
+    lastName: '',
+    studentNumber: '',
+    email: '',
+    gradeLevel: ''
+  });
 
   // Fetch assignments for selected class
   useEffect(() => {
@@ -83,6 +104,18 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
 
     fetchAssignments();
   }, [selectedClass, toast]);
+  
+  // When an assignment is selected, store its details
+  useEffect(() => {
+    if (selectedAssignment && classAssignments.length > 0) {
+      const assignment = classAssignments.find(a => a.id === selectedAssignment);
+      if (assignment) {
+        setSelectedAssignmentDetails(assignment);
+      }
+    } else {
+      setSelectedAssignmentDetails(null);
+    }
+  }, [selectedAssignment, classAssignments]);
 
   // Fetch students for selected assignment
   const { 
@@ -93,13 +126,24 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
     queryKey: ['/api/students/assignment', selectedAssignment],
     queryFn: async () => {
       if (!selectedAssignment) return [];
-      const response = await fetch(`/api/students/assignment/${selectedAssignment}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch students');
+      
+      try {
+        const response = await fetch(`/api/students/assignment/${selectedAssignment}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch students');
+        }
+        const data = await response.json();
+        console.log('Fetched students:', data);
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        toast({
+          title: "Error Loading Students",
+          description: "Failed to fetch students for this assignment. Please try again.",
+          variant: "destructive"
+        });
+        return [];
       }
-      const data = await response.json();
-      console.log('Fetched students:', data);
-      return data || [];
     },
     enabled: false, // Don't auto-fetch, we'll trigger manually
   });
@@ -127,6 +171,77 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
       [studentId]: score
     }));
   };
+  
+  // Add student mutation
+  const { mutate: addStudent, isPending: isAddingStudentSubmitting } = useMutation({
+    mutationFn: async () => {
+      if (!selectedClass) throw new Error('No class selected');
+      
+      if (!newStudent.firstName) {
+        throw new Error('First name is required');
+      }
+      
+      // Create student
+      const studentResponse = await fetch('/api/students', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newStudent),
+      });
+      
+      if (!studentResponse.ok) {
+        throw new Error('Failed to create student');
+      }
+      
+      const student = await studentResponse.json();
+      
+      // Enroll student in class
+      const enrollResponse = await fetch('/api/students/enroll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          studentId: student.id,
+          classId: selectedClass
+        }),
+      });
+      
+      if (!enrollResponse.ok) {
+        throw new Error('Failed to enroll student in class');
+      }
+      
+      return student;
+    },
+    onSuccess: () => {
+      setNewStudent({
+        firstName: '',
+        lastName: '',
+        studentNumber: '',
+        email: '',
+        gradeLevel: ''
+      });
+      setIsAddingStudent(false);
+      
+      // Refresh student list
+      refetchStudents();
+      
+      toast({
+        title: "Student Added",
+        description: "Student has been added to the class successfully.",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Error adding student:', error);
+      toast({
+        title: "Error Adding Student",
+        description: error.message || "There was a problem adding the student. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Save grades mutation
   const { mutate: saveGrades, isPending: isSavingGrades } = useMutation({
@@ -150,7 +265,8 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to save grades');
+        const errorText = await response.text();
+        throw new Error(`Failed to save grades: ${errorText}`);
       }
       
       return response.json();
@@ -158,8 +274,9 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
     onSuccess: () => {
       // Reset form state after successful save
       setIsGrading(false);
-      setSelectedAssignment(null);
-      setStudentGrades({});
+      
+      // Invalidate queries that might be affected
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
       
       toast({
         title: "Grades Saved",
@@ -252,9 +369,21 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
             </div>
           ) : students && students.length > 0 ? (
             <>
-              <div className="mb-4">
-                <h4 className="text-lg font-medium">Enter Grades</h4>
-                <p className="text-sm text-muted-foreground">Enter scores for each student</p>
+              <div className="mb-4 flex justify-between items-center">
+                <div>
+                  <h4 className="text-lg font-medium">Enter Grades</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Assignment: {selectedAssignmentDetails?.name || ''} 
+                    {selectedAssignmentDetails?.maxScore && ` (Max score: ${selectedAssignmentDetails.maxScore})`}
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsAddingStudent(true)}
+                >
+                  Add Student
+                </Button>
               </div>
               
               <div className="space-y-3">
@@ -300,14 +429,102 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
             </>
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No students enrolled in this class or assignment.</p>
-              <Button variant="outline" onClick={() => setIsGrading(false)}>
-                Go Back
-              </Button>
+              <p className="text-muted-foreground mb-4">
+                No students enrolled in this class. Would you like to add a student?
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button variant="outline" onClick={() => setIsGrading(false)}>
+                  Go Back
+                </Button>
+                <Button variant="default" onClick={() => setIsAddingStudent(true)}>
+                  Add Student
+                </Button>
+              </div>
             </div>
           )}
         </div>
       )}
+      
+      {/* Add Student Dialog */}
+      <Dialog open={isAddingStudent} onOpenChange={setIsAddingStudent}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Student</DialogTitle>
+            <DialogDescription>
+              Enter student details to add them to this class.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name *</Label>
+              <Input
+                id="firstName"
+                placeholder="First name"
+                value={newStudent.firstName}
+                onChange={(e) => setNewStudent({...newStudent, firstName: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                placeholder="Last name (optional)"
+                value={newStudent.lastName}
+                onChange={(e) => setNewStudent({...newStudent, lastName: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="studentNumber">Student ID</Label>
+              <Input
+                id="studentNumber"
+                placeholder="Student ID number (optional)"
+                value={newStudent.studentNumber}
+                onChange={(e) => setNewStudent({...newStudent, studentNumber: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email (optional)"
+                value={newStudent.email}
+                onChange={(e) => setNewStudent({...newStudent, email: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="gradeLevel">Grade Level</Label>
+              <Input
+                id="gradeLevel"
+                placeholder="Grade level (optional)"
+                value={newStudent.gradeLevel}
+                onChange={(e) => setNewStudent({...newStudent, gradeLevel: e.target.value})}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAddingStudent(false)}
+              disabled={isAddingStudentSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => addStudent()}
+              disabled={!newStudent.firstName || isAddingStudentSubmitting}
+            >
+              {isAddingStudentSubmitting ? 'Adding...' : 'Add Student'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
