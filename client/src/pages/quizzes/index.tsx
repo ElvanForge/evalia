@@ -34,7 +34,7 @@ const QuizzesPage = () => {
           subtitle="Create and manage your quizzes"
           rightContent={
             <Button 
-              className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90" 
+              className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white" 
               onClick={() => setLocation("/quizzes/new")}
             >
               <Plus className="mr-2 h-4 w-4" />

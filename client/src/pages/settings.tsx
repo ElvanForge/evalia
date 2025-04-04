@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DataTable } from "@/components/ui/data-table";
+import SectionHeader from "@/components/section-header";
 import { 
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PlusCircle, Pencil, Trash2, CreditCard, Check, AlertCircle } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, CreditCard, Check, AlertCircle, Settings as SettingsIcon } from "lucide-react";
 import { GradeScaleForm } from "@/components/forms/grade-scale-form";
 import {
   AlertDialog,
@@ -214,7 +215,28 @@ export default function Settings() {
 
   return (
     <Layout title="Settings">
-      <div className="mt-6 space-y-6">
+      <div className="space-y-6">
+        <SectionHeader
+          title="Settings"
+          subtitle="Manage your account settings and preferences"
+          rightContent={
+            <Button 
+              className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white"
+              onClick={() => {
+                const activeTab = document.querySelector('[role="tab"][data-state="active"]');
+                if (activeTab) {
+                  toast({
+                    title: "Settings",
+                    description: `Current section: ${activeTab.textContent}`,
+                  });
+                }
+              }}
+            >
+              <SettingsIcon className="mr-2 h-4 w-4" />
+              Help
+            </Button>
+          }
+        />
         <Tabs defaultValue="profile">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Profile</TabsTrigger>

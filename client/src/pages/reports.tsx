@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { GradeBadge } from "@/components/ui/grade-badge";
+import SectionHeader from "@/components/section-header";
+import { Download, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -199,7 +202,29 @@ export default function Reports() {
 
   return (
     <Layout title="Reports">
-      <div className="mt-6 space-y-6">
+      <div className="space-y-6">
+        <SectionHeader
+          title="Reports"
+          subtitle="View and analyze student performance data"
+          rightContent={
+            <div className="flex gap-2">
+              <Button 
+                className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white"
+                onClick={() => window.location.href="/api/export/grades/csv"}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
+              <Button 
+                className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white"
+                onClick={() => window.location.href="/api/export/grades/xml"}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Export XML
+              </Button>
+            </div>
+          }
+        />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-2">
