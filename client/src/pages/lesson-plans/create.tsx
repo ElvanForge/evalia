@@ -43,6 +43,7 @@ const lessonPlanSchema = z.object({
   gradeLevel: z.string().optional(),
   duration: z.string().optional(),
   classId: z.string().optional(),
+  content: z.string().optional().default(""),
 });
 
 type LessonPlanFormValues = z.infer<typeof lessonPlanSchema>;
@@ -234,7 +235,14 @@ export default function CreateLessonPlanPage() {
   });
 
   const onSubmit = (data: LessonPlanFormValues) => {
-    createMutation.mutate(data);
+    // Add the required content field that's missing from the form
+    const lessonPlanData = {
+      ...data,
+      content: "" // Required field, will be populated after creation
+    };
+    
+    console.log('Submitting lesson plan with data:', lessonPlanData);
+    createMutation.mutate(lessonPlanData);
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
