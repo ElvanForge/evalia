@@ -57,6 +57,62 @@ export async function runMigrations() {
       console.log('Teachers table not found, will be created during schema push');
     }
     
+    // Create lesson plan tables if they don't exist
+    try {
+      // Create lesson plans table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "lesson_plans" (
+          "id" serial PRIMARY KEY,
+          "title" text NOT NULL,
+          "description" text,
+          "teacherId" integer NOT NULL REFERENCES teachers(id),
+          "classId" integer REFERENCES classes(id),
+          "subject" text,
+          "gradeLevel" text,
+          "duration" text,
+          "objectives" text[],
+          "materials" text[],
+          "content" text NOT NULL,
+          "status" text DEFAULT 'draft',
+          "createdAt" timestamp DEFAULT now() NOT NULL,
+          "updatedAt" timestamp DEFAULT now() NOT NULL
+        );
+      `);
+      console.log('Lesson plans table created or already exists');
+      
+      // Create lesson plan materials table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "lesson_plan_materials" (
+          "id" serial PRIMARY KEY,
+          "lessonPlanId" integer NOT NULL REFERENCES lesson_plans(id) ON DELETE CASCADE,
+          "fileName" text NOT NULL,
+          "fileUrl" text NOT NULL,
+          "fileType" text NOT NULL,
+          "fileSize" integer NOT NULL,
+          "uploadedAt" timestamp DEFAULT now() NOT NULL
+        );
+      `);
+      console.log('Lesson plan materials table created or already exists');
+      
+      // Create lesson plan generated content table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "lesson_plan_generated_content" (
+          "id" serial PRIMARY KEY,
+          "lessonPlanId" integer NOT NULL REFERENCES lesson_plans(id) ON DELETE CASCADE,
+          "prompt" text NOT NULL,
+          "generatedContent" text NOT NULL,
+          "contentType" text NOT NULL,
+          "createdAt" timestamp DEFAULT now() NOT NULL,
+          "isApplied" boolean DEFAULT false
+        );
+      `);
+      console.log('Lesson plan generated content table created or already exists');
+    } catch (err) {
+      // Tables or references might not exist yet, which is fine
+      console.error('Error creating lesson plan tables:', err);
+      console.log('Some lesson plan tables might not be created due to missing references');
+    }
+    
     console.log('Schema push completed successfully');
   } catch (error) {
     console.error('Error running schema push:', error);

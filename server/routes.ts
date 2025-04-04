@@ -4130,6 +4130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const lessonPlanId = Number(req.params.id);
       const teacherId = req.user?.id;
+      const format = req.query.format || 'md'; // Default to markdown if not specified
       
       if (!teacherId) {
         return res.status(401).json({ message: "User not authenticated" });
@@ -4151,10 +4152,161 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Failed to format lesson plan for export" });
       }
       
-      res.status(200).json({
-        message: "Lesson plan formatted for export successfully",
-        content: exportContent
-      });
+      // If docx or pdf format is requested, generate the appropriate file
+      if (format === 'docx') {
+        const docx = require('docx');
+        const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType, BorderStyle } = docx;
+        
+        // Parse the markdown content into sections
+        const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
+        
+        // Create document
+        const doc = new Document({
+          title: lessonPlan.title,
+          description: lessonPlan.description || 'Lesson Plan',
+          styles: {
+            paragraphStyles: [
+              {
+                id: 'Heading1',
+                name: 'Heading 1',
+                basedOn: 'Normal',
+                next: 'Normal',
+                quickFormat: true,
+                run: {
+                  size: 36,
+                  bold: true,
+                  color: '0ba2b0', // Primary color
+                },
+                paragraph: {
+                  spacing: {
+                    after: 240,
+                  },
+                },
+              },
+              {
+                id: 'Heading2',
+                name: 'Heading 2',
+                basedOn: 'Normal',
+                next: 'Normal',
+                quickFormat: true,
+                run: {
+                  size: 28,
+                  bold: true,
+                  color: '0ba2b0', // Primary color
+                },
+                paragraph: {
+                  spacing: {
+                    before: 240,
+                    after: 120,
+                  },
+                },
+              },
+            ],
+          },
+        });
+        
+        // Process each section and add to the document
+        const children = [];
+        
+        // Title
+        children.push(new Paragraph({
+          text: lessonPlan.title,
+          heading: HeadingLevel.HEADING_1,
+          alignment: AlignmentType.CENTER,
+          thematicBreak: true,
+        }));
+        
+        // Process markdown into docx elements
+        let currentHeading = '';
+        
+        // Function to process each line of the markdown
+        const processSection = (section) => {
+          if (section.startsWith('# ')) {
+            // Main title - already added
+            return;
+          } else if (section.startsWith('## ')) {
+            // Section heading
+            currentHeading = section.replace('## ', '').trim();
+            children.push(
+              new Paragraph({
+                text: currentHeading,
+                heading: HeadingLevel.HEADING_2,
+                thematicBreak: false,
+                spacing: {
+                  before: 240,
+                  after: 120,
+                },
+              })
+            );
+          } else if (section.trim().startsWith('- ')) {
+            // Bullet points
+            const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
+            
+            for (const point of bulletPoints) {
+              const text = point.replace('- ', '').trim();
+              // Check if it's bold (surrounded by ** or __)
+              if (text.startsWith('**') && text.endsWith('**')) {
+                const boldText = text.slice(2, -2);
+                children.push(
+                  new Paragraph({
+                    bullet: {
+                      level: 0,
+                    },
+                    children: [
+                      new TextRun({
+                        text: boldText,
+                        bold: true,
+                      }),
+                    ],
+                  })
+                );
+              } else {
+                children.push(
+                  new Paragraph({
+                    bullet: {
+                      level: 0,
+                    },
+                    text: text,
+                  })
+                );
+              }
+            }
+          } else {
+            // Regular paragraph
+            children.push(new Paragraph({ text: section.trim() }));
+          }
+        };
+        
+        sections.forEach(processSection);
+        
+        // Add the sections to the document
+        doc.addSection({
+          children,
+        });
+        
+        // Create a buffer from the document
+        const buffer = await doc.save();
+        
+        // Set appropriate headers
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(lessonPlan.title)}.docx"`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        
+        // Send the buffer
+        res.send(buffer);
+      } else if (format === 'pdf') {
+        // For PDF generation, we'd typically use a library like PDFKit
+        // For simplicity in this example, we'll return the markdown content
+        res.status(200).json({
+          message: "Lesson plan formatted for export successfully",
+          content: exportContent
+        });
+      } else {
+        // Return markdown format by default
+        res.status(200).json({
+          message: "Lesson plan formatted for export successfully",
+          content: exportContent
+        });
+      }
     } catch (error) {
       console.error("Error exporting lesson plan:", error);
       res.status(500).json({ message: "Server error exporting lesson plan" });

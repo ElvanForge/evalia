@@ -53,7 +53,7 @@ export default function ExportLessonPlanPage() {
     refetchOnWindowFocus: false,
   });
 
-  // Export content mutation
+  // Export content mutation for preview
   const exportMutation = useMutation({
     mutationFn: async () => {
       setIsExporting(true);
@@ -85,69 +85,124 @@ export default function ExportLessonPlanPage() {
     }
   }, [lessonPlanId]);
 
-  const downloadDocx = () => {
-    if (!exportedContent) {
+  const downloadDocx = async () => {
+    try {
+      setIsExporting(true);
+      
+      // Request the DOCX file from the server
+      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=docx`, {
+        headers: {
+          Accept: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate DOCX file');
+      }
+      
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create and click a download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${lessonPlan?.title || 'lesson-plan'}.docx`.replace(/\s+/g, '-').toLowerCase();
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
       toast({
-        title: "Export error",
-        description: "No content available for export. Please try again.",
+        title: "Download started",
+        description: "Your lesson plan is being downloaded as a DOCX file.",
+      });
+    } catch (error) {
+      console.error('Error downloading DOCX file:', error);
+      toast({
+        title: "Download failed",
+        description: "Failed to generate DOCX file. Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsExporting(false);
     }
-    
-    // Create a Blob with the content
-    const blob = new Blob([exportedContent], { 
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-    });
-    
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${lessonPlan?.title || 'lesson-plan'}.docx`.replace(/\s+/g, '-').toLowerCase();
-    document.body.appendChild(a);
-    a.click();
-    
-    // Clean up
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Download started",
-      description: "Your lesson plan is being downloaded as a DOCX file.",
-    });
   };
 
-  const downloadPdf = () => {
-    if (!exportedContent) {
+  const downloadPdf = async () => {
+    try {
+      setIsExporting(true);
+      
+      // Request the PDF file from the server
+      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=pdf`, {
+        headers: {
+          Accept: 'application/pdf',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate PDF file');
+      }
+      
+      // If the server returns JSON (fallback), create a text file with the content
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        
+        // Create a blob with the content
+        const blob = new Blob([data.content], { type: 'text/markdown' });
+        
+        // Create download link
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${lessonPlan?.title || 'lesson-plan'}.md`.replace(/\s+/g, '-').toLowerCase();
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Download started",
+          description: "Your lesson plan is being downloaded as a Markdown file. PDF conversion is not available.",
+        });
+        return;
+      }
+      
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create and click a download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${lessonPlan?.title || 'lesson-plan'}.pdf`.replace(/\s+/g, '-').toLowerCase();
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
       toast({
-        title: "Export error",
-        description: "No content available for export. Please try again.",
+        title: "Download started",
+        description: "Your lesson plan is being downloaded as a PDF file.",
+      });
+    } catch (error) {
+      console.error('Error downloading PDF file:', error);
+      toast({
+        title: "Download failed",
+        description: "Failed to generate PDF file. Please try again.",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsExporting(false);
     }
-    
-    // In a real application, we would convert the content to PDF here
-    // For this example, we'll just save it as a text file
-    const blob = new Blob([exportedContent], { type: 'application/pdf' });
-    
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${lessonPlan?.title || 'lesson-plan'}.pdf`.replace(/\s+/g, '-').toLowerCase();
-    document.body.appendChild(a);
-    a.click();
-    
-    // Clean up
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Download started",
-      description: "Your lesson plan is being downloaded as a PDF file.",
-    });
   };
 
   if (lessonPlanLoading || isExporting) {

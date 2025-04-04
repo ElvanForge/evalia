@@ -294,20 +294,35 @@ export async function formatLessonPlanForExport(lessonPlanId: number): Promise<s
       }
     }
     
-    // Format the content for export
+    // Format the content using the standard lesson plan template structure
     const exportContent = `
 # ${lessonPlan.title}
 
-**Subject:** ${lessonPlan.subject || 'N/A'}
-**Grade Level:** ${lessonPlan.gradeLevel || 'N/A'}
-**Duration:** ${lessonPlan.duration || 'N/A'}
-**Teacher:** ${teacher ? `${teacher.firstName} ${teacher.lastName}` : 'N/A'}
-${className ? `**Class:** ${className}` : ''}
+## Lesson Information
+- **Subject:** ${lessonPlan.subject || 'N/A'}
+- **Grade Level:** ${lessonPlan.gradeLevel || 'N/A'}
+- **Duration:** ${lessonPlan.duration || 'N/A'}
+- **Teacher:** ${teacher ? `${teacher.firstName} ${teacher.lastName}` : 'N/A'}
+${className ? `- **Class:** ${className}` : ''}
 
-**Description:**
+## Description
 ${lessonPlan.description || 'No description provided.'}
 
+## Objectives
+${lessonPlan.objectives && lessonPlan.objectives.length > 0 
+  ? lessonPlan.objectives.map((obj: string) => `- ${obj}`).join('\n') 
+  : 'No objectives specified.'}
+
+## Materials
+${lessonPlan.materials && lessonPlan.materials.length > 0 
+  ? lessonPlan.materials.map((mat: string) => `- ${mat}`).join('\n') 
+  : 'No materials specified.'}
+
 ${lessonPlan.content}
+
+## Notes
+- Created using Evalia Lesson Plan Generator
+- Date: ${new Date().toLocaleDateString()}
     `;
     
     return exportContent;
