@@ -1,5 +1,6 @@
 import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ export default function EditAssignment() {
   const [match, params] = useRoute<{ id: string }>("/assignments/:id/edit");
   const [, navigate] = useLocation();
   const assignmentId = parseInt(params?.id || "0");
+  const { user } = useAuth();
   
   // Fetch assignment details
   const { data: assignment, isLoading, isError } = useQuery<Assignment>({
@@ -20,7 +22,7 @@ export default function EditAssignment() {
 
   if (isLoading) {
     return (
-      <Layout title="Edit Assignment">
+      <Layout title="Edit Assignment" currentUser={user}>
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -30,10 +32,10 @@ export default function EditAssignment() {
 
   if (isError || !assignment) {
     return (
-      <Layout title="Edit Assignment">
+      <Layout title="Edit Assignment" currentUser={user}>
         <div className="text-center p-8">
-          <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">Assignment not found</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">The assignment you're trying to edit doesn't exist or you don't have permission to edit it.</p>
+          <h3 className="text-xl font-medium mb-2">Assignment not found</h3>
+          <p className="text-muted-foreground mb-4">The assignment you're trying to edit doesn't exist or you don't have permission to edit it.</p>
           <Button onClick={() => navigate('/assignments')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Assignments
@@ -44,7 +46,7 @@ export default function EditAssignment() {
   }
 
   return (
-    <Layout title={`Edit ${assignment.name}`}>
+    <Layout title={`Edit ${assignment.name}`} currentUser={user}>
       <div className="mb-6">
         <Button 
           variant="outline" 
@@ -55,10 +57,10 @@ export default function EditAssignment() {
           Back to Assignment
         </Button>
         
-        <h1 className="text-2xl font-bold text-primary">Edit Assignment</h1>
+        <h1 className="text-2xl font-bold">Edit Assignment</h1>
       </div>
       
-      <Card>
+      <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle>Assignment Details</CardTitle>
         </CardHeader>

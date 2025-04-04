@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 import Layout from "@/components/Layout";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export default function AssignmentDetail() {
   const [, navigate] = useLocation();
   const assignmentId = parseInt(params?.id || "0");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -77,7 +79,7 @@ export default function AssignmentDetail() {
 
   if (isLoading) {
     return (
-      <Layout title="Assignment">
+      <Layout title="Assignment" currentUser={user}>
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -87,10 +89,10 @@ export default function AssignmentDetail() {
 
   if (isError || !assignment) {
     return (
-      <Layout title="Assignment">
+      <Layout title="Assignment" currentUser={user}>
         <div className="text-center p-8">
-          <h3 className="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">Assignment not found</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">The assignment you're looking for doesn't exist or you don't have permission to view it.</p>
+          <h3 className="text-xl font-medium mb-2">Assignment not found</h3>
+          <p className="text-muted-foreground mb-4">The assignment you're looking for doesn't exist or you don't have permission to view it.</p>
           <Button onClick={() => navigate('/assignments')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Assignments
@@ -101,7 +103,7 @@ export default function AssignmentDetail() {
   }
 
   return (
-    <Layout title={assignment.name}>
+    <Layout title={assignment.name} currentUser={user}>
       <div className="mb-6">
         <Button variant="outline" onClick={() => navigate('/assignments')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -109,10 +111,13 @@ export default function AssignmentDetail() {
         </Button>
         
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-          <h1 className="text-2xl font-bold text-primary">{assignment.name}</h1>
+          <h1 className="text-2xl font-bold">{assignment.name}</h1>
           
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => setShowEditDialog(true)}>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(`/assignments/${assignmentId}/edit`)}
+            >
               <Pencil className="mr-2 h-4 w-4" />
               Edit
             </Button>
@@ -188,7 +193,7 @@ export default function AssignmentDetail() {
                 <CardTitle className="text-lg">Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                <p className="whitespace-pre-wrap">
                   {assignment.description}
                 </p>
               </CardContent>
@@ -226,7 +231,7 @@ export default function AssignmentDetail() {
                         </thead>
                         <tbody>
                           {grades.map((grade) => (
-                            <tr key={grade.id} className="border-b border-gray-100 dark:border-gray-800">
+                            <tr key={grade.id} className="border-b border-border">
                               <td className="py-3">{grade.studentName}</td>
                               <td className="py-3">{grade.score !== null ? grade.score : 'Not graded'}</td>
                               <td className="py-3">{grade.letterGrade || '-'}</td>
