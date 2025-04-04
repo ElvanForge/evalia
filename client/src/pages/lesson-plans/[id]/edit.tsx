@@ -17,6 +17,8 @@ import {
   Pencil,
   Save
 } from "lucide-react";
+import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -351,19 +353,47 @@ export default function EditLessonPlanPage() {
     );
   }
 
-  return (
-    <div className="container py-8">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          className="mr-4"
-          onClick={() => setLocation("/lesson-plans")}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back
-        </Button>
-        <PageTitle title={`Edit Lesson Plan: ${lessonPlan.title}`} subtitle="Edit details and generate content" />
+  useEffect(() => {
+    // Set page title
+    document.title = `Evalia - Edit ${lessonPlan?.title || 'Lesson Plan'}`;
+  }, [lessonPlan]);
+
+  const { user, isLoading: authLoading } = useAuth();
+
+  if (!user && !authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Card>
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>Please log in to edit this lesson plan.</CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button onClick={() => setLocation("/auth/login")}>Go to Login</Button>
+          </CardFooter>
+        </Card>
       </div>
+    );
+  }
+  
+  return (
+    <div className="h-screen flex overflow-hidden bg-[#ede8dd]">
+      <Sidebar />
+      
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center mb-6">
+              <Button
+                variant="ghost"
+                className="mr-4"
+                onClick={() => setLocation("/lesson-plans")}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Back
+              </Button>
+              <PageTitle title={`Edit Lesson Plan: ${lessonPlan.title}`} subtitle="Edit details and generate content" />
+            </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
@@ -1038,6 +1068,9 @@ export default function EditLessonPlanPage() {
           </Card>
         </TabsContent>
       </Tabs>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

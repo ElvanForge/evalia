@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Loader2
 } from "lucide-react";
+import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -239,23 +241,51 @@ export default function ExportLessonPlanPage() {
     );
   }
 
-  return (
-    <div className="container py-8">
-      <SectionHeader 
-        title="Export Lesson Plan" 
-        subtitle="Download your lesson plan as a formatted document" 
-      />
-      
-      <div className="flex mb-4">
-        <Button
-          variant="outline"
-          className="flex items-center"
-          onClick={() => setLocation(`/lesson-plans/${lessonPlanId}`)}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to Lesson Plan
-        </Button>
+  useEffect(() => {
+    // Set page title
+    document.title = `Evalia - Export ${lessonPlan?.title || 'Lesson Plan'}`;
+  }, [lessonPlan]);
+
+  const { user, isLoading: authLoading } = useAuth();
+
+  if (!user && !authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Card>
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>Please log in to export this lesson plan.</CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button onClick={() => setLocation("/auth/login")}>Go to Login</Button>
+          </CardFooter>
+        </Card>
       </div>
+    );
+  }
+  
+  return (
+    <div className="h-screen flex overflow-hidden bg-[#ede8dd]">
+      <Sidebar />
+      
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeader 
+              title="Export Lesson Plan" 
+              subtitle="Download your lesson plan as a formatted document" 
+            />
+            
+            <div className="flex mb-4">
+              <Button
+                variant="outline"
+                className="flex items-center"
+                onClick={() => setLocation(`/lesson-plans/${lessonPlanId}`)}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Back to Lesson Plan
+              </Button>
+            </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
@@ -381,6 +411,9 @@ export default function ExportLessonPlanPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+          </div>
+        </main>
       </div>
     </div>
   );

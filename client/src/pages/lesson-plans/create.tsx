@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ChevronLeft, Loader2, Upload, FileText } from "lucide-react";
+import { Sidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -52,6 +54,12 @@ export default function CreateLessonPlanPage() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [createdLessonPlanId, setCreatedLessonPlanId] = useState<number | null>(null);
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    // Set page title
+    document.title = "Evalia - Create Lesson Plan";
+  }, []);
 
   // Fetch classes for the dropdown
   const { data: classes } = useQuery({
@@ -217,304 +225,329 @@ export default function CreateLessonPlanPage() {
     uploadPdfMutation.mutate({ lessonPlanId, file });
   };
 
-  return (
-    <div className="container py-8">
-      <SectionHeader
-        title="Create Lesson Plan" 
-        subtitle="Set up your new lesson plan"
-      />
-      
-      <div className="flex mb-4">
-        <Button
-          variant="outline"
-          className="flex items-center"
-          onClick={() => setLocation("/lesson-plans")}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to Lesson Plans
-        </Button>
+  if (!user && !authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Card>
+          <CardHeader>
+            <CardTitle>Authentication Required</CardTitle>
+            <CardDescription>Please log in to create a lesson plan.</CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button onClick={() => setLocation("/auth/login")}>Go to Login</Button>
+          </CardFooter>
+        </Card>
       </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex overflow-hidden bg-[#ede8dd]">
+      <Sidebar />
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2 bg-[#ede8dd]">
-          <TabsTrigger value="details" className="data-[state=active]:bg-[#0ba2b0] data-[state=active]:text-white">
-            Lesson Details
-          </TabsTrigger>
-          <TabsTrigger value="pdf" className="data-[state=active]:bg-[#0ba2b0] data-[state=active]:text-white">
-            Upload PDF
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="details">
-          <Card className="border-t-4 border-t-[#0ba2b0]">
-            <CardHeader className="bg-[#ede8dd]/50">
-              <CardTitle>Lesson Plan Details</CardTitle>
-              <CardDescription>
-                Enter the basic information for your lesson plan. You'll be able to add content and generate with AI in the next step.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {pdfFile && (
-                <Alert className="mb-6">
-                  <FileText className="h-4 w-4" />
-                  <AlertTitle>PDF Selected</AlertTitle>
-                  <AlertDescription className="flex items-center justify-between">
-                    <span>{pdfFile.name} ({(pdfFile.size / 1024).toFixed(0)} KB)</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setPdfFile(null)}
-                    >
-                      Remove
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              )}
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeader
+              title="Create Lesson Plan" 
+              subtitle="Set up your new lesson plan"
+            />
             
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Introduction to Photosynthesis" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          Give your lesson plan a descriptive title.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <div className="flex mb-4">
+              <Button
+                variant="outline"
+                className="flex items-center"
+                onClick={() => setLocation("/lesson-plans")}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Back to Lesson Plans
+              </Button>
+            </div>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <TabsList className="grid w-full max-w-md grid-cols-2 bg-[#ede8dd]">
+                <TabsTrigger value="details" className="data-[state=active]:bg-[#0ba2b0] data-[state=active]:text-white">
+                  Lesson Details
+                </TabsTrigger>
+                <TabsTrigger value="pdf" className="data-[state=active]:bg-[#0ba2b0] data-[state=active]:text-white">
+                  Upload PDF
+                </TabsTrigger>
+              </TabsList>
 
-                  <FormField
-                    control={form.control}
-                    name="subject"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Subject</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Biology" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          The academic subject for this lesson.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="gradeLevel"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Grade Level</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+              <TabsContent value="details">
+                <Card className="border-t-4 border-t-[#0ba2b0]">
+                  <CardHeader className="bg-[#ede8dd]/50">
+                    <CardTitle>Lesson Plan Details</CardTitle>
+                    <CardDescription>
+                      Enter the basic information for your lesson plan. You'll be able to add content and generate with AI in the next step.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {pdfFile && (
+                      <Alert className="mb-6">
+                        <FileText className="h-4 w-4" />
+                        <AlertTitle>PDF Selected</AlertTitle>
+                        <AlertDescription className="flex items-center justify-between">
+                          <span>{pdfFile.name} ({(pdfFile.size / 1024).toFixed(0)} KB)</span>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setPdfFile(null)}
                           >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select grade level" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Elementary">Elementary</SelectItem>
-                              <SelectItem value="Middle School">Middle School</SelectItem>
-                              <SelectItem value="High School">High School</SelectItem>
-                              <SelectItem value="College">College</SelectItem>
-                              <SelectItem value="K-2">K-2</SelectItem>
-                              <SelectItem value="3-5">3-5</SelectItem>
-                              <SelectItem value="6-8">6-8</SelectItem>
-                              <SelectItem value="9-12">9-12</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            The grade level for this lesson.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            Remove
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        <FormField
+                          control={form.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Introduction to Photosynthesis" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Give your lesson plan a descriptive title.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <FormField
-                      control={form.control}
-                      name="duration"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Duration</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+                        <FormField
+                          control={form.control}
+                          name="subject"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Subject</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Biology" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                The academic subject for this lesson.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="gradeLevel"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Grade Level</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select grade level" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="Elementary">Elementary</SelectItem>
+                                    <SelectItem value="Middle School">Middle School</SelectItem>
+                                    <SelectItem value="High School">High School</SelectItem>
+                                    <SelectItem value="College">College</SelectItem>
+                                    <SelectItem value="K-2">K-2</SelectItem>
+                                    <SelectItem value="3-5">3-5</SelectItem>
+                                    <SelectItem value="6-8">6-8</SelectItem>
+                                    <SelectItem value="9-12">9-12</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  The grade level for this lesson.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="duration"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Duration</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select duration" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="30 minutes">30 minutes</SelectItem>
+                                    <SelectItem value="45 minutes">45 minutes</SelectItem>
+                                    <SelectItem value="60 minutes">60 minutes</SelectItem>
+                                    <SelectItem value="90 minutes">90 minutes</SelectItem>
+                                    <SelectItem value="2 hours">2 hours</SelectItem>
+                                    <SelectItem value="Multiple days">Multiple days</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  How long this lesson will take.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="classId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Class (Optional)</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a class (optional)" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {classes && classes.map((class_: any) => (
+                                    <SelectItem key={class_.id} value={class_.id.toString()}>
+                                      {class_.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Associate this lesson plan with a specific class (optional).
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="flex justify-end space-x-4 pt-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              if (!pdfFile) {
+                                setActiveTab("pdf");
+                              } else {
+                                setPdfFile(null);
+                              }
+                            }}
                           >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select duration" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="30 minutes">30 minutes</SelectItem>
-                              <SelectItem value="45 minutes">45 minutes</SelectItem>
-                              <SelectItem value="60 minutes">60 minutes</SelectItem>
-                              <SelectItem value="90 minutes">90 minutes</SelectItem>
-                              <SelectItem value="2 hours">2 hours</SelectItem>
-                              <SelectItem value="Multiple days">Multiple days</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            How long this lesson will take.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                            {pdfFile ? "Change PDF" : "Add PDF (Optional)"}
+                          </Button>
+                          <Button
+                            type="submit"
+                            disabled={createMutation.isPending || uploadingFile}
+                            className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90"
+                          >
+                            {createMutation.isPending || uploadingFile ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                {uploadingFile ? "Uploading..." : "Creating..."}
+                              </>
+                            ) : (
+                              "Create & Continue"
+                            )}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-                  <FormField
-                    control={form.control}
-                    name="classId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Class (Optional)</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
+              <TabsContent value="pdf">
+                <Card className="border-t-4 border-t-[#0ba2b0]">
+                  <CardHeader className="bg-[#ede8dd]/50">
+                    <CardTitle>Upload PDF Content</CardTitle>
+                    <CardDescription>
+                      Upload a PDF file to use as content for your lesson plan. Our AI will analyze the PDF and create a lesson plan based on it.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-6 rounded-md border border-dashed p-8 text-center">
+                      <Upload className="h-10 w-10 mx-auto text-muted mb-4" />
+                      <h3 className="text-lg font-medium mb-1">Upload PDF File</h3>
+                      <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                        Upload a PDF file such as a textbook chapter, article, or existing materials. 
+                        The AI will analyze this content and help create your lesson plan.
+                      </p>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="pdf-upload"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={handleFileChange}
+                          accept="application/pdf"
+                        />
+                        <Button
+                          variant="outline"
+                          className="relative z-10"
                         >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a class (optional)" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {classes?.map((class_) => (
-                              <SelectItem key={class_.id} value={class_.id.toString()}>
-                                {class_.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Associate this lesson plan with a specific class (optional).
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
+                          Choose PDF File
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {pdfFile && (
+                      <Alert className="mb-6">
+                        <FileText className="h-4 w-4" />
+                        <AlertTitle>PDF Selected</AlertTitle>
+                        <AlertDescription className="flex items-center justify-between">
+                          <span>{pdfFile.name} ({(pdfFile.size / 1024).toFixed(0)} KB)</span>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setPdfFile(null)}
+                          >
+                            Remove
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
                     )}
-                  />
-
-                  <div className="flex justify-end space-x-4 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (!pdfFile) {
-                          setActiveTab("pdf");
-                        } else {
-                          setPdfFile(null);
-                        }
-                      }}
-                    >
-                      {pdfFile ? "Change PDF" : "Add PDF (Optional)"}
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={createMutation.isPending || uploadingFile}
-                    >
-                      {createMutation.isPending || uploadingFile ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {uploadingFile ? "Uploading..." : "Creating..."}
-                        </>
-                      ) : (
-                        "Create & Continue"
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="pdf">
-          <Card className="border-t-4 border-t-[#0ba2b0]">
-            <CardHeader className="bg-[#ede8dd]/50">
-              <CardTitle>Upload PDF Content</CardTitle>
-              <CardDescription>
-                Upload a PDF file to use as content for your lesson plan. Our AI will analyze the PDF and create a lesson plan based on it.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6 rounded-md border border-dashed p-8 text-center">
-                <Upload className="h-10 w-10 mx-auto text-muted mb-4" />
-                <h3 className="text-lg font-medium mb-1">Upload PDF File</h3>
-                <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-                  Upload a PDF file such as a textbook chapter, article, or existing materials. 
-                  The AI will analyze this content and help create your lesson plan.
-                </p>
-                <div className="relative">
-                  <input
-                    type="file"
-                    id="pdf-upload"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={handleFileChange}
-                    accept="application/pdf"
-                  />
-                  <Button
-                    variant="outline"
-                    className="relative z-10"
-                  >
-                    Choose PDF File
-                  </Button>
-                </div>
-              </div>
-              
-              {pdfFile && (
-                <Alert className="mb-6">
-                  <FileText className="h-4 w-4" />
-                  <AlertTitle>PDF Selected</AlertTitle>
-                  <AlertDescription className="flex items-center justify-between">
-                    <span>{pdfFile.name} ({(pdfFile.size / 1024).toFixed(0)} KB)</span>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setPdfFile(null)}
-                    >
-                      Remove
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              <Separator className="my-6" />
-              
-              <div className="flex flex-col space-y-2">
-                <h3 className="font-medium">How it works:</h3>
-                <ol className="list-decimal list-inside space-y-2 text-sm pl-1">
-                  <li>Upload a PDF file with your educational content</li>
-                  <li>Fill in the basic lesson plan details</li>
-                  <li>The AI will analyze your PDF and extract key information</li>
-                  <li>A complete lesson plan will be generated based on your content</li>
-                  <li>You can edit and refine the generated lesson plan as needed</li>
-                </ol>
-              </div>
-              
-              <div className="flex justify-end space-x-4 pt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveTab("details")}
-                >
-                  Continue to Details
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                    
+                    <Separator className="my-6" />
+                    
+                    <div className="flex flex-col space-y-2">
+                      <h3 className="font-medium">How it works:</h3>
+                      <ol className="list-decimal list-inside space-y-2 text-sm pl-1">
+                        <li>Upload a PDF file with your educational content</li>
+                        <li>Fill in the basic lesson plan details</li>
+                        <li>The AI will analyze your PDF and extract key information</li>
+                        <li>A complete lesson plan will be generated based on your content</li>
+                        <li>You can edit and refine the generated lesson plan as needed</li>
+                      </ol>
+                    </div>
+                    
+                    <div className="flex justify-end space-x-4 pt-6">
+                      <Button
+                        variant="outline"
+                        onClick={() => setActiveTab("details")}
+                      >
+                        Continue to Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
