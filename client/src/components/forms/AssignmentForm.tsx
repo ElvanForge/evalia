@@ -188,11 +188,15 @@ export default function AssignmentForm({ assignment, defaultClassId, onSuccess }
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {classes?.map((class_: any) => (
-                    <SelectItem key={class_.id} value={class_.id.toString()}>
-                      {class_.name}
-                    </SelectItem>
-                  )) || <SelectItem value="loading" disabled>Loading classes...</SelectItem>}
+                  {classes?.length > 0 ? (
+                    classes.map((class_: any) => (
+                      <SelectItem key={class_.id} value={class_.id.toString()}>
+                        {class_.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>Loading classes...</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <FormDescription>
