@@ -205,6 +205,12 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       if (!newAssignment.classId) throw new Error("Class is required");
       if (!newAssignment.type) throw new Error("Assignment type is required");
       
+      // Convert string values to appropriate types as required by the schema
+      const maxScore = parseInt(newAssignment.maxScore);
+      if (isNaN(maxScore) || maxScore <= 0) {
+        throw new Error("Max score must be a positive number");
+      }
+      
       const assignmentData = {
         name: newAssignment.name,
         classId: parseInt(newAssignment.classId),
@@ -212,7 +218,7 @@ export default function Dashboard({ currentUser }: DashboardProps) {
         dueDate: newAssignment.dueDate ? new Date(newAssignment.dueDate) : null,
         weight: parseInt(newAssignment.weight) || 10,
         description: newAssignment.description || '',
-        maxScore: parseInt(newAssignment.maxScore) || 100 // Use the form value or default to 100
+        maxScore: maxScore // Convert to number for database compatibility
       };
       
       const response = await fetch('/api/assignments', {
