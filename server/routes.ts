@@ -2464,18 +2464,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileExt = path.extname(file.originalname).toLowerCase();
       // Sanitize file extension
       const safeExt = fileExt.replace(/[^a-z0-9.]/gi, '');
-      const filename = 'image-' + uniqueSuffix + safeExt;
+      
+      // Choose prefix based on file type
+      let prefix = 'image';
+      if (file.mimetype === 'application/pdf') {
+        prefix = 'pdf';
+      }
+      
+      const filename = prefix + '-' + uniqueSuffix + safeExt;
       console.log('Generated filename for upload:', filename);
       cb(null, filename);
     }
   });
   
   const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    // Accept only images
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
+    // Accept images and PDFs based on the endpoint
+    if (req.path.includes('/lesson-plans') && req.path.includes('/materials')) {
+      // For lesson plan materials, accept PDFs and images
+      if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        console.warn('Invalid file type for lesson plan materials:', file.mimetype);
+        // Use null for the error parameter instead of Error object to fix TypeScript error
+        cb(null, false);
+      }
     } else {
-      cb(null, false);
+      // For regular uploads, only accept images
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        console.warn('Invalid file type for regular upload:', file.mimetype);
+        // Use null for the error parameter instead of Error object to fix TypeScript error
+        cb(null, false);
+      }
     }
   };
   
@@ -2720,7 +2741,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         '.png': 'image/png',
         '.gif': 'image/gif',
         '.svg': 'image/svg+xml',
-        '.webp': 'image/webp'
+        '.webp': 'image/webp',
+        '.pdf': 'application/pdf'  // Support PDF files
       };
       
       // Set mime type for the file
@@ -3952,8 +3974,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload materials for a lesson plan
   app.post("/api/lesson-plans/:id/materials", requireAuth, upload.single('file'), async (req, res) => {
     try {
+      console.log('============= LESSON PLAN MATERIAL UPLOAD REQUEST RECEIVED =============');
       const lessonPlanId = Number(req.params.id);
       const teacherId = req.user?.id;
+      
+      console.log('Request details:', {
+        lessonPlanId,
+        teacherId,
+        contentType: req.headers['content-type']
+      });
       
       if (!teacherId) {
         return res.status(401).json({ message: "User not authenticated" });
@@ -3970,22 +3999,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+        console.error('No file found in request for lesson plan material upload');
+        console.log('Request body:', req.body);
+        console.log('Request files:', req.files);
+        
+        // Check if request has the file field in body
+        if (req.body && typeof req.body === 'object') {
+          console.log('Body keys:', Object.keys(req.body));
+        }
+        
+        return res.status(400).json({ 
+          message: "No file uploaded",
+          error: "The file was not received by the server. Please ensure you are uploading a valid file."
+        });
       }
+      
+      console.log('File details:', {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        path: req.file.path,
+        filename: req.file.filename
+      });
+      
+      // Normalize the file URL to use the same format as other uploads
+      const fileUrl = `/uploads/images/${req.file.filename}`;
       
       const material = {
         lessonPlanId,
         fileName: req.file.originalname,
-        fileUrl: req.file.path,
+        fileUrl: fileUrl,
         fileType: req.file.mimetype,
         fileSize: req.file.size
       };
       
+      console.log('Saving material to database:', material);
+      
       const newMaterial = await dbStorage.createLessonPlanMaterial(material);
-      res.status(201).json(newMaterial);
+      
+      // Generate response with multiple URL formats like the image upload endpoint
+      const serverUrl = `${req.protocol}://${req.get('host')}`;
+      
+      res.status(201).json({
+        ...newMaterial,
+        fullUrl: `${serverUrl}${fileUrl}`,
+        relativeUrl: fileUrl.substring(1),
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        type: req.file.mimetype,
+        success: true
+      });
+      
+      console.log('============= LESSON PLAN MATERIAL UPLOAD COMPLETED =============');
     } catch (error) {
       console.error("Error uploading material:", error);
-      res.status(500).json({ message: "Server error uploading material" });
+      res.status(500).json({ message: "Server error uploading material", error: String(error) });
     }
   });
 

@@ -206,10 +206,21 @@ export default function CreateLessonPlanPage() {
       const file = files[0];
       // Check if file is a PDF
       if (file.type === 'application/pdf') {
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: "PDF must be smaller than 5MB. Please select a smaller file.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         setPdfFile(file);
+        setActiveTab("details"); // Switch to details tab after selecting a PDF
         toast({
           title: "PDF selected",
-          description: `"${file.name}" will be uploaded after creating the lesson plan.`,
+          description: `"${file.name}" (${(file.size / 1024).toFixed(0)} KB) will be uploaded after creating the lesson plan.`,
         });
       } else {
         toast({
@@ -495,8 +506,8 @@ export default function CreateLessonPlanPage() {
                           accept="application/pdf"
                         />
                         <Button
-                          variant="outline"
-                          className="relative z-10"
+                          variant="default"
+                          className="relative z-10 bg-[#0ba2b0] hover:bg-[#0ba2b0]/90"
                         >
                           Choose PDF File
                         </Button>
@@ -535,8 +546,9 @@ export default function CreateLessonPlanPage() {
                     
                     <div className="flex justify-end space-x-4 pt-6">
                       <Button
-                        variant="outline"
+                        variant="default"
                         onClick={() => setActiveTab("details")}
+                        className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90"
                       >
                         Continue to Details
                       </Button>

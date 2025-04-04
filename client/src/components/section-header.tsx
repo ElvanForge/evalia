@@ -28,7 +28,7 @@ export default function SectionHeader({
         // Add border and shadow to make buttons stand out
         return React.cloneElement(content, {
           ...content.props,
-          className: `${content.props.className || ''} border-2 border-white font-medium shadow-md hover:shadow-lg`
+          className: `${content.props.className || ''} border-2 border-white/90 font-medium shadow-md hover:shadow-lg bg-white/10 hover:bg-white/20 transition-all duration-200 px-4 py-2 rounded-md`
         });
       }
       
