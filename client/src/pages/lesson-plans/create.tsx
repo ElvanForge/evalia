@@ -119,22 +119,59 @@ export default function CreateLessonPlanPage() {
   const uploadPdfMutation = useMutation({
     mutationFn: async ({ lessonPlanId, file }: { lessonPlanId: number, file: File }) => {
       setUploadingFile(true);
+      console.log('Uploading file:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: new Date(file.lastModified).toISOString()
+      });
+      
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/materials`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
+      console.log('FormData created with file field');
       
-      if (!response.ok) {
-        throw new Error("Failed to upload file");
+      try {
+        const response = await fetch(`/api/lesson-plans/${lessonPlanId}/materials`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+          // Do not set Content-Type header for multipart/form-data
+        });
+        
+        console.log('Upload response status:', response.status);
+        
+        // Try to get the response text first for debugging
+        const responseText = await response.text();
+        console.log('Upload response text:', responseText);
+        
+        // If not OK, throw error with details
+        if (!response.ok) {
+          let errorMessage = `Upload failed with status: ${response.status}`;
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch (e) {
+            // If we can't parse as JSON, use the raw text
+            console.warn('Could not parse error response as JSON');
+          }
+          throw new Error(errorMessage);
+        }
+        
+        // Parse successful response as JSON
+        try {
+          return JSON.parse(responseText);
+        } catch (e) {
+          console.error('Failed to parse successful response as JSON:', e);
+          throw new Error('Invalid server response format');
+        }
+      } catch (error) {
+        console.error('Error during file upload:', error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: (data, variables) => {
+      console.log('Upload succeeded with data:', data);
       toast({
         title: "PDF uploaded",
         description: "Your PDF has been uploaded and will be used to generate the lesson plan.",
@@ -201,9 +238,19 @@ export default function CreateLessonPlanPage() {
   };
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("File input change event triggered");
+    
     const files = event.target.files;
+    console.log("Files selected:", files);
+    
     if (files && files.length > 0) {
       const file = files[0];
+      console.log("File details:", {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      
       // Check if file is a PDF
       if (file.type === 'application/pdf') {
         // Check file size (max 5MB)
@@ -216,6 +263,7 @@ export default function CreateLessonPlanPage() {
           return;
         }
         
+        console.log("Setting PDF file and switching to details tab");
         setPdfFile(file);
         setActiveTab("details"); // Switch to details tab after selecting a PDF
         toast({
@@ -223,12 +271,15 @@ export default function CreateLessonPlanPage() {
           description: `"${file.name}" (${(file.size / 1024).toFixed(0)} KB) will be uploaded after creating the lesson plan.`,
         });
       } else {
+        console.log("Invalid file type detected:", file.type);
         toast({
           title: "Invalid file type",
           description: "Please select a PDF file.",
           variant: "destructive",
         });
       }
+    } else {
+      console.log("No files selected");
     }
   };
   
@@ -497,21 +548,31 @@ export default function CreateLessonPlanPage() {
                         Upload a PDF file such as a textbook chapter, article, or existing materials. 
                         The AI will analyze this content and help create your lesson plan.
                       </p>
-                      <div className="relative">
+                      <div className="relative inline-block">
                         <input
                           type="file"
                           id="pdf-upload"
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                           onChange={handleFileChange}
-                          accept="application/pdf"
+                          accept="application/pdf,.pdf"
+                          onClick={(e) => {
+                            // Reset the value to allow selecting the same file again if needed
+                            (e.target as HTMLInputElement).value = '';
+                            console.log('File input clicked and reset');
+                          }}
                         />
                         <Button
                           variant="default"
-                          className="relative z-10 bg-[#0ba2b0] hover:bg-[#0ba2b0]/90"
+                          type="button"
+                          size="lg"
+                          className="relative z-10 bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 px-8 py-6 text-lg"
                         >
                           Choose PDF File
                         </Button>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Maximum file size: 5MB. File must be a PDF document.
+                      </p>
                     </div>
                     
                     {pdfFile && (
