@@ -6,6 +6,7 @@ import { getImageProps } from '@/lib/image-utils';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
 import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
+import { QuizCelebration } from '@/components/quiz-celebration';
 
 /**
  * Helper function to get the properly formatted URL for quiz images
@@ -66,6 +67,8 @@ export function QuizRunner({
   );
   // Enhanced answer tracking to include selected option IDs
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
+  // State for celebration animation
+  const [showCelebration, setShowCelebration] = useState(false);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -129,12 +132,27 @@ export function QuizRunner({
     
     if (isCorrect) {
       setScore(prevScore => prevScore + 1);
-    }
-    
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      
+      // Show celebration animation for correct answers
+      setShowCelebration(true);
+      
+      // After animation completes, move to next question or show score
+      setTimeout(() => {
+        setShowCelebration(false);
+        
+        if (currentQuestionIndex < questions.length - 1) {
+          setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+        } else {
+          showScore();
+        }
+      }, 2000);
     } else {
-      showScore();
+      // For incorrect answers, immediately move to next question or show score
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      } else {
+        showScore();
+      }
     }
   };
   
@@ -262,6 +280,12 @@ export function QuizRunner({
 
   return (
     <div className="bg-card rounded-xl border p-6 shadow-sm h-full flex flex-col">
+      {/* Add celebration animation component */}
+      <QuizCelebration 
+        visible={showCelebration} 
+        onComplete={() => setShowCelebration(false)} 
+      />
+      
       <div className="flex flex-col items-center mb-8">
         <h2 className="text-2xl font-semibold text-center mb-2">{getFormattedTitle()}</h2>
         
