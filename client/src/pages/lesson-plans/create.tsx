@@ -82,7 +82,7 @@ export default function CreateLessonPlanPage() {
 
   // Create lesson plan mutation
   const createMutation = useMutation({
-    mutationFn: async (data: LessonPlanFormValues) => {
+    mutationFn: async (data: LessonPlanFormValues & { teacherId: number }) => {
       const cleanedData = {
         ...data,
         classId: data.classId ? parseInt(data.classId) : undefined,
@@ -235,10 +235,20 @@ export default function CreateLessonPlanPage() {
   });
 
   const onSubmit = (data: LessonPlanFormValues) => {
-    // Add the required content field that's missing from the form
+    if (!user || !user.id) {
+      toast({
+        title: "Authentication error",
+        description: "You must be logged in to create a lesson plan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Add the required fields that are missing from the form
     const lessonPlanData = {
       ...data,
-      content: "" // Required field, will be populated after creation
+      content: "", // Required field, will be populated after creation
+      teacherId: user.id // Get teacherId from authenticated user
     };
     
     console.log('Submitting lesson plan with data:', lessonPlanData);
