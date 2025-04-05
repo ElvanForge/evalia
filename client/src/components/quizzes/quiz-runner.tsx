@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Clock, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class, InsertQuizAnswer } from '@shared/schema';
-import { formatQuizImageUrl } from '@/lib/image-utils';
+import { formatImageUrl, getFallbackImage } from '@/lib/image-utils';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
 import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -10,7 +10,7 @@ import { QuizCelebration } from '@/components/quiz-celebration';
 
 /**
  * Helper function to get the properly formatted URL for quiz images
- * Uses the new direct API endpoint with proper URL path joining
+ * Uses the enhanced image utility with cache busting and fallback
  */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
@@ -23,11 +23,12 @@ function getQuizImageUrl(url: string | null | undefined): string {
   
   if (!cleanFilename) return '';
   
-  // Use path joining to ensure proper URL formatting
-  const apiPath = joinUrlPaths('/api/images', cleanFilename) + `?t=${Date.now()}`;
-  
-  // Return the direct API endpoint with cache busting
-  return `${window.location.origin}${apiPath}`;
+  // Use our enhanced formatImageUrl utility to get a properly formatted image URL
+  // This adds cache busting and enables fallbacks
+  return formatImageUrl(cleanFilename, {
+    addCacheBusting: true,
+    enableFallback: true
+  });
 }
 
 // Interface for our internal answer tracking
@@ -114,11 +115,19 @@ export function QuizRunner({
   // State to prevent multiple rapid answers
   const [isAnswering, setIsAnswering] = useState(false);
   
+  // Debounce ref to prevent multiple rapid answer submissions even across component renders
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Handle when a user selects an answer
   const selectAnswer = (isCorrect: boolean, selectedOptionId?: number) => {
-    // Prevent multiple rapid answer submissions
-    if (isAnswering) return;
+    // Prevent multiple rapid answer submissions with both state and ref check
+    if (isAnswering || debounceTimeoutRef.current) return;
+    
+    // Set answering state and debounce timeout
     setIsAnswering(true);
+    debounceTimeoutRef.current = setTimeout(() => {
+      debounceTimeoutRef.current = null;
+    }, 2500); // Longer than our animation time
     
     // Record the answer with the selected option ID
     const currentQuestion = questions[currentQuestionIndex];
@@ -127,6 +136,7 @@ export function QuizRunner({
     const alreadyAnswered = answers.some(a => a.questionId === currentQuestion.id);
     if (alreadyAnswered) {
       console.log(`Question ${currentQuestion.id} already answered, skipping score update`);
+      setIsAnswering(false); // Reset answering state
       return;
     }
     
@@ -204,32 +214,56 @@ export function QuizRunner({
 
   // Show final score and finalize the quiz session
   const showScore = () => {
+    // Clear any running timers
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
     
+    // Clear any debounce timeouts
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+    }
+    
     setIsComplete(true);
     
-    // Verify score calculation is correct by counting correct answers
-    // This ensures the score can't exceed 100%
-    const correctAnswersCount = answers.filter(a => a.isCorrect).length;
+    // Get a unique list of question IDs that were answered correctly
+    // This prevents counting the same question multiple times if there were duplicate submissions
+    const uniqueCorrectQuestionIds = new Set(
+      answers
+        .filter(a => a.isCorrect)
+        .map(a => a.questionId)
+    );
+    
+    // Count unique correct answers to ensure accuracy
+    const correctAnswersCount = uniqueCorrectQuestionIds.size;
+    
+    // Deduplicate answers by question ID (keep only the last answer for each question)
+    const deduplicatedAnswers = Array.from(
+      answers.reduce((map, answer) => {
+        map.set(answer.questionId, answer);
+        return map;
+      }, new Map()).values()
+    );
+    
+    console.log(`Quiz completion - Total answers: ${answers.length}, Deduplicated: ${deduplicatedAnswers.length}, Unique correct: ${correctAnswersCount}`);
     
     // If calculated score doesn't match our tracked correct answers, fix it
     if (score !== correctAnswersCount) {
       console.log(`Score calculation mismatch: tracked=${score}, calculated=${correctAnswersCount}. Using calculated value.`);
       setScore(correctAnswersCount);
-      
-      // Make sure score doesn't exceed the number of questions
-      if (correctAnswersCount > questions.length) {
-        console.log(`Score exceeds question count (${correctAnswersCount} > ${questions.length}). Capping at question count.`);
-        setScore(questions.length);
-      }
+    }
+    
+    // Additional safety check: make sure score doesn't exceed the number of questions
+    if (correctAnswersCount > questions.length) {
+      console.log(`Score exceeds question count (${correctAnswersCount} > ${questions.length}). Capping at question count.`);
+      setScore(questions.length);
     }
     
     // Ensure we don't pass a score greater than the question count
-    const finalScore = Math.min(score, questions.length);
+    const finalScore = Math.min(correctAnswersCount, questions.length);
     
-    // Pass results to the parent component for further processing
+    // Pass results to the parent component for further processing 
     onComplete(finalScore, questions.length);
     
     // If not in preview mode, log the detailed answers
@@ -366,14 +400,15 @@ export function QuizRunner({
             </div>
             
             <ImageWithFallback 
-              src={currentQuestion.imageUrl}
+              src={getQuizImageUrl(currentQuestion.imageUrl)}
               alt={`Question ${currentQuestionIndex + 1}`}
               className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10 relative"
-              isQuizImage={true}
-              onLoadSuccess={() => {
+              containerClassName="w-[98%] h-[65vh] flex items-center justify-center"
+              fallbackSrc={getFallbackImage('quiz')}
+              onLoad={() => {
                 console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`);
               }}
-              onLoadError={() => {
+              onError={() => {
                 console.log(`Quiz image failed to load: ${currentQuestion.imageUrl || 'no image'}`);
                 
                 // Extract filename for better error reporting
@@ -382,19 +417,12 @@ export function QuizRunner({
                 if (filename) {
                   // Clean up any query parameters
                   const cleanFilename = filename.split('?')[0];
-                  const timestamp = Date.now();
                   
                   // Log detailed troubleshooting info
                   console.log(`Quiz image troubleshooting - Question ID: ${currentQuestion.id}`);
                   console.log(`Original imageUrl: ${currentQuestion.imageUrl}`);
                   console.log(`Extracted filename: ${cleanFilename}`);
-                  
-                  // Log possible URLs that could work
-                  const apiUrl = `${window.location.origin}/api/images/${cleanFilename}?t=${timestamp}`;
-                  const uploadsUrl = `${window.location.origin}/uploads/images/${cleanFilename}?t=${timestamp}`;
-                  
-                  console.log(`Possible direct API URL: ${apiUrl}`);
-                  console.log(`Possible direct uploads URL: ${uploadsUrl}`);
+                  console.log(`Formatted URL: ${getQuizImageUrl(currentQuestion.imageUrl)}`);
                 }
               }}
             />

@@ -1,0 +1,45 @@
+Layout was forced before the page was fully loaded. If stylesheets are not yet loaded this may cause a flash of unstyled content. node.js:417:1
+Quiz image: Using direct API endpoint with cache busting: [/uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189] => [https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825834887] index-NaGpAFMk.js:473:30572
+GET
+https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825834887
+[HTTP/2 404  903ms]
+
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-9805f83bd11cc9c0c074c59039062fd2.html#__shared_params__[version]=acacia&apiKey=pk_test_51R7qeUGfHwGnKNqPb6QpmGfEEtE8pXsdQ97vt6BwmGrkLAqTjsFnd7q0rVBMuNlfbU0NT4jCDMzCzPKkPYB6p7pC00OsKtVtYe&apiVersion=2025-01-27.acacia&stripeJsId=ac7dca3d-bf7d-4824-ace8-40c6b1c1a4e3&firstStripeInstanceCreatedLatency=6&controllerCount=1&isCheckout=false&stripeJsLoadTime=1743825835415&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=NA&mids[sid]=NA&referrer=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&controllerId=__privateStripeController4191” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Image recovery attempt 1: Using direct API: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg index-NaGpAFMk.js:473:31665
+GET
+https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg
+[HTTP/2 404  363ms]
+
+Image recovery attempt 2: Using API with cache bust: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825836223 index-NaGpAFMk.js:473:32054
+GET
+https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825836223
+[HTTP/2 404  563ms]
+
+Image recovery attempt 3: Using uploads path: https://evaliabeta.replit.app/uploads/images/image-1743379858001-504819577.jpeg?direct=1&t=1743825836803 index-NaGpAFMk.js:473:32464
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&title=Evalia%20-%20Teacher%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&title=Evalia%20-%20Teacher%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+XHRGET
+https://evaliabeta.replit.app/api/auth/me
+[HTTP/2 401  338ms]
+
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://m.stripe.com/6. (Reason: CORS request did not succeed). Status code: (null).
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='” autoconsent.js:954:14
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Quiz image: Using direct API endpoint with cache busting: [/uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189] => [https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825851139] index-NaGpAFMk.js:473:30572
+GET
+https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825851139
+[HTTP/2 404  368ms]
+
+Image recovery attempt 1: Using direct API: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg index-NaGpAFMk.js:473:31665
+GET
+https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg
+[HTTP/2 404  375ms]
+
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src https://m.stripe.network” autoconsent.js:954:14
+Image recovery attempt 2: Using API with cache bust: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825851908 index-NaGpAFMk.js:473:32054
+GET
+https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825851908
+[HTTP/2 404  411ms]
+
+Image recovery attempt 3: Using uploads path: https://evaliabeta.replit.app/uploads/images/image-1743379858001-504819577.jpeg?direct=1&t=1743825852331 index-NaGpAFMk.js:473:32464

@@ -1,255 +1,164 @@
-import { joinUrlPaths } from '@/lib/utils';
-
 /**
- * Utility functions for handling image loading and processing
+ * Utilities for working with images in the application
  */
 
 /**
- * Generate a cache-busting URL for images
- * Important for making sure we load fresh versions in production
- * @param url The base image URL
- * @returns The URL with a cache-busting query parameter
- */
-export function getCacheBustedImageUrl(url: string): string {
-  if (!url) return '';
-  
-  // Add a timestamp parameter to bust cache
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}t=${Date.now()}`;
-}
-
-/**
- * Format a quiz image URL to ensure it includes the /api/images/ path
- * @param imageUrl The raw image URL from the database
- * @returns A properly formatted API URL
- */
-export function formatQuizImageUrl(imageUrl: string | null | undefined): string {
-  if (!imageUrl) return '';
-  
-  // If it already has the /api/images/ prefix, use it as is
-  if (imageUrl.startsWith('/api/images/')) {
-    return getCacheBustedImageUrl(imageUrl);
-  }
-  
-  // If it has the /uploads/images/ prefix, convert it
-  if (imageUrl.startsWith('/uploads/images/')) {
-    const filename = imageUrl.split('/').pop();
-    return getCacheBustedImageUrl(`/api/images/${filename}`);
-  }
-  
-  // If it's just a filename, assume it's in the uploads/images directory
-  if (!imageUrl.includes('/')) {
-    return getCacheBustedImageUrl(`/api/images/${imageUrl}`);
-  }
-  
-  // Default case: return the original with cache busting
-  return getCacheBustedImageUrl(imageUrl);
-}
-
-/**
- * Get a fully qualified image URL with appropriate processing
- * @param src Raw image URL or path
- * @returns Processed image URL
- */
-export function getFullImageUrl(src: string): string {
-  if (!src) return '';
-  
-  // Handle relative vs. absolute URLs
-  if (src.startsWith('http://') || src.startsWith('https://')) {
-    return src; // Already absolute
-  }
-  
-  // For uploads, prefer the API endpoint
-  if (src.includes('/uploads/images/') || src.startsWith('/uploads/images/')) {
-    const filename = src.split('/').pop() || '';
-    return joinUrlPaths('/api/images', filename);
-  }
-  
-  // If just filename, route through API
-  if (!src.includes('/')) {
-    return joinUrlPaths('/api/images', src);
-  }
-  
-  // Ensure path starts with /
-  return src.startsWith('/') ? src : `/${src}`;
-}
-
-/**
- * Try loading an image at the given URL
- * @param url The image URL to test
- * @returns A promise that resolves to true if the image can be loaded, false otherwise
- */
-export function testImageLoading(url: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (!url) {
-      resolve(false);
-      return;
-    }
-    
-    const img = new Image();
-    
-    // Set a timeout to avoid hanging promises
-    const timeout = setTimeout(() => {
-      console.log(`⏱️ Image load timeout: ${url}`);
-      resolve(false);
-    }, 5000);
-    
-    img.onload = () => {
-      clearTimeout(timeout);
-      console.log(`✅ Image loaded successfully: ${url}`);
-      resolve(true);
-    };
-    
-    img.onerror = () => {
-      clearTimeout(timeout);
-      console.log(`❌ Image failed to load: ${url}`);
-      resolve(false);
-    };
-    
-    // Apply any necessary CORS attributes
-    img.crossOrigin = 'anonymous';
-    
-    // Set the source last
-    img.src = url;
-  });
-}
-
-/**
- * Generate multiple fallback URLs for an image
- * @param imageUrl The original image URL
- * @returns An array of possible fallback URLs to try
- */
-export function generateFallbackUrls(imageUrl: string): string[] {
-  if (!imageUrl) return [];
-  
-  const baseUrl = window.location.origin;
-  const fallbacks: string[] = [];
-  
-  // Extract filename - handle both relative and absolute paths
-  const urlParts = imageUrl.split('/');
-  const filenameWithQuery = urlParts[urlParts.length - 1];
-  const filename = filenameWithQuery.split('?')[0];
-  
-  console.log('Quiz image troubleshooting:');
-  console.log(`Original imageUrl: ${imageUrl}`);
-  console.log(`Extracted filename: ${filename}`);
-  
-  // For deployed environments, we need to ensure all URLs are absolute
-  const isAbsoluteUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
-  const timestamp = Date.now();
-  
-  // API endpoint with cache busting (most reliable approach)
-  const apiUrl = `${baseUrl}/api/images/${filename}?t=${timestamp}`;
-  fallbacks.push(apiUrl);
-  console.log(`Possible direct API URL: ${apiUrl}`);
-  
-  // Direct access to uploads folder with cache busting
-  const uploadsUrl = `${baseUrl}/uploads/images/${filename}?t=${timestamp}`;
-  fallbacks.push(uploadsUrl);
-  console.log(`Possible direct uploads URL: ${uploadsUrl}`);
-  
-  // If not already starting with API path, try the API path
-  if (!imageUrl.includes('/api/images/')) {
-    fallbacks.push(`${baseUrl}/api/images/${filename}`);
-  }
-  
-  // Try the original URL with proper absolutization if needed
-  if (isAbsoluteUrl) {
-    fallbacks.push(getCacheBustedImageUrl(imageUrl));
-  } else {
-    // Make relative URL absolute
-    const absoluteUrl = imageUrl.startsWith('/') 
-      ? `${baseUrl}${imageUrl}` 
-      : `${baseUrl}/${imageUrl}`;
-    fallbacks.push(getCacheBustedImageUrl(absoluteUrl));
-  }
-  
-  // Try with different file extensions if needed
-  if (filename && !filename.includes('.')) {
-    // No extension in filename, try common image extensions
-    ['jpg', 'jpeg', 'png', 'gif', 'webp'].forEach(ext => {
-      fallbacks.push(`${baseUrl}/api/images/${filename}.${ext}?t=${timestamp}`);
-    });
-  } else if (filename) {
-    // Extract basename without extension to try other extensions
-    const basename = filename.split('.')[0];
-    const currentExt = filename.split('.').pop()?.toLowerCase();
-    
-    // Try different extensions with API path
-    ['jpg', 'jpeg', 'png', 'gif', 'webp'].forEach(ext => {
-      if (ext !== currentExt) {
-        fallbacks.push(`${baseUrl}/api/images/${basename}.${ext}?t=${timestamp}`);
-      }
-    });
-  }
-  
-  // Remove duplicates
-  return Array.from(new Set(fallbacks));
-}
-
-/**
- * Load an image with fallbacks
- * @param imageUrl The original image URL
- * @param onSuccess Callback for successful loading
- * @param onError Callback for failed loading after all attempts
- */
-export async function loadImageWithFallbacks(
-  imageUrl: string,
-  onSuccess: (url: string) => void,
-  onError: () => void
-): Promise<void> {
-  if (!imageUrl) {
-    onError();
-    return;
-  }
-  
-  const fallbackUrls = generateFallbackUrls(imageUrl);
-  let loaded = false;
-  
-  // Try each URL in sequence
-  for (const url of fallbackUrls) {
-    if (await testImageLoading(url)) {
-      onSuccess(url);
-      loaded = true;
-      break;
-    }
-  }
-  
-  if (!loaded) {
-    console.error('All image loading attempts failed for:', imageUrl);
-    onError();
-  }
-}
-
-/**
- * Helper function that returns props for an image component
- * with consistent formatting and proper cache busting
+ * Formats an image path for use with the API
+ * Handles both local and external images
  * 
- * @param imageUrl The source URL for the image
- * @param alt The alt text for the image
- * @param isQuizImage Whether this is a quiz image (will use API endpoint)
- * @returns Props object for an image component
+ * @param imagePath The path or filename of the image
+ * @param options Additional formatting options
+ * @returns Properly formatted image URL
  */
-export function getImageProps(imageUrl: string | null | undefined, alt: string, isQuizImage: boolean = false) {
-  if (!imageUrl) {
-    return {
-      src: '',
-      alt
-    };
+export function formatImageUrl(
+  imagePath: string | null | undefined,
+  options: {
+    addCacheBusting?: boolean;
+    enableFallback?: boolean;
+    fullUrl?: boolean;
+  } = {}
+): string {
+  const { 
+    addCacheBusting = true, 
+    enableFallback = true,
+    fullUrl = false
+  } = options;
+  
+  // Return an empty string if no path provided
+  if (!imagePath) return '';
+  
+  // If it's already a full URL, return it as is (possibly with cache busting)
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) {
+    return imagePath;
   }
   
-  // Process URL based on type
-  const processedUrl = isQuizImage ? formatQuizImageUrl(imageUrl) : getCacheBustedImageUrl(imageUrl);
+  // If it's an API path but doesn't start with /api, prepend it
+  let path = imagePath;
+  if (!path.startsWith('/api/') && !path.startsWith('/uploads/')) {
+    path = `/api/images/${path}`;
+  }
   
+  // Add query parameters
+  const params = new URLSearchParams();
+  
+  // Add cache busting if requested
+  if (addCacheBusting) {
+    params.append('t', Date.now().toString());
+  }
+  
+  // Add fallback if requested
+  if (enableFallback) {
+    params.append('fallback', 'true');
+  }
+  
+  // Construct the final URL
+  const queryString = params.toString();
+  const separator = path.includes('?') ? '&' : '?';
+  const finalPath = queryString ? `${path}${separator}${queryString}` : path;
+  
+  // If full URL is requested, prepend the current origin
+  if (fullUrl && typeof window !== 'undefined') {
+    return `${window.location.origin}${finalPath}`;
+  }
+  
+  return finalPath;
+}
+
+/**
+ * Gets a default fallback image for the specified entity type
+ * 
+ * @param type Type of entity that needs a fallback image
+ * @returns URL to a fallback image
+ */
+export function getFallbackImage(type: 'student' | 'teacher' | 'quiz' | 'class' | 'assignment' | 'generic' = 'generic'): string {
+  // Use a colored SVG for different entity types
+  // Colors match the application theme
+  const colors = {
+    student: '#0ba2b0',
+    teacher: '#0ba2b0',
+    quiz: '#0ba2b0',
+    class: '#0ba2b0',
+    assignment: '#0ba2b0',
+    generic: '#0ba2b0',
+  };
+  
+  const labels = {
+    student: 'Student',
+    teacher: 'Teacher',
+    quiz: 'Quiz',
+    class: 'Class',
+    assignment: 'Assignment',
+    generic: 'Image',
+  };
+  
+  // Create an SVG data URI with the appropriate styling
+  const color = colors[type];
+  const label = labels[type];
+  
+  return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+    <rect width="300" height="200" fill="%23ede8dd"/>
+    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="${color}" font-size="24px" font-family="Arial, sans-serif">${label}</text>
+  </svg>`;
+}
+
+/**
+ * Get the full URL for an image, including the origin
+ * 
+ * @param url The relative URL of the image
+ * @returns The full URL including origin
+ */
+export function getFullImageUrl(url: string | null | undefined): string {
+  return formatImageUrl(url, { fullUrl: true });
+}
+
+/**
+ * Get image props for use with <img> elements
+ * 
+ * @param options Options for formatting the image URL
+ * @returns Props object to spread onto an <img> element
+ */
+export function getImageProps(options: {
+  src?: string | null;
+  alt?: string;
+  className?: string;
+  width?: number;
+  height?: number;
+  addCacheBusting?: boolean;
+  enableFallback?: boolean;
+  type?: 'student' | 'teacher' | 'quiz' | 'class' | 'assignment' | 'generic';
+}) {
+  const {
+    src,
+    alt = '',
+    className = '',
+    width,
+    height,
+    addCacheBusting = true,
+    enableFallback = true,
+    type = 'generic'
+  } = options;
+
+  // Format URL with appropriate options
+  const formattedSrc = formatImageUrl(src, {
+    addCacheBusting,
+    enableFallback
+  });
+
+  // Get fallback for onError handler
+  const fallbackImage = getFallbackImage(type);
+
   return {
-    src: processedUrl,
+    src: formattedSrc || fallbackImage,
     alt,
-    loading: 'lazy' as const,
+    className,
+    width,
+    height,
     onError: (e: React.SyntheticEvent<HTMLImageElement>) => {
-      console.error(`Image failed to load: ${processedUrl}`);
-      
-      // Try to set a fallback data URI if needed
-      // e.target.src = '...fallback data URI...';
+      // If the image fails to load and it's not already the fallback, 
+      // replace with fallback image
+      if (e.currentTarget.src !== fallbackImage) {
+        e.currentTarget.src = fallbackImage;
+      }
     }
   };
 }
