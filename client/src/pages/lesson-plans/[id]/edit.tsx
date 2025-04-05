@@ -106,6 +106,7 @@ export default function EditLessonPlanPage() {
   const [, params] = useRoute("/lesson-plans/:id/edit");
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isLoading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("details");
   const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -124,7 +125,7 @@ export default function EditLessonPlanPage() {
   });
 
   // Fetch classes for the dropdown
-  const { data: classes } = useQuery({
+  const { data: classes = [] } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/classes"],
     refetchOnWindowFocus: false,
   });
@@ -357,8 +358,6 @@ export default function EditLessonPlanPage() {
     // Set page title
     document.title = `Evalia - Edit ${lessonPlan?.title || 'Lesson Plan'}`;
   }, [lessonPlan]);
-
-  const { user, isLoading: authLoading } = useAuth();
 
   if (!user && !authLoading) {
     return (

@@ -182,12 +182,12 @@ export default function ViewLessonPlanPage() {
     </div>
   );
 
+  const { user, isLoading: authLoading } = useAuth();
+  
   useEffect(() => {
     // Set page title
     document.title = `Evalia - ${lessonPlan?.title || 'Lesson Plan'}`;
   }, [lessonPlan]);
-
-  const { user, isLoading: authLoading } = useAuth();
 
   if (!user && !authLoading) {
     return (

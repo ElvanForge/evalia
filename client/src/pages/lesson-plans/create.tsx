@@ -63,7 +63,7 @@ export default function CreateLessonPlanPage() {
   }, []);
 
   // Fetch classes for the dropdown
-  const { data: classes } = useQuery({
+  const { data: classes = [] } = useQuery<{ id: number; name: string }[]>({
     queryKey: ["/api/classes"],
     refetchOnWindowFocus: false,
   });
