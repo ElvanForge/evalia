@@ -9,8 +9,15 @@ import { LessonPlan, LessonPlanMaterial, InsertLessonPlanGeneratedContent } from
 
 // Initialize OpenAI with API key from environment variables
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'dummy-key-for-dev',
 });
+
+// Validate OpenAI configuration
+const validateOpenAIConfig = () => {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OpenAI API key is not configured. Please add OPENAI_API_KEY to your deployment secrets.');
+  }
+};
 
 // Interface for the lesson plan generation request
 interface LessonPlanGenerationOptions {
