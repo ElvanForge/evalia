@@ -463,14 +463,15 @@ export default function EditLessonPlanPage() {
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Back
               </Button>
-              <PageTitle title={`Edit Lesson Plan: ${lessonPlan.title}`} subtitle="Edit details and generate content" />
+              <PageTitle title={`Edit Lesson Plan: ${lessonPlan.title}`} subtitle="Edit details and manage content" />
             </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
-          <TabsTrigger value="generate">Generate with AI</TabsTrigger>
+          {/* Hide the Generate with AI tab for now until OpenAI quota issues are resolved */}
+          {/* <TabsTrigger value="generate">Generate with AI</TabsTrigger> */}
           <TabsTrigger value="materials">Materials</TabsTrigger>
         </TabsList>
 
@@ -674,14 +675,15 @@ export default function EditLessonPlanPage() {
                       </>
                     )}
                   </Button>
-                  <Button 
+                  {/* Hide Generate button until OpenAI quota issues are resolved */}
+                  {/* <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => setActiveTab("generate")}
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
                     Generate
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </CardHeader>
@@ -744,23 +746,22 @@ export default function EditLessonPlanPage() {
                       <BookText className="h-16 w-16 text-muted mb-4" />
                       <h3 className="text-xl font-semibold mb-2">No Content Yet</h3>
                       <p className="text-muted-foreground mb-4 max-w-md">
-                        This lesson plan doesn't have any content yet. You can add content manually by clicking 'Edit'
-                        or generate content using our AI assistant.
+                        This lesson plan doesn't have any content yet. Add content by clicking the button below.
                       </p>
                       <div className="flex gap-4">
                         <Button
-                          variant="outline"
                           onClick={() => setIsEditing(true)}
                         >
                           <Pencil className="h-4 w-4 mr-2" />
-                          Add Content Manually
+                          Add Content
                         </Button>
-                        <Button
+                        {/* Hide Generate with AI button until OpenAI quota issues are resolved */}
+                        {/* <Button
                           onClick={() => setActiveTab("generate")}
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
                           Generate with AI
-                        </Button>
+                        </Button> */}
                       </div>
                     </div>
                   )}
@@ -800,7 +801,8 @@ export default function EditLessonPlanPage() {
             </Card>
           )}
 
-          <Card className="mt-6">
+          {/* Hide component generation card until OpenAI quota issues are resolved */}
+          {/* <Card className="mt-6">
             <CardHeader>
               <CardTitle>Generate Components</CardTitle>
               <CardDescription>
@@ -913,7 +915,7 @@ export default function EditLessonPlanPage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </TabsContent>
 
         <TabsContent value="generate">

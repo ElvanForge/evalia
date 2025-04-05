@@ -175,7 +175,7 @@ export default function CreateLessonPlanPage() {
       console.log('Upload succeeded with data:', data);
       toast({
         title: "PDF uploaded",
-        description: "Your PDF has been uploaded and will be used to generate the lesson plan.",
+        description: "Your PDF has been uploaded and will be added to the lesson plan.",
       });
       setUploadingFile(false);
       
@@ -211,8 +211,8 @@ export default function CreateLessonPlanPage() {
     },
     onSuccess: (data) => {
       toast({
-        title: "Lesson plan generated",
-        description: "Your lesson plan has been generated based on the uploaded PDF.",
+        title: "PDF added to lesson plan",
+        description: "Your PDF has been attached to the lesson plan.",
       });
       
       // Navigate to view the generated lesson plan
@@ -222,8 +222,8 @@ export default function CreateLessonPlanPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to generate from PDF",
-        description: error.message || "An error occurred while generating content from your PDF.",
+        title: "Failed to add PDF to lesson plan",
+        description: error.message || "An error occurred while adding your PDF.",
         variant: "destructive",
       });
       
@@ -359,7 +359,7 @@ export default function CreateLessonPlanPage() {
                   <CardHeader className="bg-[#ede8dd]/50">
                     <CardTitle>Lesson Plan Details</CardTitle>
                     <CardDescription>
-                      Enter the basic information for your lesson plan. You'll be able to add content and generate with AI in the next step.
+                      Enter the basic information for your lesson plan. You'll be able to add content in the next step.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -555,7 +555,7 @@ export default function CreateLessonPlanPage() {
                   <CardHeader className="bg-[#ede8dd]/50">
                     <CardTitle>Upload PDF Content</CardTitle>
                     <CardDescription>
-                      Upload a PDF file to use as content for your lesson plan. Our AI will analyze the PDF and create a lesson plan based on it.
+                      Upload a PDF file to use as reference material for your lesson plan.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -563,8 +563,8 @@ export default function CreateLessonPlanPage() {
                       <Upload className="h-10 w-10 mx-auto text-muted mb-4" />
                       <h3 className="text-lg font-medium mb-1">Upload PDF File</h3>
                       <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-                        Upload a PDF file such as a textbook chapter, article, or existing materials. 
-                        The AI will analyze this content and help create your lesson plan.
+                        Upload a PDF file such as a textbook chapter, article, or existing materials
+                        as an attachment to your lesson plan.
                       </p>
                       <div className="relative inline-block">
                         <input
@@ -617,9 +617,9 @@ export default function CreateLessonPlanPage() {
                       <ol className="list-decimal list-inside space-y-2 text-sm pl-1">
                         <li>Upload a PDF file with your educational content</li>
                         <li>Fill in the basic lesson plan details</li>
-                        <li>The AI will analyze your PDF and extract key information</li>
-                        <li>A complete lesson plan will be generated based on your content</li>
-                        <li>You can edit and refine the generated lesson plan as needed</li>
+                        <li>Your PDF will be attached to your lesson plan as a reference material</li>
+                        <li>Create and edit your lesson plan content manually</li>
+                        <li>Export your complete lesson plan when you're ready</li>
                       </ol>
                     </div>
                     

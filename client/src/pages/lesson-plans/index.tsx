@@ -104,14 +104,14 @@ export default function LessonPlansPage() {
           <div className="bg-[#0ba2b0] py-6 px-6">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-2xl font-bold text-white">Lesson Plans</h1>
-              <p className="text-white/80">Create and manage AI-generated lesson plans</p>
+              <p className="text-white/80">Create and manage lesson plans for your classes</p>
             </div>
           </div>
           <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
             <div className="max-w-7xl mx-auto">
               <SectionHeader 
                 title="Lesson Plans" 
-                subtitle="Create and manage AI-generated lesson plans"
+                subtitle="Create and manage lesson plans for your classes"
                 rightContent={createButton} 
               />
               <div className="grid gap-6 mt-6">
@@ -147,14 +147,14 @@ export default function LessonPlansPage() {
           <div className="bg-[#0ba2b0] py-6 px-6">
             <div className="max-w-7xl mx-auto">
               <h1 className="text-2xl font-bold text-white">Lesson Plans</h1>
-              <p className="text-white/80">Create and manage AI-generated lesson plans</p>
+              <p className="text-white/80">Create and manage lesson plans for your classes</p>
             </div>
           </div>
           <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
             <div className="max-w-7xl mx-auto">
               <SectionHeader 
                 title="Lesson Plans" 
-                subtitle="Create and manage AI-generated lesson plans"
+                subtitle="Create and manage lesson plans for your classes"
                 rightContent={createButton} 
               />
               <Card className="mt-6">
@@ -188,7 +188,7 @@ export default function LessonPlansPage() {
           <div className="max-w-7xl mx-auto">
             <SectionHeader 
               title="Lesson Plans" 
-              subtitle="Create and manage AI-generated lesson plans"
+              subtitle="Create and manage lesson plans for your classes"
               rightContent={createButton} 
             />
 
@@ -201,7 +201,7 @@ export default function LessonPlansPage() {
                 <CardContent>
                   <p>
                     Create your first lesson plan by clicking the "Create New Lesson Plan" button above.
-                    Our AI assistant will help you generate content based on your inputs and materials.
+                    Add content and organize your teaching materials in one place.
                   </p>
                 </CardContent>
                 <CardFooter>
@@ -244,7 +244,7 @@ export default function LessonPlansPage() {
                           <p className="line-clamp-2 text-muted-foreground">
                             {lessonPlan.content
                               ? lessonPlan.content.substring(0, 150) + (lessonPlan.content.length > 150 ? "..." : "")
-                              : "No content generated yet. Click 'Edit' to add content or generate with AI."}
+                              : "No content yet. Click 'Edit' to add content to your lesson plan."}
                           </p>
                         </CardContent>
                         <CardFooter className="flex justify-between">
