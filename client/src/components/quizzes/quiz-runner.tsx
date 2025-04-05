@@ -279,8 +279,8 @@ export function QuizRunner({
   const correctOption = currentOptions.find(option => option.isCorrect);
 
   return (
-    <div className="bg-card rounded-xl border p-6 shadow-sm h-full flex flex-col">
-      {/* Add celebration animation component */}
+    <div className="bg-card rounded-xl border p-6 shadow-sm h-full flex flex-col relative">
+      {/* Add celebration animation component with absolute positioning over the content */}
       <QuizCelebration 
         visible={showCelebration} 
         onComplete={() => setShowCelebration(false)} 
@@ -311,7 +311,7 @@ export function QuizRunner({
         
         {/* Image container - larger with fullscreen capabilities */}
         {currentQuestion.imageUrl && (
-          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-4 min-h-[500px] relative">
+          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-2 min-h-[60vh] relative">
             {/* Add loading state */}
             <div className="absolute inset-0 flex items-center justify-center z-0">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -320,7 +320,7 @@ export function QuizRunner({
             <ImageWithFallback 
               src={currentQuestion.imageUrl}
               alt={`Question ${currentQuestionIndex + 1}`}
-              className="rounded-md object-contain max-h-[480px] max-w-full z-10 relative"
+              className="rounded-md object-contain max-h-[58vh] max-w-full z-10 relative"
               isQuizImage={true}
               onLoadSuccess={() => {
                 console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`);

@@ -55,7 +55,7 @@ export function QuizCelebration({ visible, onComplete }: CelebrationProps) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center"
+          className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
