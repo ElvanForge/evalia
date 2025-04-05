@@ -258,20 +258,34 @@ export default function EditLessonPlanPage() {
   const uploadMaterialMutation = useMutation({
     mutationFn: async (file: File) => {
       setUploadingFile(true);
+      console.log("Starting upload for file:", file.name);
+      
+      // Create a FormData object
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/materials`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
+      console.log("FormData created, uploading to:", `/api/lesson-plans/${lessonPlanId}/materials`);
       
-      if (!response.ok) {
-        throw new Error("Failed to upload file");
+      try {
+        const response = await fetch(`/api/lesson-plans/${lessonPlanId}/materials`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+        
+        console.log("Upload response status:", response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Upload error response:", errorText);
+          throw new Error(errorText || "Failed to upload file");
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Upload exception:", error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -282,6 +296,7 @@ export default function EditLessonPlanPage() {
       setUploadingFile(false);
     },
     onError: (error: any) => {
+      console.error("Upload error:", error);
       toast({
         title: "Failed to upload material",
         description: error.message || "An error occurred while uploading your material.",
@@ -301,9 +316,39 @@ export default function EditLessonPlanPage() {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      uploadMaterialMutation.mutate(file);
+    console.log("File selected:", file?.name, file?.type, file?.size);
+    
+    if (!file) {
+      toast({
+        title: "No file selected",
+        description: "Please select a file to upload.",
+        variant: "destructive",
+      });
+      return;
     }
+    
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a PDF, DOCX, TXT, JPG, or PNG file.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "File size must be less than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    uploadMaterialMutation.mutate(file);
   };
 
   const handleGenerateComponent = (type: ComponentType) => {
@@ -1007,31 +1052,37 @@ export default function EditLessonPlanPage() {
                   Upload documents, worksheets, or other materials to help the AI generate more relevant content.
                   Supported formats: PDF, DOCX, TXT, JPG, PNG.
                 </p>
-                <div className="relative">
-                  <input
-                    type="file"
-                    id="file-upload"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={handleFileUpload}
-                    disabled={uploadingFile}
-                  />
-                  <Button
-                    variant="outline"
-                    className="relative z-10"
-                    disabled={uploadingFile}
-                  >
-                    {uploadingFile ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Select File
-                      </>
-                    )}
-                  </Button>
+                <div>
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    <div className="flex justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={uploadingFile}
+                        onClick={() => document.getElementById('file-upload')?.click()}
+                      >
+                        {uploadingFile ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="mr-2 h-4 w-4" />
+                            Select File
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <input
+                      type="file"
+                      id="file-upload"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      disabled={uploadingFile}
+                      accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+                    />
+                  </label>
                 </div>
               </div>
 
