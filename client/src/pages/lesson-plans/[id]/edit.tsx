@@ -15,7 +15,8 @@ import {
   ListChecks,
   Clock,
   Pencil,
-  Save
+  Save,
+  Trash2
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
