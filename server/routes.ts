@@ -4,7 +4,7 @@ import { storage as dbStorage } from "./storage";
 import builder from "xmlbuilder";
 import Stripe from "stripe";
 import * as openAIService from "./openai-service";
-import { handleImageRequest } from './image-handler';
+import { handleImageRequest, serveImageFile } from './image-handler';
 
 // Helper function to convert numerical score to letter grade
 function getLetterGrade(score: number): string {
@@ -2719,16 +2719,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dedicated direct image serving endpoint - PREFER THIS OVER STATIC FILES
   app.get('/api/images/:filename', handleImageRequest);
   
-  // Keep static file middleware as a fallback
+  // Direct route for images with improved CORS headers
+  app.get('/uploads/images/:filename', (req, res, next) => {
+    const filename = req.params.filename;
+    console.log(`Direct upload access for: ${filename}`);
+    
+    // Set CORS headers for all image requests
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Range');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    
+    // For OPTIONS requests (preflight), return immediately
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    
+    // Try various file paths
+    const possiblePaths = [
+      path.join(process.cwd(), 'uploads/images', filename),
+      path.join('/home/runner/workspace/uploads/images', filename),
+      path.join('/home/runner/evaliabeta/uploads/images', filename),
+      `/home/runner/${process.env.REPL_SLUG}/uploads/images/${filename}`
+    ];
+    
+    // Try each path
+    for (const filePath of possiblePaths) {
+      if (fs.existsSync(filePath)) {
+        console.log(`Found image at: ${filePath}, serving directly`);
+        return serveImageFile(filePath, res);
+      }
+    }
+    
+    // If no direct file found, continue to static middleware
+    next();
+  });
+  
+  // Keep static file middleware as a fallback with improved headers
   app.use('/uploads', express.static('uploads', {
     setHeaders: (res, filePath) => {
-      // Set explicit cache control to prevent caching issues
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
+      // Set comprehensive headers for better caching and CORS
+      res.setHeader('Content-Type', getMimeType(filePath));
+      
+      // Cache control - use efficient caching for static assets
+      const cacheBustingParam = res.req?.url?.includes('t=');
+      if (cacheBustingParam) {
+        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+      } else {
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+      }
+      
+      // CORS headers for deployment environments
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      
       console.log(`Static file headers set for: ${filePath}`);
     }
   }));
+  
+  // Helper function to get MIME type from file extension
+  function getMimeType(filePath: string): string {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.webp': 'image/webp',
+      '.pdf': 'application/pdf'
+    };
+    
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
   
   // School routes
   app.get('/api/schools', requireAuth, async (req, res) => {

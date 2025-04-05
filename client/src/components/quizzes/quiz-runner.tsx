@@ -9,26 +9,65 @@ import { apiRequest } from '@/lib/queryClient';
 import { QuizCelebration } from '@/components/quiz-celebration';
 
 /**
- * Helper function to get the properly formatted URL for quiz images
- * Uses the enhanced image utility with cache busting and fallback
+ * Enhanced helper function to get the properly formatted URL for quiz images
+ * Uses multiple strategies to ensure images load in all environments
  */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
   
-  // Extract the filename from the URL path
-  const filename = url.split(/[\/\\]/).pop();
+  // If it's already a fully formatted URL with cache busting, return as is
+  if (url.includes('t=') && (url.startsWith('/api/') || url.startsWith('http'))) {
+    return url;
+  }
+  
+  // Determine if it's a full path or just a filename
+  const isFullPath = url.includes('/') || url.includes('\\');
+  
+  // For full paths, extract the filename
+  let filename = '';
+  if (isFullPath) {
+    // Extract filename from the URL path
+    const urlParts = url.split(/[\/\\]/);
+    filename = urlParts[urlParts.length - 1];
+  } else {
+    // Already just a filename
+    filename = url;
+  }
   
   // Clean up any query parameters
-  const cleanFilename = filename?.split('?')[0];
+  const cleanFilename = filename.split('?')[0];
   
   if (!cleanFilename) return '';
   
-  // Use our enhanced formatImageUrl utility to get a properly formatted image URL
-  // This adds cache busting and enables fallbacks
-  return formatImageUrl(cleanFilename, {
-    addCacheBusting: true,
-    enableFallback: true
-  });
+  // Calculate a unique cache busting timestamp that remains consistent for the same
+  // session but changes between page loads
+  const sessionTimestamp = Math.floor(Date.now() / 10000) * 10000;
+  
+  // Store all potential URLs we might try
+  const imageUrls = [
+    // Primary approach - use our centralized image formatting utility
+    formatImageUrl(cleanFilename, {
+      addCacheBusting: true,
+      enableFallback: true,
+      fullUrl: false
+    }),
+    
+    // Direct API access with cache busting
+    `/api/images/${cleanFilename}?t=${sessionTimestamp}`,
+    
+    // Direct file access with cache busting
+    `/uploads/images/${cleanFilename}?t=${sessionTimestamp}`,
+    
+    // Full URLs if the image is from an external source
+    isFullPath && url.startsWith('http') ? `${url}?t=${sessionTimestamp}` : ''
+  ].filter(Boolean);
+  
+  // For debugging
+  console.log(`Quiz image options for ${cleanFilename}:`, imageUrls);
+  
+  // Return the primary URL strategy (our formatImageUrl utility)
+  // The ImageWithFallback component will try others if this fails
+  return imageUrls[0];
 }
 
 // Interface for our internal answer tracking

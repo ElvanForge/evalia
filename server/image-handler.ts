@@ -82,7 +82,16 @@ export function findImageFile(filename: string, directory: string = './uploads/i
     // Absolute paths from root - for Replit deployed environments
     '/home/runner/workspace/uploads/images',
     '/home/runner/uploads/images',
-    '/uploads/images'
+    '/uploads/images',
+    
+    // Additional deploy-specific paths for Replit
+    '/home/runner/evaliabeta/uploads/images',
+    `/home/runner/${process.env.REPL_SLUG}/uploads/images`,
+    '/mnt/data/uploads/images',
+    
+    // Try common absolute paths that might work in various environments
+    '/app/uploads/images',
+    '/var/task/uploads/images'
   ];
   
   console.log(`[findImageFile] Will search in these paths:`, fallbackPaths);
