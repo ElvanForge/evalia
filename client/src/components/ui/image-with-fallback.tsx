@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFullImageUrl } from '@/lib/image-utils';
+import { getFullImageUrl, formatQuizImageUrl, loadImageWithFallbacks } from '@/lib/image-utils';
 import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 
 // Default fallback image as SVG data URI
@@ -61,7 +61,15 @@ export function ImageWithFallback({
         const apiPath = joinUrlPaths('/api/images', cleanFilename) + `?t=${timestamp}`;
         const apiUrl = `${window.location.origin}${apiPath}`;
         console.log(`Quiz image: Using direct API endpoint with cache busting: [${src}] => [${apiUrl}]`);
-        setCurrentSrc(apiUrl);
+        
+        // For deployed environments, ensure we're using https if the page is loaded over https
+        if (window.location.protocol === 'https:' && !apiUrl.startsWith('https:')) {
+          const secureUrl = apiUrl.replace('http:', 'https:');
+          console.log(`Converted to secure URL: ${secureUrl}`);
+          setCurrentSrc(secureUrl);
+        } else {
+          setCurrentSrc(apiUrl);
+        }
       } else {
         // Fallback to normal processing if we can't extract a filename
         const processedUrl = getFullImageUrl(src);
@@ -76,7 +84,15 @@ export function ImageWithFallback({
         : processedUrl;
       
       console.log(`ImageWithFallback: Processing URL [${src}] => [${finalUrl}]`);
-      setCurrentSrc(finalUrl);
+      
+      // For deployed environments, ensure we're using https if the page is loaded over https
+      if (window.location.protocol === 'https:' && finalUrl.startsWith('http:')) {
+        const secureUrl = finalUrl.replace('http:', 'https:');
+        console.log(`Converted to secure URL: ${secureUrl}`);
+        setCurrentSrc(secureUrl);
+      } else {
+        setCurrentSrc(finalUrl);
+      }
     }
     
     setRetryCount(0);
@@ -114,7 +130,13 @@ export function ImageWithFallback({
           const cleanFilename = filename.split('?')[0];
           // Use path joining to ensure proper URL formatting
           const apiPath = joinUrlPaths('/api/images', cleanFilename);
-          const apiUrl = `${window.location.origin}${apiPath}`;
+          let apiUrl = `${window.location.origin}${apiPath}`;
+          
+          // Ensure HTTPS for deployed environments
+          if (window.location.protocol === 'https:' && apiUrl.startsWith('http:')) {
+            apiUrl = apiUrl.replace('http:', 'https:');
+          }
+          
           console.log(`Image recovery attempt ${nextRetryCount}: Using direct API: ${apiUrl}`);
           setCurrentSrc(apiUrl);
           return;
@@ -130,7 +152,13 @@ export function ImageWithFallback({
           const cleanFilename = filename.split('?')[0];
           // Use path joining with cache busting
           const apiPath = joinUrlPaths('/api/images', cleanFilename) + `?t=${Date.now()}`;
-          const cacheBustUrl = `${window.location.origin}${apiPath}`;
+          let cacheBustUrl = `${window.location.origin}${apiPath}`;
+          
+          // Ensure HTTPS for deployed environments
+          if (window.location.protocol === 'https:' && cacheBustUrl.startsWith('http:')) {
+            cacheBustUrl = cacheBustUrl.replace('http:', 'https:');
+          }
+          
           console.log(`Image recovery attempt ${nextRetryCount}: Using API with cache bust: ${cacheBustUrl}`);
           setCurrentSrc(cacheBustUrl);
           return;
@@ -138,16 +166,23 @@ export function ImageWithFallback({
       }
     }
     else if (nextRetryCount === 3) {
-      // Third attempt: Fall back to the legacy path with direct access
+      // Third attempt: Try with case insensitive matching
       if (isQuizImage || (src && (src.includes('/uploads/') || src.includes('uploads/')))) {
         const filename = src.split(/[\/\\]/).pop();
         if (filename) {
           // Clean up any query parameters
           const cleanFilename = filename.split('?')[0];
-          // Use path joining for uploads path
-          const uploadsPath = joinUrlPaths('/uploads/images', cleanFilename) + `?direct=1`;
-          const directUrl = `${window.location.origin}${uploadsPath}`;
-          console.log(`Image recovery attempt ${nextRetryCount}: Using legacy path: ${directUrl}`);
+          
+          // First try the direct uploads path
+          const uploadsPath = joinUrlPaths('/uploads/images', cleanFilename) + `?direct=1&t=${Date.now()}`;
+          let directUrl = `${window.location.origin}${uploadsPath}`;
+          
+          // Ensure HTTPS for deployed environments
+          if (window.location.protocol === 'https:' && directUrl.startsWith('http:')) {
+            directUrl = directUrl.replace('http:', 'https:');
+          }
+          
+          console.log(`Image recovery attempt ${nextRetryCount}: Using uploads path: ${directUrl}`);
           setCurrentSrc(directUrl);
           return;
         }

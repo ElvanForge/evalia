@@ -4,6 +4,7 @@ import { storage as dbStorage } from "./storage";
 import builder from "xmlbuilder";
 import Stripe from "stripe";
 import * as openAIService from "./openai-service";
+import { handleImageRequest } from './image-handler';
 
 // Helper function to convert numerical score to letter grade
 function getLetterGrade(score: number): string {
@@ -1796,23 +1797,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Return a new object with processed URL to avoid modifying the original
     const processed = { ...question };
     
+    // First, normalize the path to handle different formats
+    let normalizedPath = processed.imageUrl;
+    
     // Ensure image URL is properly formatted
     // If it doesn't start with /uploads, add it
-    if (!processed.imageUrl.startsWith('/uploads/')) {
+    if (!normalizedPath.startsWith('/uploads/')) {
       // Check if it's a filename only or a partial path
-      if (processed.imageUrl.includes('/uploads/')) {
+      if (normalizedPath.includes('/uploads/')) {
         // Extract from uploads/ onward
-        const uploadsIndex = processed.imageUrl.indexOf('/uploads/');
-        processed.imageUrl = processed.imageUrl.substring(uploadsIndex);
-      } else if (processed.imageUrl.includes('/images/')) {
+        const uploadsIndex = normalizedPath.indexOf('/uploads/');
+        normalizedPath = normalizedPath.substring(uploadsIndex);
+      } else if (normalizedPath.includes('/images/')) {
         // If it has /images/ but not /uploads/, add the uploads part
-        const imagesIndex = processed.imageUrl.indexOf('/images/');
-        processed.imageUrl = '/uploads' + processed.imageUrl.substring(imagesIndex);
+        const imagesIndex = normalizedPath.indexOf('/images/');
+        normalizedPath = '/uploads' + normalizedPath.substring(imagesIndex);
       } else {
         // Assume it's just a filename
-        processed.imageUrl = `/uploads/images/${processed.imageUrl}`;
+        normalizedPath = `/uploads/images/${normalizedPath}`;
       }
     }
+    
+    // Additional validation - make sure the file exists
+    const extractedName = path.basename(normalizedPath);
+    const filepath = path.join('./uploads/images', extractedName);
+    
+    if (!fs.existsSync(filepath)) {
+      console.log(`Warning: Image file ${filepath} does not exist for question ${question.id}`);
+      
+      // Try to find a case-insensitive match
+      try {
+        const files = fs.readdirSync('./uploads/images');
+        const basename = extractedName.toLowerCase();
+        const similarFiles = files.filter(file => file.toLowerCase() === basename);
+        
+        if (similarFiles.length === 1) {
+          console.log(`Found case-insensitive match for ${extractedName}: ${similarFiles[0]}`);
+          normalizedPath = `/uploads/images/${similarFiles[0]}`;
+          console.log(`Using corrected path: ${normalizedPath}`);
+        }
+      } catch (err) {
+        console.error('Error listing upload directory:', err);
+      }
+    } else {
+      console.log(`Verified image exists: ${filepath}`);
+    }
+    
+    // Set the processed URL
+    processed.imageUrl = normalizedPath;
     
     console.log(`Processed image URL for question ${processed.id}: ${processed.imageUrl}`);
     return processed;
@@ -2685,156 +2717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Dedicated direct image serving endpoint - PREFER THIS OVER STATIC FILES
-  app.get('/api/images/:filename', (req, res) => {
-    console.log('============ DIRECT IMAGE REQUEST ============');
-    const filename = req.params.filename;
-    console.log('Requested image filename:', filename);
-    console.log('Request URL:', req.originalUrl);
-    console.log('Referrer:', req.headers.referer || 'none');
-    
-    // Enable CORS for image requests to help with deployment issues
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    
-    // Security check to prevent path traversal
-    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-      console.error('Attempted path traversal attack with filename:', filename);
-      return res.status(400).send('Invalid filename');
-    }
-    
-    // Construct the full image path
-    const imagePath = path.join('./uploads/images', filename);
-    console.log('Full image path:', imagePath);
-    
-    // Check if file exists
-    if (!fs.existsSync(imagePath)) {
-      console.error('Image not found on disk:', imagePath);
-      
-      // List other files in the directory for debugging
-      try {
-        const files = fs.readdirSync('./uploads/images');
-        console.log('Available files in uploads/images:', files);
-        
-        // Look for similar filenames for better debugging
-        const similarFiles = files.filter(file => 
-          file.toLowerCase().includes(filename.toLowerCase()) || 
-          filename.toLowerCase().includes(file.toLowerCase())
-        );
-        
-        if (similarFiles.length > 0) {
-          console.log('Similar filenames found:', similarFiles);
-        }
-      } catch (err) {
-        console.error('Error listing files:', err);
-      }
-      
-      return res.status(404).send('Image not found');
-    }
-    
-    try {
-      // Get file details
-      const stats = fs.statSync(imagePath);
-      console.log('Image file details:', {
-        size: stats.size,
-        created: stats.birthtime,
-        modified: stats.mtime,
-        path: imagePath,
-        absolutePath: path.resolve(imagePath)
-      });
-      
-      // Ensure file permissions
-      try {
-        fs.chmodSync(imagePath, 0o644);
-      } catch (permError) {
-        console.warn('Could not change file permissions:', permError.message);
-        // Continue anyway, this is non-critical
-      }
-      
-      // Determine content type based on file extension
-      const ext = path.extname(imagePath).toLowerCase();
-      const mimeTypes: Record<string, string> = {
-        '.jpg': 'image/jpeg',
-        '.jpeg': 'image/jpeg',
-        '.png': 'image/png',
-        '.gif': 'image/gif',
-        '.svg': 'image/svg+xml',
-        '.webp': 'image/webp',
-        '.pdf': 'application/pdf'  // Support PDF files
-      };
-      
-      // Set mime type for the file
-      let contentType = 'application/octet-stream'; // default
-      if (mimeTypes[ext]) {
-        contentType = mimeTypes[ext];
-      }
-      
-      // Set appropriate headers
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Length', stats.size);
-      res.setHeader('X-Content-Type-Options', 'nosniff'); // Security: Prevent MIME sniffing
-      
-      // Always use cache-busting headers for deployment consistency
-      // Check if request has a cache-busting query parameter (t or timestamp)
-      const hasCacheBusting = req.query.t || req.query.timestamp;
-      
-      if (hasCacheBusting) {
-        // If request has cache busting, allow caching with validation
-        // This improves performance while still allowing for cache refreshes
-        res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
-        res.setHeader('ETag', `"${stats.size}-${stats.mtime.getTime()}"`);
-      } else {
-        // If no cache busting, use no-cache headers for validation on each request
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-      }
-      
-      // Stream the file directly to the response
-      const fileStream = fs.createReadStream(imagePath);
-      
-      // Add timeout handling to prevent hanging requests
-      const timeout = setTimeout(() => {
-        console.error('Image streaming timed out after 10 seconds:', filename);
-        if (!res.headersSent) {
-          res.status(504).send('Streaming timed out');
-        }
-        fileStream.destroy();
-      }, 10000); // 10 second timeout
-      
-      // Pipe the file to the response
-      fileStream.pipe(res);
-      
-      console.log('Image streaming started:', filename);
-      
-      fileStream.on('end', () => {
-        clearTimeout(timeout); // Clear the timeout
-        console.log('Image streaming completed:', filename);
-        console.log('============ IMAGE SENT SUCCESSFULLY ============');
-      });
-      
-      fileStream.on('error', (err) => {
-        clearTimeout(timeout); // Clear the timeout
-        console.error('Error streaming image:', err);
-        // Only send error if headers haven't been sent yet
-        if (!res.headersSent) {
-          res.status(500).send('Error streaming image');
-        }
-      });
-      
-      // Handle client disconnection
-      req.on('close', () => {
-        clearTimeout(timeout); // Clear the timeout
-        if (fileStream) {
-          fileStream.destroy();
-        }
-        console.log('Client disconnected during image streaming:', filename);
-      });
-    } catch (error) {
-      console.error('Error serving image:', error);
-      res.status(500).send('Server error');
-    }
-  });
+  app.get('/api/images/:filename', handleImageRequest);
   
   // Keep static file middleware as a fallback
   app.use('/uploads', express.static('uploads', {

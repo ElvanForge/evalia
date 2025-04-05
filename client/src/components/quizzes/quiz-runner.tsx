@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Clock, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class, InsertQuizAnswer } from '@shared/schema';
-import { getImageProps } from '@/lib/image-utils';
+import { formatQuizImageUrl } from '@/lib/image-utils';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
 import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
