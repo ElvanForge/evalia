@@ -277,6 +277,16 @@ export function QuizRunner({
   
   // Find the correct option
   const correctOption = currentOptions.find(option => option.isCorrect);
+  
+  // Add a loading state when questions aren't loaded yet
+  if (!currentQuestion) {
+    return (
+      <div className="bg-card rounded-xl border p-6 shadow-sm h-full flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+        <p className="text-lg text-muted-foreground">Loading quiz questions...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-xl border p-6 shadow-sm h-full flex flex-col relative">
@@ -300,7 +310,7 @@ export function QuizRunner({
       <div className="mb-8 flex-grow flex flex-col">
         <div className="flex items-center mb-2">
           <div className="bg-primary/10 text-primary text-sm font-medium rounded-full px-3 py-1">
-            Question {currentQuestionIndex + 1} of {questions.length}
+            Question {currentQuestionIndex + 1} of {questions?.length || 0}
           </div>
         </div>
         
