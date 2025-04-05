@@ -614,7 +614,11 @@ export default function EditLessonPlanPage() {
             <CardContent className="pt-2">
               {isEditing ? (
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)}>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const data = form.getValues();
+                    updateMutation.mutate(data);
+                  }}>
                     <FormField
                       control={form.control}
                       name="content"
@@ -818,17 +822,21 @@ export default function EditLessonPlanPage() {
               )}
 
               <div className="mt-6">
-                <FormLabel htmlFor="componentContext">Additional Context (Optional)</FormLabel>
-                <Textarea
-                  id="componentContext"
-                  placeholder="Provide any additional context for the component generation..."
-                  value={componentContext}
-                  onChange={(e) => setComponentContext(e.target.value)}
-                  className="mt-2"
-                />
-                <FormDescription className="mt-1">
-                  Add specific details or requirements to guide the AI when generating components.
-                </FormDescription>
+                <div>
+                  <label htmlFor="componentContext" className="text-sm font-medium">
+                    Additional Context (Optional)
+                  </label>
+                  <Textarea
+                    id="componentContext"
+                    placeholder="Provide any additional context for the component generation..."
+                    value={componentContext}
+                    onChange={(e) => setComponentContext(e.target.value)}
+                    className="mt-2"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Add specific details or requirements to guide the AI when generating components.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
