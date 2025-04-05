@@ -24,10 +24,27 @@ export function serveImageFile(filePath: string, res: Response) {
       contentType = mimeTypes[ext];
     }
     
+    // Set comprehensive headers for better caching and CORS handling
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Length', stats.size);
-    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
-    res.setHeader('Access-Control-Allow-Origin', '*'); // CORS for images
+    
+    // Cache control - use cache busting query parameters for better control
+    const hasCacheBusting = res.req?.url?.includes('t=');
+    if (hasCacheBusting) {
+      // If cache busting parameter present, allow caching
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+      res.setHeader('ETag', `"${stats.size}-${stats.mtime.getTime()}"`);
+    } else {
+      // Without cache busting, force revalidation
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+    }
+    
+    // CORS headers - allow from all origins for image assets
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     
     return fs.createReadStream(filePath).pipe(res);
   } catch (error) {

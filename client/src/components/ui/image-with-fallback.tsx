@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getFullImageUrl, formatQuizImageUrl, loadImageWithFallbacks } from '@/lib/image-utils';
+import { 
+  getFullImageUrl, 
+  formatQuizImageUrl, 
+  loadImageWithFallbacks, 
+  getImageProps,
+  generateFallbackUrls 
+} from '@/lib/image-utils';
 import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 
 // Default fallback image as SVG data URI
@@ -20,6 +26,8 @@ export interface ImageWithFallbackProps extends Omit<React.ImgHTMLAttributes<HTM
 /**
  * A React component that handles image loading with automatic error recovery and fallbacks.
  * This is particularly useful for quiz images and other uploads that might have inconsistent paths.
+ * 
+ * Enhanced version with improved error handling and production environment awareness
  */
 export function ImageWithFallback({
   src,
@@ -36,11 +44,14 @@ export function ImageWithFallback({
   
   // Start with the original URL
   const [currentSrc, setCurrentSrc] = useState<string>('');
-  const [retryCount, setRetryCount] = useState<number>(0);
+  const [fallbackUrls, setFallbackUrls] = useState<string[]>([]);
+  const [currentFallbackIndex, setCurrentFallbackIndex] = useState<number>(-1);
   const [hasError, setHasError] = useState<boolean>(false);
   const [finallyLoaded, setFinallyLoaded] = useState<boolean>(false);
+  const [isLoadingFallback, setIsLoadingFallback] = useState<boolean>(false);
+  const [retryCount, setRetryCount] = useState<number>(0);
   
-  const maxRetries = 3; // Maximum number of retries before using fallback
+  const maxRetries = 5; // Maximum number of retries before using fallback
 
   // Reset states when src changes
   useEffect(() => {

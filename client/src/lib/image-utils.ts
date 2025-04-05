@@ -88,14 +88,28 @@ export function testImageLoading(url: string): Promise<boolean> {
     
     const img = new Image();
     
+    // Set a timeout to avoid hanging promises
+    const timeout = setTimeout(() => {
+      console.log(`⏱️ Image load timeout: ${url}`);
+      resolve(false);
+    }, 5000);
+    
     img.onload = () => {
+      clearTimeout(timeout);
+      console.log(`✅ Image loaded successfully: ${url}`);
       resolve(true);
     };
     
     img.onerror = () => {
+      clearTimeout(timeout);
+      console.log(`❌ Image failed to load: ${url}`);
       resolve(false);
     };
     
+    // Apply any necessary CORS attributes
+    img.crossOrigin = 'anonymous';
+    
+    // Set the source last
     img.src = url;
   });
 }
@@ -108,33 +122,69 @@ export function testImageLoading(url: string): Promise<boolean> {
 export function generateFallbackUrls(imageUrl: string): string[] {
   if (!imageUrl) return [];
   
+  const baseUrl = window.location.origin;
   const fallbacks: string[] = [];
   
-  // First prioritize the direct API endpoint
-  if (!imageUrl.startsWith('/api/images/')) {
-    const filename = imageUrl.split('/').pop();
-    if (filename) {
-      fallbacks.push(getCacheBustedImageUrl(`/api/images/${filename}`));
-    }
+  // Extract filename - handle both relative and absolute paths
+  const urlParts = imageUrl.split('/');
+  const filenameWithQuery = urlParts[urlParts.length - 1];
+  const filename = filenameWithQuery.split('?')[0];
+  
+  console.log('Quiz image troubleshooting:');
+  console.log(`Original imageUrl: ${imageUrl}`);
+  console.log(`Extracted filename: ${filename}`);
+  
+  // For deployed environments, we need to ensure all URLs are absolute
+  const isAbsoluteUrl = imageUrl.startsWith('http://') || imageUrl.startsWith('https://');
+  const timestamp = Date.now();
+  
+  // API endpoint with cache busting (most reliable approach)
+  const apiUrl = `${baseUrl}/api/images/${filename}?t=${timestamp}`;
+  fallbacks.push(apiUrl);
+  console.log(`Possible direct API URL: ${apiUrl}`);
+  
+  // Direct access to uploads folder with cache busting
+  const uploadsUrl = `${baseUrl}/uploads/images/${filename}?t=${timestamp}`;
+  fallbacks.push(uploadsUrl);
+  console.log(`Possible direct uploads URL: ${uploadsUrl}`);
+  
+  // If not already starting with API path, try the API path
+  if (!imageUrl.includes('/api/images/')) {
+    fallbacks.push(`${baseUrl}/api/images/${filename}`);
   }
   
-  // Then try the original url
-  fallbacks.push(getCacheBustedImageUrl(imageUrl));
+  // Try the original URL with proper absolutization if needed
+  if (isAbsoluteUrl) {
+    fallbacks.push(getCacheBustedImageUrl(imageUrl));
+  } else {
+    // Make relative URL absolute
+    const absoluteUrl = imageUrl.startsWith('/') 
+      ? `${baseUrl}${imageUrl}` 
+      : `${baseUrl}/${imageUrl}`;
+    fallbacks.push(getCacheBustedImageUrl(absoluteUrl));
+  }
   
-  // Try with different file extensions if the image is a filename
-  const filename = imageUrl.split('/').pop();
-  if (filename && !filename.includes('?')) {
+  // Try with different file extensions if needed
+  if (filename && !filename.includes('.')) {
+    // No extension in filename, try common image extensions
+    ['jpg', 'jpeg', 'png', 'gif', 'webp'].forEach(ext => {
+      fallbacks.push(`${baseUrl}/api/images/${filename}.${ext}?t=${timestamp}`);
+    });
+  } else if (filename) {
+    // Extract basename without extension to try other extensions
     const basename = filename.split('.')[0];
+    const currentExt = filename.split('.').pop()?.toLowerCase();
     
     // Try different extensions with API path
-    ['png', 'jpg', 'jpeg', 'gif', 'webp'].forEach(ext => {
-      if (!filename.toLowerCase().endsWith(`.${ext}`)) {
-        fallbacks.push(getCacheBustedImageUrl(`/api/images/${basename}.${ext}`));
+    ['jpg', 'jpeg', 'png', 'gif', 'webp'].forEach(ext => {
+      if (ext !== currentExt) {
+        fallbacks.push(`${baseUrl}/api/images/${basename}.${ext}?t=${timestamp}`);
       }
     });
   }
   
-  return fallbacks;
+  // Remove duplicates
+  return Array.from(new Set(fallbacks));
 }
 
 /**

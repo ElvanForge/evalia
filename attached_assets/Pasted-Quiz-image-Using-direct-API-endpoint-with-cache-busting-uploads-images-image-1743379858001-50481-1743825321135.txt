@@ -1,0 +1,28 @@
+Quiz image: Using direct API endpoint with cache busting: [/uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189] => [https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825265918] index-Cr4NpFGo.js:473:30517
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-9805f83bd11cc9c0c074c59039062fd2.html#__shared_params__[version]=acacia&apiKey=pk_test_51R7qeUGfHwGnKNqPb6QpmGfEEtE8pXsdQ97vt6BwmGrkLAqTjsFnd7q0rVBMuNlfbU0NT4jCDMzCzPKkPYB6p7pC00OsKtVtYe&apiVersion=2025-01-27.acacia&stripeJsId=fb69e4d9-f51c-475c-b3c3-c7d2ce05d884&firstStripeInstanceCreatedLatency=7&controllerCount=1&isCheckout=false&stripeJsLoadTime=1743825265832&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=NA&mids[sid]=NA&referrer=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&controllerId=__privateStripeController1801” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Image recovery attempt 1: Using direct API: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg index-Cr4NpFGo.js:473:31610
+Image recovery attempt 2: Using API with cache bust: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825266717 index-Cr4NpFGo.js:473:31999
+Image recovery attempt 3: Using uploads path: https://evaliabeta.replit.app/uploads/images/image-1743379858001-504819577.jpeg?direct=1&t=1743825267152 index-Cr4NpFGo.js:473:32409
+Quiz image failed to load: /uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189 index-Cr4NpFGo.js:481:120430
+Quiz image troubleshooting - Question ID: 12 index-Cr4NpFGo.js:481:120598
+Original imageUrl: /uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189 index-Cr4NpFGo.js:481:120663
+Extracted filename: image-1743379858001-504819577.jpeg index-Cr4NpFGo.js:481:120711
+Possible direct API URL: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825267519 index-Cr4NpFGo.js:481:120867
+Possible direct uploads URL: https://evaliabeta.replit.app/uploads/images/image-1743379858001-504819577.jpeg?t=1743825267519 index-Cr4NpFGo.js:481:120912
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fdashboard&title=Evalia%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fdashboard&title=Evalia%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:13342:5
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://m.stripe.com/6. (Reason: CORS request did not succeed). Status code: (null).
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='” autoconsent.js:954:14
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src https://m.stripe.network” autoconsent.js:954:14
+Quiz image: Using direct API endpoint with cache busting: [/uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189] => [https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825283224] index-Cr4NpFGo.js:473:30517
+Image recovery attempt 1: Using direct API: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg index-Cr4NpFGo.js:473:31610
+Image recovery attempt 2: Using API with cache bust: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825283996 index-Cr4NpFGo.js:473:31999
+Image recovery attempt 3: Using uploads path: https://evaliabeta.replit.app/uploads/images/image-1743379858001-504819577.jpeg?direct=1&t=1743825284383 index-Cr4NpFGo.js:473:32409
+Quiz image failed to load: /uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189 index-Cr4NpFGo.js:481:120430
+Quiz image troubleshooting - Question ID: 12 index-Cr4NpFGo.js:481:120598
+Original imageUrl: /uploads/images/image-1743379858001-504819577.jpeg?v=1743379858189 index-Cr4NpFGo.js:481:120663
+Extracted filename: image-1743379858001-504819577.jpeg index-Cr4NpFGo.js:481:120711
+Possible direct API URL: https://evaliabeta.replit.app/api/images/image-1743379858001-504819577.jpeg?t=1743825284745 index-Cr4NpFGo.js:481:120867
+Possible direct uploads URL: https://evaliabeta.replit.app/uploads/images/image-1743379858001-504819577.jpeg?t=1743825284745 index-Cr4NpFGo.js:481:120912
