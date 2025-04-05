@@ -111,10 +111,24 @@ export function QuizRunner({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // State to prevent multiple rapid answers
+  const [isAnswering, setIsAnswering] = useState(false);
+  
   // Handle when a user selects an answer
   const selectAnswer = (isCorrect: boolean, selectedOptionId?: number) => {
+    // Prevent multiple rapid answer submissions
+    if (isAnswering) return;
+    setIsAnswering(true);
+    
     // Record the answer with the selected option ID
     const currentQuestion = questions[currentQuestionIndex];
+    
+    // Check if this question has already been answered (prevent double counting)
+    const alreadyAnswered = answers.some(a => a.questionId === currentQuestion.id);
+    if (alreadyAnswered) {
+      console.log(`Question ${currentQuestion.id} already answered, skipping score update`);
+      return;
+    }
     
     // Create the answer object with all needed properties
     const answer: QuizAnswer = {
@@ -139,6 +153,7 @@ export function QuizRunner({
       // After animation completes, move to next question or show score
       setTimeout(() => {
         setShowCelebration(false);
+        setIsAnswering(false); // Allow answering again
         
         if (currentQuestionIndex < questions.length - 1) {
           setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -148,11 +163,15 @@ export function QuizRunner({
       }, 2000);
     } else {
       // For incorrect answers, immediately move to next question or show score
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-      } else {
-        showScore();
-      }
+      setTimeout(() => {
+        setIsAnswering(false); // Allow answering again
+        
+        if (currentQuestionIndex < questions.length - 1) {
+          setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+        } else {
+          showScore();
+        }
+      }, 500); // Short delay to prevent accidental clicks
     }
   };
   
@@ -191,8 +210,27 @@ export function QuizRunner({
     
     setIsComplete(true);
     
+    // Verify score calculation is correct by counting correct answers
+    // This ensures the score can't exceed 100%
+    const correctAnswersCount = answers.filter(a => a.isCorrect).length;
+    
+    // If calculated score doesn't match our tracked correct answers, fix it
+    if (score !== correctAnswersCount) {
+      console.log(`Score calculation mismatch: tracked=${score}, calculated=${correctAnswersCount}. Using calculated value.`);
+      setScore(correctAnswersCount);
+      
+      // Make sure score doesn't exceed the number of questions
+      if (correctAnswersCount > questions.length) {
+        console.log(`Score exceeds question count (${correctAnswersCount} > ${questions.length}). Capping at question count.`);
+        setScore(questions.length);
+      }
+    }
+    
+    // Ensure we don't pass a score greater than the question count
+    const finalScore = Math.min(score, questions.length);
+    
     // Pass results to the parent component for further processing
-    onComplete(score, questions.length);
+    onComplete(finalScore, questions.length);
     
     // If not in preview mode, log the detailed answers
     if (!previewMode) {
@@ -375,8 +413,13 @@ export function QuizRunner({
               onClick={() => selectAnswer(true)}
               className="gap-2 px-8 py-6 text-lg"
               size="lg"
+              disabled={isAnswering}
             >
-              <CheckCircle2 className="h-6 w-6" />
+              {isAnswering ? (
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent border-primary-foreground mr-2" />
+              ) : (
+                <CheckCircle2 className="h-6 w-6" />
+              )}
               Correct
             </Button>
             <Button 
@@ -384,8 +427,13 @@ export function QuizRunner({
               variant="outline"
               className="gap-2 px-8 py-6 text-lg hover:bg-muted/50 hover:border-destructive/50 transition-colors"
               size="lg"
+              disabled={isAnswering}
             >
-              <XCircle className="h-6 w-6" />
+              {isAnswering ? (
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent border-primary mr-2" />
+              ) : (
+                <XCircle className="h-6 w-6" />
+              )}
               Incorrect
             </Button>
           </div>
@@ -400,8 +448,12 @@ export function QuizRunner({
                 variant="outline"
                 className="justify-start h-auto py-4 px-6 text-left text-lg hover:bg-muted/50 hover:border-primary/50 transition-colors"
                 onClick={() => selectAnswer(option.isCorrect || false, option.id)}
+                disabled={isAnswering}
               >
                 {option.text}
+                {isAnswering && (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent border-primary ml-2" />
+                )}
               </Button>
             ))}
           </div>
