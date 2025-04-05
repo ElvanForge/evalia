@@ -4176,10 +4176,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         materialIds: materialIds || []
       };
       
-      const generatedContent = await openAIService.generateLessonPlan(generationOptions, lessonPlanId);
+      let generatedContent;
       
-      if (!generatedContent) {
-        return res.status(500).json({ message: "Failed to generate lesson plan content" });
+      try {
+        generatedContent = await openAIService.generateLessonPlan(generationOptions, lessonPlanId);
+        
+        if (!generatedContent) {
+          return res.status(500).json({ message: "Failed to generate lesson plan content" });
+        }
+      } catch (error: any) {
+        console.error("Error in lesson plan generation:", error);
+        
+        // Check for OpenAI specific errors
+        if (error.code === 'insufficient_quota' || error.status === 429) {
+          return res.status(429).json({ 
+            message: "OpenAI API quota exceeded",
+            details: "Your account has reached its API request quota. Please try again later or check your OpenAI account."
+          });
+        }
+        
+        if (error.status === 401) {
+          return res.status(401).json({ 
+            message: "OpenAI API authentication error",
+            details: "There was an issue with the OpenAI API key. Please contact the administrator."
+          });
+        }
+        
+        return res.status(500).json({ 
+          message: "Failed to generate lesson plan content",
+          details: error.message || "An unexpected error occurred"
+        });
       }
       
       // Update the lesson plan with the generated content
@@ -4228,14 +4254,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Component type is required" });
       }
       
-      const generatedComponent = await openAIService.generateLessonPlanComponent(
-        lessonPlanId,
-        componentType,
-        context || ''
-      );
+      let generatedComponent;
       
-      if (!generatedComponent) {
-        return res.status(500).json({ message: `Failed to generate ${componentType} component` });
+      try {
+        generatedComponent = await openAIService.generateLessonPlanComponent(
+          lessonPlanId,
+          componentType,
+          context || ''
+        );
+        
+        if (!generatedComponent) {
+          return res.status(500).json({ message: `Failed to generate ${componentType} component` });
+        }
+      } catch (error: any) {
+        console.error("Error in component generation:", error);
+        
+        // Check for OpenAI specific errors
+        if (error.code === 'insufficient_quota' || error.status === 429) {
+          return res.status(429).json({ 
+            message: "OpenAI API quota exceeded",
+            details: "Your account has reached its API request quota. Please try again later or check your OpenAI account."
+          });
+        }
+        
+        if (error.status === 401) {
+          return res.status(401).json({ 
+            message: "OpenAI API authentication error",
+            details: "There was an issue with the OpenAI API key. Please contact the administrator."
+          });
+        }
+        
+        return res.status(500).json({ 
+          message: `Failed to generate ${componentType} component`,
+          details: error.message || "An unexpected error occurred"
+        });
       }
       
       res.status(200).json({
@@ -4269,10 +4321,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to export this lesson plan" });
       }
       
-      const exportContent = await openAIService.formatLessonPlanForExport(lessonPlanId);
+      let exportContent;
       
-      if (!exportContent) {
-        return res.status(500).json({ message: "Failed to format lesson plan for export" });
+      try {
+        exportContent = await openAIService.formatLessonPlanForExport(lessonPlanId);
+        
+        if (!exportContent) {
+          return res.status(500).json({ message: "Failed to format lesson plan for export" });
+        }
+      } catch (error: any) {
+        console.error("Error in lesson plan export formatting:", error);
+        
+        // Check for OpenAI specific errors
+        if (error.code === 'insufficient_quota' || error.status === 429) {
+          return res.status(429).json({ 
+            message: "OpenAI API quota exceeded",
+            details: "Your account has reached its API request quota. Please try again later or check your OpenAI account."
+          });
+        }
+        
+        if (error.status === 401) {
+          return res.status(401).json({ 
+            message: "OpenAI API authentication error",
+            details: "There was an issue with the OpenAI API key. Please contact the administrator."
+          });
+        }
+        
+        return res.status(500).json({ 
+          message: "Failed to format lesson plan for export",
+          details: error.message || "An unexpected error occurred"
+        });
       }
       
       // If docx or pdf format is requested, generate the appropriate file

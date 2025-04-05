@@ -222,11 +222,25 @@ export default function EditLessonPlanPage() {
       setActiveTab("content");
     },
     onError: (error: any) => {
-      toast({
-        title: "Failed to generate content",
-        description: error.message || "An error occurred while generating content.",
-        variant: "destructive",
-      });
+      console.error("Generation error:", error);
+      
+      // Check for OpenAI quota error
+      const errorMessage = error.message || "";
+      if (errorMessage.includes("429") && errorMessage.includes("quota")) {
+        toast({
+          title: "OpenAI API Quota Exceeded",
+          description: "The OpenAI API quota has been exceeded. Please try again later or contact the administrator.",
+          variant: "destructive",
+          duration: 10000, // Show for 10 seconds
+        });
+      } else {
+        toast({
+          title: "Failed to generate content",
+          description: error.message || "An error occurred while generating content.",
+          variant: "destructive",
+        });
+      }
+      
       setIsGenerating(false);
     },
   });
@@ -246,11 +260,25 @@ export default function EditLessonPlanPage() {
       setGeneratingComponent(null);
     },
     onError: (error: any) => {
-      toast({
-        title: "Failed to generate component",
-        description: error.message || "An error occurred while generating the component.",
-        variant: "destructive",
-      });
+      console.error("Component generation error:", error);
+      
+      // Check for OpenAI quota error
+      const errorMessage = error.message || "";
+      if (errorMessage.includes("429") && errorMessage.includes("quota")) {
+        toast({
+          title: "OpenAI API Quota Exceeded",
+          description: "The OpenAI API quota has been exceeded. Please try again later or contact the administrator.",
+          variant: "destructive",
+          duration: 10000, // Show for 10 seconds
+        });
+      } else {
+        toast({
+          title: "Failed to generate component",
+          description: error.message || "An error occurred while generating the component.",
+          variant: "destructive",
+        });
+      }
+      
       setGeneratingComponent(null);
     },
   });

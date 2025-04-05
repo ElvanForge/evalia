@@ -2,8 +2,40 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage = res.statusText;
+    
+    try {
+      // Try to parse as JSON first
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const errorJson = await res.clone().json();
+        
+        // Handle structured error responses
+        if (errorJson.message) {
+          errorMessage = errorJson.message;
+        }
+        
+        // For our custom OpenAI errors
+        if (errorJson.details) {
+          errorMessage = `${errorMessage}: ${errorJson.details}`;
+        }
+      } else {
+        // Fallback to text if not JSON
+        const text = await res.text();
+        if (text) errorMessage = text;
+      }
+    } catch (e) {
+      // If JSON parsing fails, try to get text
+      try {
+        const text = await res.text();
+        if (text) errorMessage = text;
+      } catch (textError) {
+        // If all fails, use status text
+        console.error("Error parsing response error:", textError);
+      }
+    }
+    
+    throw new Error(`${res.status}: ${errorMessage}`);
   }
 }
 
