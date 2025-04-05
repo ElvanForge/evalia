@@ -55,7 +55,7 @@ export function QuizCelebration({ visible, onComplete }: CelebrationProps) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center"
+          className="absolute inset-0 pointer-events-none z-50"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -91,32 +91,34 @@ export function QuizCelebration({ visible, onComplete }: CelebrationProps) {
             />
           ))}
           
-          {/* Success message */}
-          <motion.div
-            className="bg-primary/90 text-primary-foreground rounded-full px-8 py-3 shadow-lg absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-            initial={{ scale: 0, y: 20 }}
-            animate={{ 
-              scale: [0, 1.2, 1],
-              y: [20, -20, 0]
-            }}
-            transition={{ 
-              duration: 0.5,
-              ease: "easeOut" 
-            }}
-          >
-            <motion.h3 
-              className="text-2xl font-bold"
+          {/* Success message - fixed in the middle of the screen */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              className="bg-primary/90 text-primary-foreground rounded-full px-8 py-3 shadow-lg z-50"
+              initial={{ scale: 0, y: 20 }}
               animate={{ 
-                scale: [1, 1.1, 1],
+                scale: [0, 1.2, 1],
+                y: [20, -20, 0]
               }}
               transition={{ 
-                repeat: 3,
-                duration: 0.4
+                duration: 0.5,
+                ease: "easeOut" 
               }}
             >
-              Correct! 🎉
-            </motion.h3>
-          </motion.div>
+              <motion.h3 
+                className="text-2xl font-bold"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{ 
+                  repeat: 3,
+                  duration: 0.4
+                }}
+              >
+                Correct! 🎉
+              </motion.h3>
+            </motion.div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
