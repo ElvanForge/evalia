@@ -115,6 +115,11 @@ export default function EditLessonPlanPage() {
   const [componentContext, setComponentContext] = useState("");
   const [generatedComponent, setGeneratedComponent] = useState("");
   
+  // Set page title
+  useEffect(() => {
+    document.title = `Evalia - Edit ${lessonPlan?.title || 'Lesson Plan'}`;
+  }, [lessonPlan]);
+  
   const lessonPlanId = params?.id ? parseInt(params.id) : 0;
 
   // Fetch lesson plan data
@@ -353,11 +358,6 @@ export default function EditLessonPlanPage() {
       </div>
     );
   }
-
-  useEffect(() => {
-    // Set page title
-    document.title = `Evalia - Edit ${lessonPlan?.title || 'Lesson Plan'}`;
-  }, [lessonPlan]);
 
   if (!user && !authLoading) {
     return (
