@@ -93,7 +93,7 @@ export function QuizCelebration({ visible, onComplete }: CelebrationProps) {
           
           {/* Success message */}
           <motion.div
-            className="bg-primary/90 text-primary-foreground rounded-full px-8 py-3 shadow-lg"
+            className="bg-primary/90 text-primary-foreground rounded-full px-8 py-3 shadow-lg absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
             initial={{ scale: 0, y: 20 }}
             animate={{ 
               scale: [0, 1.2, 1],

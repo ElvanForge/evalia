@@ -305,13 +305,13 @@ export function QuizRunner({
         </div>
         
         {/* Question text - centered, larger and more prominent */}
-        <div className="text-3xl font-bold text-center px-6 py-4 bg-muted/40 rounded-lg w-full shadow-sm">
+        <div className="text-3xl font-bold text-center px-6 py-4 bg-primary/10 rounded-lg w-full shadow-sm mb-4">
           {currentQuestion.question}
         </div>
         
         {/* Image container - larger with fullscreen capabilities */}
         {currentQuestion.imageUrl && (
-          <div className="w-full flex items-center justify-center bg-muted/50 rounded-lg p-2 min-h-[60vh] relative">
+          <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative">
             {/* Add loading state */}
             <div className="absolute inset-0 flex items-center justify-center z-0">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -320,7 +320,7 @@ export function QuizRunner({
             <ImageWithFallback 
               src={currentQuestion.imageUrl}
               alt={`Question ${currentQuestionIndex + 1}`}
-              className="rounded-md object-contain max-h-[58vh] max-w-full z-10 relative"
+              className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10 relative"
               isQuizImage={true}
               onLoadSuccess={() => {
                 console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`);
