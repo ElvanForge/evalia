@@ -11,13 +11,32 @@ import { QuizCelebration } from '@/components/quiz-celebration';
 /**
  * Enhanced helper function to get the properly formatted URL for quiz images
  * Uses multiple strategies to ensure images load in all environments
+ * Now enhanced with stronger cache busting to ensure most recent files are used
  */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
   
-  // If it's already a fully formatted URL with cache busting, return as is
-  if (url.includes('t=') && (url.startsWith('/api/') || url.startsWith('http'))) {
+  // Data URLs should be returned as-is (they contain the image data inline)
+  if (url.startsWith('data:')) {
     return url;
+  }
+  
+  // Generate a cache-busting timestamp with high precision 
+  // Use precise timestamp rather than rounded one to ensure we get the latest file version
+  // This is especially important after image updates/replacements with file cleanup
+  const timestamp = Date.now();
+  
+  // If it's already a fully formatted URL with cache busting, update the timestamp
+  if ((url.startsWith('/api/') || url.startsWith('http') || url.startsWith('/uploads/'))) {
+    // Parse existing URL to retain structure but update cache bust parameter
+    const urlObj = new URL(url.startsWith('http') ? url : `${window.location.origin}${url}`);
+    
+    // Update or add cache bust parameter with current timestamp
+    urlObj.searchParams.set('t', timestamp.toString());
+    urlObj.searchParams.set('v', Math.random().toString(36).substring(2, 8)); // Add random component
+    
+    // Return the path part for relative URLs, or the full URL for absolute ones
+    return url.startsWith('http') ? urlObj.toString() : urlObj.pathname + urlObj.search;
   }
   
   // Determine if it's a full path or just a filename
@@ -39,27 +58,16 @@ function getQuizImageUrl(url: string | null | undefined): string {
   
   if (!cleanFilename) return '';
   
-  // Calculate a unique cache busting timestamp that remains consistent for the same
-  // session but changes between page loads
-  const sessionTimestamp = Math.floor(Date.now() / 10000) * 10000;
-  
-  // Store all potential URLs we might try
+  // Store all potential URLs we might try - with enhanced cache busting
   const imageUrls = [
-    // Primary approach - use our centralized image formatting utility
-    formatImageUrl(cleanFilename, {
-      addCacheBusting: true,
-      enableFallback: true,
-      fullUrl: false
-    }),
+    // Primary approach - use our centralized image formatting utility with extra params
+    `/api/images/${cleanFilename}?t=${timestamp}&v=${Math.random().toString(36).substring(2, 8)}`,
     
-    // Direct API access with cache busting
-    `/api/images/${cleanFilename}?t=${sessionTimestamp}`,
-    
-    // Direct file access with cache busting
-    `/uploads/images/${cleanFilename}?t=${sessionTimestamp}`,
+    // Direct file access with aggressive cache busting
+    `/uploads/images/${cleanFilename}?t=${timestamp}&v=${Math.random().toString(36).substring(2, 8)}`,
     
     // Full URLs if the image is from an external source
-    isFullPath && url.startsWith('http') ? `${url}?t=${sessionTimestamp}` : ''
+    isFullPath && url.startsWith('http') ? `${url}?t=${timestamp}` : ''
   ].filter(Boolean);
   
   // For debugging

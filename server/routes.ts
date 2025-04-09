@@ -1966,6 +1966,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to update this question" });
       }
       
+      // Check if we're updating the image and the question already has an image
+      if (req.body.imageUrl && question.imageUrl && req.body.imageUrl !== question.imageUrl) {
+        try {
+          // Clean up the old image to prevent outdated images from persisting in cache
+          console.log(`Cleaning up old image: ${question.imageUrl}`);
+          
+          // Extract the filename from the old image path
+          let oldFilename = null;
+          
+          if (question.imageUrl.includes('/uploads/images/')) {
+            oldFilename = question.imageUrl.split('/uploads/images/').pop();
+          } else if (question.imageUrl.includes('/api/images/')) {
+            oldFilename = question.imageUrl.split('/api/images/').pop();
+          } else if (question.imageUrl.includes('/')) {
+            oldFilename = question.imageUrl.split('/').pop();
+          }
+          
+          // Remove any query parameters
+          if (oldFilename && oldFilename.includes('?')) {
+            oldFilename = oldFilename.split('?')[0];
+          }
+          
+          if (oldFilename) {
+            // Look for the file in uploads directory
+            const oldFilePath = path.join(uploadDir, oldFilename);
+            
+            if (fs.existsSync(oldFilePath)) {
+              // Generate a backup name with timestamp to avoid immediate deletion
+              // This is safer than immediate deletion in case there's a reference issue
+              const timestamp = Date.now();
+              const backupName = `${oldFilename}.${timestamp}.old`;
+              const backupPath = path.join(uploadDir, backupName);
+              
+              // Rename the file instead of deleting to have a safety net
+              fs.renameSync(oldFilePath, backupPath);
+              console.log(`Renamed old image file to: ${backupPath}`);
+              
+              // Schedule delayed deletion after 5 minutes (300000ms)
+              setTimeout(() => {
+                try {
+                  if (fs.existsSync(backupPath)) {
+                    fs.unlinkSync(backupPath);
+                    console.log(`Deleted old backup image: ${backupPath}`);
+                  }
+                } catch (delError) {
+                  console.error(`Error deleting old backup image: ${backupPath}`, delError);
+                }
+              }, 300000);
+            } else {
+              console.log(`Old image file not found at: ${oldFilePath}`);
+            }
+          }
+        } catch (cleanupError) {
+          // Just log the error but don't fail the operation
+          console.error("Error cleaning up old image file:", cleanupError);
+        }
+      }
+      
+      // Proceed with the update
       const updatedQuestion = await dbStorage.updateQuizQuestion(questionId, req.body);
       res.status(200).json(updatedQuestion);
     } catch (error) {
@@ -1993,6 +2052,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to delete this question" });
+      }
+      
+      // Clean up image if the question has one
+      if (question.imageUrl) {
+        try {
+          console.log(`Cleaning up image for deleted question: ${question.imageUrl}`);
+          
+          // Extract the filename from the image path
+          let filename = null;
+          
+          if (question.imageUrl.includes('/uploads/images/')) {
+            filename = question.imageUrl.split('/uploads/images/').pop();
+          } else if (question.imageUrl.includes('/api/images/')) {
+            filename = question.imageUrl.split('/api/images/').pop();
+          } else if (question.imageUrl.includes('/')) {
+            filename = question.imageUrl.split('/').pop();
+          }
+          
+          // Remove any query parameters
+          if (filename && filename.includes('?')) {
+            filename = filename.split('?')[0];
+          }
+          
+          if (filename) {
+            // Look for the file in uploads directory
+            const filePath = path.join(uploadDir, filename);
+            
+            if (fs.existsSync(filePath)) {
+              // Generate a backup name with timestamp
+              const timestamp = Date.now();
+              const backupName = `${filename}.${timestamp}.deleted`;
+              const backupPath = path.join(uploadDir, backupName);
+              
+              // Rename the file instead of deleting to have a safety net
+              fs.renameSync(filePath, backupPath);
+              console.log(`Renamed deleted question's image file to: ${backupPath}`);
+              
+              // Schedule delayed deletion after 24 hours (86400000ms)
+              setTimeout(() => {
+                try {
+                  if (fs.existsSync(backupPath)) {
+                    fs.unlinkSync(backupPath);
+                    console.log(`Deleted backup image: ${backupPath}`);
+                  }
+                } catch (delError) {
+                  console.error(`Error deleting backup image: ${backupPath}`, delError);
+                }
+              }, 86400000);
+            } else {
+              console.log(`Image file not found at: ${filePath}`);
+            }
+          }
+        } catch (cleanupError) {
+          // Just log the error but don't fail the operation
+          console.error("Error cleaning up image file:", cleanupError);
+        }
       }
       
       await dbStorage.deleteQuizQuestion(questionId);
@@ -2492,10 +2607,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      // Enhanced filename generation with more randomness to avoid collisions
+      // Use a longer timestamp and larger random component
+      const timestamp = Date.now();
+      const uniqueSuffix = timestamp + '-' + Math.round(Math.random() * 1E12).toString(36);
       const fileExt = path.extname(file.originalname).toLowerCase();
       // Sanitize file extension
       const safeExt = fileExt.replace(/[^a-z0-9.]/gi, '');
+      
+      // Add an extra hash component based on both timestamp and original filename
+      const hashBase = timestamp + file.originalname;
+      const hashComponent = Buffer.from(hashBase).toString('base64').replace(/[+/=]/g, '').substring(0, 8);
       
       // Choose prefix based on file type
       let prefix = 'image';
@@ -2503,7 +2625,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         prefix = 'pdf';
       }
       
-      const filename = prefix + '-' + uniqueSuffix + safeExt;
+      // Format: prefix-timestamp-randomhash-randomcomponent.ext
+      const filename = `${prefix}-${timestamp}-${hashComponent}-${uniqueSuffix}${safeExt}`;
       console.log('Generated filename for upload:', filename);
       cb(null, filename);
     }
