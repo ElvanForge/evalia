@@ -185,6 +185,21 @@ export class DBStorage implements IStorage {
   }
 
   async deleteClass(id: number): Promise<boolean> {
+    // First, delete all enrollments for this class
+    await db.delete(schema.studentClasses).where(eq(schema.studentClasses.classId, id));
+    
+    // Delete all assignments for this class
+    const assignments = await this.getAssignmentsByClass(id);
+    for (const assignment of assignments) {
+      // Delete all grades for this assignment
+      await db.delete(schema.grades).where(eq(schema.grades.assignmentId, assignment.id));
+    }
+    await db.delete(schema.assignments).where(eq(schema.assignments.classId, id));
+    
+    // Delete any quiz-class relationships
+    await db.delete(schema.quizClasses).where(eq(schema.quizClasses.classId, id));
+    
+    // Then delete the class
     const result = await db.delete(schema.classes).where(eq(schema.classes.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
@@ -235,6 +250,22 @@ export class DBStorage implements IStorage {
   }
 
   async deleteStudent(id: number): Promise<boolean> {
+    // First, delete all enrollments for this student
+    await db.delete(schema.studentClasses).where(eq(schema.studentClasses.studentId, id));
+    
+    // Delete related quiz submissions and answers
+    const submissions = await db.select().from(schema.quizSubmissions).where(eq(schema.quizSubmissions.studentId, id));
+    for (const submission of submissions) {
+      // Delete all answers for this submission
+      await db.delete(schema.quizAnswers).where(eq(schema.quizAnswers.submissionId, submission.id));
+    }
+    // Delete all submissions
+    await db.delete(schema.quizSubmissions).where(eq(schema.quizSubmissions.studentId, id));
+    
+    // Delete related grades
+    await db.delete(schema.grades).where(eq(schema.grades.studentId, id));
+    
+    // Finally, delete the student
     const result = await db.delete(schema.students).where(eq(schema.students.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
@@ -290,6 +321,10 @@ export class DBStorage implements IStorage {
   }
 
   async deleteAssignment(id: number): Promise<boolean> {
+    // First, delete all grades for this assignment
+    await db.delete(schema.grades).where(eq(schema.grades.assignmentId, id));
+    
+    // Then delete the assignment
     const result = await db.delete(schema.assignments).where(eq(schema.assignments.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
@@ -418,6 +453,10 @@ export class DBStorage implements IStorage {
   }
 
   async deleteGradeScale(id: number): Promise<boolean> {
+    // First delete all entries for this grade scale
+    await db.delete(schema.gradeScaleEntries).where(eq(schema.gradeScaleEntries.scaleId, id));
+    
+    // Then delete the grade scale
     const result = await db.delete(schema.gradeScales).where(eq(schema.gradeScales.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
@@ -620,6 +659,32 @@ export class DBStorage implements IStorage {
   }
 
   async deleteQuiz(id: number): Promise<boolean> {
+    // Get all questions for the quiz
+    const questions = await db.select().from(schema.quizQuestions).where(eq(schema.quizQuestions.quizId, id));
+    
+    // For each question, delete related options
+    for (const question of questions) {
+      await db.delete(schema.quizOptions).where(eq(schema.quizOptions.questionId, question.id));
+    }
+    
+    // Delete all questions
+    await db.delete(schema.quizQuestions).where(eq(schema.quizQuestions.quizId, id));
+    
+    // Get all submissions for the quiz
+    const submissions = await db.select().from(schema.quizSubmissions).where(eq(schema.quizSubmissions.quizId, id));
+    
+    // For each submission, delete related answers
+    for (const submission of submissions) {
+      await db.delete(schema.quizAnswers).where(eq(schema.quizAnswers.submissionId, submission.id));
+    }
+    
+    // Delete all submissions
+    await db.delete(schema.quizSubmissions).where(eq(schema.quizSubmissions.quizId, id));
+    
+    // Delete quiz-class relationships
+    await db.delete(schema.quizClasses).where(eq(schema.quizClasses.quizId, id));
+    
+    // Finally, delete the quiz
     const result = await db.delete(schema.quizzes).where(eq(schema.quizzes.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
@@ -653,6 +718,10 @@ export class DBStorage implements IStorage {
   }
 
   async deleteQuizQuestion(id: number): Promise<boolean> {
+    // First delete all options for this question
+    await db.delete(schema.quizOptions).where(eq(schema.quizOptions.questionId, id));
+    
+    // Then delete the question
     const result = await db.delete(schema.quizQuestions).where(eq(schema.quizQuestions.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
@@ -719,6 +788,10 @@ export class DBStorage implements IStorage {
   }
 
   async deleteQuizSubmission(id: number): Promise<boolean> {
+    // First delete all answers for this submission
+    await db.delete(schema.quizAnswers).where(eq(schema.quizAnswers.submissionId, id));
+    
+    // Then delete the submission
     const result = await db.delete(schema.quizSubmissions).where(eq(schema.quizSubmissions.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
@@ -868,6 +941,13 @@ export class DBStorage implements IStorage {
   }
 
   async deleteLessonPlan(id: number): Promise<boolean> {
+    // First delete all materials for this lesson plan
+    await db.delete(schema.lessonPlanMaterials).where(eq(schema.lessonPlanMaterials.lessonPlanId, id));
+    
+    // Delete all generated content
+    await db.delete(schema.lessonPlanGeneratedContent).where(eq(schema.lessonPlanGeneratedContent.lessonPlanId, id));
+    
+    // Then delete the lesson plan
     const result = await db.delete(schema.lessonPlans).where(eq(schema.lessonPlans.id, id));
     return result.rowCount ? result.rowCount > 0 : false;
   }
