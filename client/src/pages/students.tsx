@@ -38,7 +38,7 @@ export default function Students() {
   const { data: students, isLoading } = useQuery<Student[]>({
     queryKey: ["/api/students"],
   });
-
+  
   // Delete student mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -46,16 +46,23 @@ export default function Students() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/students"] });
+      // Also invalidate classes that might contain this student
+      queryClient.invalidateQueries({ queryKey: ["/api/classes"] });
+      // Also invalidate grades for this student
+      queryClient.invalidateQueries({ queryKey: ["/api/grades"] });
+      
       toast({
-        title: "Success",
-        description: "Student deleted successfully",
+        title: "Student deleted",
+        description: `${selectedStudent?.firstName} ${selectedStudent?.lastName} has been removed successfully.`,
       });
       setIsDeleteDialogOpen(false);
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: `Failed to delete student: ${error.message}`,
+        description: error.message === "Failed to fetch" 
+          ? "Unable to connect to the server. Please try again."
+          : `Failed to delete student: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -179,12 +186,20 @@ export default function Students() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-red-600 hover:bg-red-700"
+                disabled={deleteMutation.isPending}
               >
-                Delete
+                {deleteMutation.isPending ? (
+                  <>
+                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-current"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -128,6 +128,30 @@ export function QuizRunner({
     return quiz.title;
   };
 
+  // State for preloading next question's image
+  const [preloadedImages, setPreloadedImages] = useState<Record<number, boolean>>({});
+  
+  // Preload the next question's image when the current question is displayed
+  useEffect(() => {
+    if (!questions || currentQuestionIndex >= questions.length - 1) return;
+    
+    // Get next question
+    const nextQuestion = questions[currentQuestionIndex + 1];
+    if (nextQuestion && nextQuestion.imageUrl && !preloadedImages[nextQuestion.id]) {
+      // Create a new image object to preload
+      const img = new Image();
+      img.src = getQuizImageUrl(nextQuestion.imageUrl);
+      
+      // Mark this question as preloaded
+      setPreloadedImages(prev => ({
+        ...prev,
+        [nextQuestion.id]: true
+      }));
+      
+      console.log(`Preloading image for next question: ${nextQuestion.id}`);
+    }
+  }, [currentQuestionIndex, questions, preloadedImages]);
+  
   // Setup timer
   useEffect(() => {
     if (!timeLeft || isComplete) return;
@@ -165,10 +189,62 @@ export function QuizRunner({
   // Debounce ref to prevent multiple rapid answer submissions even across component renders
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Additional state to track the loading state of images
+  const [isNextImageLoading, setIsNextImageLoading] = useState(false);
+  const nextImageRef = useRef<HTMLImageElement | null>(null);
+  
+  // Function to preload the next question image before transitioning
+  const preloadNextQuestionImage = (callback: () => void) => {
+    if (currentQuestionIndex >= questions.length - 1) {
+      // No next question, just call the callback directly
+      callback();
+      return;
+    }
+    
+    const nextQuestion = questions[currentQuestionIndex + 1];
+    if (!nextQuestion.imageUrl) {
+      // No image to preload, just call the callback directly
+      callback();
+      return;
+    }
+    
+    // Start loading state
+    setIsNextImageLoading(true);
+    
+    // Create a hidden image to preload
+    const img = new Image();
+    nextImageRef.current = img;
+    
+    // Set up event handlers
+    img.onload = () => {
+      console.log(`Next question image preloaded successfully: ${nextQuestion.imageUrl}`);
+      setIsNextImageLoading(false);
+      callback(); // Proceed once loaded
+    };
+    
+    img.onerror = () => {
+      console.log(`Failed to preload next question image: ${nextQuestion.imageUrl}`);
+      setIsNextImageLoading(false);
+      callback(); // Proceed anyway, the fallback will handle it
+    };
+    
+    // Set source with cache busting to ensure we get the latest version
+    img.src = getQuizImageUrl(nextQuestion.imageUrl);
+    
+    // Set a safety timeout in case the image load events don't fire
+    setTimeout(() => {
+      if (isNextImageLoading) {
+        console.log('Preload timeout reached, proceeding anyway');
+        setIsNextImageLoading(false);
+        callback();
+      }
+    }, 3000);
+  };
+
   // Handle when a user selects an answer
   const selectAnswer = (isCorrect: boolean, selectedOptionId?: number) => {
     // Prevent multiple rapid answer submissions with both state and ref check
-    if (isAnswering || debounceTimeoutRef.current) return;
+    if (isAnswering || debounceTimeoutRef.current || isNextImageLoading) return;
     
     // Set answering state and debounce timeout
     setIsAnswering(true);
@@ -207,25 +283,32 @@ export function QuizRunner({
       // Show celebration animation for correct answers
       setShowCelebration(true);
       
-      // After animation completes, move to next question or show score
+      // After animation completes, preload next question image then move to next question
       setTimeout(() => {
         setShowCelebration(false);
-        setIsAnswering(false); // Allow answering again
         
         if (currentQuestionIndex < questions.length - 1) {
-          setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+          // First preload the next question's image
+          preloadNextQuestionImage(() => {
+            setIsAnswering(false); // Allow answering again
+            setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+          });
         } else {
+          setIsAnswering(false);
           showScore();
         }
       }, 2000);
     } else {
-      // For incorrect answers, immediately move to next question or show score
+      // For incorrect answers, preload next question image then move to next question
       setTimeout(() => {
-        setIsAnswering(false); // Allow answering again
-        
         if (currentQuestionIndex < questions.length - 1) {
-          setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+          // First preload the next question's image
+          preloadNextQuestionImage(() => {
+            setIsAnswering(false); // Allow answering again
+            setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+          });
         } else {
+          setIsAnswering(false);
           showScore();
         }
       }, 500); // Short delay to prevent accidental clicks
@@ -409,6 +492,16 @@ export function QuizRunner({
 
   return (
     <div className="bg-card rounded-xl border p-6 shadow-sm h-full flex flex-col relative">
+      {/* Loading overlay for next image preloading */}
+      {isNextImageLoading && (
+        <div className="absolute inset-0 bg-background/80 z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-t-transparent border-primary"></div>
+            <p className="text-lg font-medium">Loading next question...</p>
+          </div>
+        </div>
+      )}
+      
       {/* Add celebration animation component with absolute positioning over the content */}
       <QuizCelebration 
         visible={showCelebration} 

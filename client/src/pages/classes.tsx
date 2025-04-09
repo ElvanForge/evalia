@@ -44,17 +44,25 @@ export default function Classes() {
       await apiRequest("DELETE", `/api/classes/${id}`);
     },
     onSuccess: () => {
+      // Invalidate multiple queries that could be affected
       queryClient.invalidateQueries({ queryKey: ["/api/classes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/grades"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/students"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      
       toast({
-        title: "Success",
-        description: "Class deleted successfully",
+        title: "Class deleted",
+        description: `${selectedClass?.name} has been deleted successfully.`,
       });
       setIsDeleteDialogOpen(false);
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: `Failed to delete class: ${error.message}`,
+        description: error.message === "Failed to fetch" 
+          ? "Unable to connect to the server. Please try again."
+          : `Failed to delete class: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -175,12 +183,20 @@ export default function Classes() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDelete}
                 className="bg-red-600 hover:bg-red-700"
+                disabled={deleteMutation.isPending}
               >
-                Delete
+                {deleteMutation.isPending ? (
+                  <>
+                    <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-current"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
