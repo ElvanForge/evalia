@@ -38,19 +38,30 @@ export default function StudentAlertsPage() {
     },
     enabled: !!user,
     staleTime: 60000, // Consider data stale after 1 minute
-    onSuccess: (data) => {
-      setAlerts(data || []);
-    },
-    onError: (error: Error) => {
-      console.error('Error fetching student alerts:', error);
+  });
+  
+  // Update alerts when data changes
+  useEffect(() => {
+    if (alertsData) {
+      setAlerts(alertsData || []);
+    }
+  }, [alertsData]);
+  
+  // Handle errors separately
+  useEffect(() => {
+    const handleError = () => {
       toast({
         title: "Error fetching alerts",
         description: "There was a problem loading student alerts.",
         variant: "destructive",
       });
+    };
+    
+    if (alertsData === undefined && !isLoadingAlerts) {
+      handleError();
       setAlerts([]);
     }
-  });
+  }, [alertsData, isLoadingAlerts, toast]);
 
   const filteredAlerts = filter === 'all' 
     ? alerts 
@@ -157,7 +168,7 @@ export default function StudentAlertsPage() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {isLoadingAlerts ? (
         <div className="flex justify-center items-center py-20">
           <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full"></div>
         </div>
