@@ -1109,6 +1109,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error creating grade" });
     }
   });
+  
+  // Batch grade creation endpoint
+  app.post("/api/grades/batch", requireAuth, async (req, res) => {
+    try {
+      console.log("Batch grades request received:", JSON.stringify(req.body));
+      
+      // Fix for NaN issue: Use req.user.id instead of req.session.teacherId
+      const teacherId = req.user?.id;
+      
+      if (!teacherId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // Validate request data is an array
+      if (!Array.isArray(req.body)) {
+        return res.status(400).json({ message: "Request body must be an array of grades" });
+      }
+      
+      // Check if there are items in the array
+      if (req.body.length === 0) {
+        return res.status(400).json({ message: "No grades provided" });
+      }
+      
+      // Extract assignmentId from the first grade
+      const firstGrade = req.body[0];
+      if (!firstGrade || !firstGrade.assignmentId) {
+        return res.status(400).json({ message: "Invalid grade format - missing assignmentId" });
+      }
+      
+      const assignmentId = Number(firstGrade.assignmentId);
+      
+      // Verify the assignment's class belongs to the teacher
+      const assignment = await dbStorage.getAssignment(assignmentId);
+      if (!assignment) {
+        return res.status(404).json({ message: "Assignment not found" });
+      }
+      
+      const class_ = await dbStorage.getClass(assignment.classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).json({ message: "Not authorized to create grades for this assignment" });
+      }
+      
+      console.log("Authorization checks passed, processing grades");
+      
+      // Process each grade
+      const results = [];
+      for (const gradeData of req.body) {
+        try {
+          // Validate each grade entry
+          if (!gradeData.studentId || !gradeData.assignmentId || gradeData.score === undefined) {
+            console.log("Invalid grade data:", JSON.stringify(gradeData));
+            continue;
+          }
+          
+          // Format grade data
+          const formattedGrade = {
+            studentId: Number(gradeData.studentId),
+            assignmentId: Number(gradeData.assignmentId),
+            score: String(gradeData.score), // Ensure score is saved as string to match schema
+            comments: gradeData.comments || null,
+            submittedAt: gradeData.submittedAt || null,
+            gradedAt: new Date()
+          };
+          
+          // Check if a grade already exists for this student and assignment
+          const existingGrades = await dbStorage.getGradesByStudentAndClass(
+            formattedGrade.studentId, 
+            assignment.classId
+          );
+          
+          const existingGrade = existingGrades.find(g => 
+            g.assignmentId === formattedGrade.assignmentId
+          );
+          
+          let result;
+          
+          if (existingGrade) {
+            // Update existing grade
+            console.log(`Updating existing grade ID ${existingGrade.id}`);
+            result = await dbStorage.updateGrade(existingGrade.id, formattedGrade);
+          } else {
+            // Create new grade
+            console.log("Creating new grade");
+            result = await dbStorage.createGrade(formattedGrade);
+          }
+          
+          results.push(result);
+        } catch (gradeError) {
+          console.error("Error processing grade:", gradeError);
+          // Continue with other grades even if one fails
+        }
+      }
+      
+      console.log(`Successfully processed ${results.length} of ${req.body.length} grades`);
+      
+      res.status(200).json({
+        success: true,
+        count: results.length,
+        grades: results
+      });
+    } catch (error) {
+      console.error("Error processing batch grades:", error);
+      res.status(500).json({ 
+        message: "Server error processing batch grades",
+        error: error.message || String(error)
+      });
+    }
+  });
 
   app.put("/api/grades/:id", requireAuth, validateRequest(insertGradeSchema.partial()), async (req, res) => {
     try {
