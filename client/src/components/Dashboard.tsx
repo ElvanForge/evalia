@@ -139,31 +139,39 @@ export default function Dashboard({ currentUser }: DashboardProps) {
     enabled: !!currentUser,
   });
   
-  // Fetch student alerts
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      setIsLoadingAlerts(true);
-      try {
-        const response = await fetch('/api/students/alerts');
-        if (response.ok) {
-          const data = await response.json();
-          setStudentAlerts(data || []);
-        } else {
-          // Handle error by setting example alerts
-          setStudentAlerts([]);
-        }
-      } catch (error) {
-        console.error('Error fetching student alerts:', error);
-        setStudentAlerts([]);
-      } finally {
-        setIsLoadingAlerts(false);
+  // Fetch student alerts with react-query to better handle caching and invalidation
+  const { data: alertsData, isLoading: isLoadingAlertsData, refetch: refetchAlerts } = useQuery({
+    queryKey: ['/api/students/alerts'],
+    queryFn: async () => {
+      const response = await fetch('/api/students/alerts');
+      if (!response.ok) {
+        throw new Error('Failed to fetch student alerts');
       }
-    };
-    
-    if (currentUser) {
-      fetchAlerts();
+      return response.json();
+    },
+    enabled: !!currentUser,
+    staleTime: 60000, // Consider data stale after 1 minute to improve refresh rate
+  });
+
+  // Update the alerts state when data changes
+  useEffect(() => {
+    if (alertsData) {
+      setStudentAlerts(alertsData);
+      setIsLoadingAlerts(false);
     }
-  }, [currentUser]);
+  }, [alertsData]);
+
+  // Manual fetch function if needed
+  const fetchAlerts = async () => {
+    setIsLoadingAlerts(true);
+    try {
+      await refetchAlerts();
+    } catch (error) {
+      console.error('Error fetching student alerts:', error);
+      setStudentAlerts([]);
+      setIsLoadingAlerts(false);
+    }
+  };
 
   // Fetch assignment-specific students when an assignment is selected
   const { data: students = [], isLoading: isLoadingStudents, refetch: refetchStudents } = useQuery({
@@ -214,9 +222,20 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       setSelectedAssignment(null);
       setStudentGrades({});
       
+      // Invalidate all related queries to ensure data consistency across the app
+      queryClient.invalidateQueries({ queryKey: [`/api/dashboard/${teacherId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/grades'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/students'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/students/alerts'] });
+      
+      // Manually refetch alerts to ensure they're updated
+      refetchAlerts();
+      
       toast({
         title: "Grades Saved",
-        description: "Student grades have been updated successfully.",
+        description: "Student grades have been updated successfully. Dashboard and alerts have been refreshed.",
         variant: "default",
       });
     },

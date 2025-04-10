@@ -300,6 +300,7 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
       queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
       queryClient.invalidateQueries({ queryKey: ['/api/students'] });
       queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/students/alerts'] });
       
       // Also invalidate any class-specific or student-specific queries
       if (selectedClass) {
@@ -313,9 +314,18 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
         queryClient.invalidateQueries({ queryKey: ['/api/students/assignment', selectedAssignment] });
       }
       
+      // Invalidate teacher-specific dashboard data
+      // This helps ensure the dashboard shows up-to-date information
+      document.querySelectorAll('[data-query-key^="/api/dashboard/"]').forEach(el => {
+        const queryKey = el.getAttribute('data-query-key');
+        if (queryKey) {
+          queryClient.invalidateQueries({ queryKey: [queryKey] });
+        }
+      });
+      
       toast({
         title: "Grades Saved",
-        description: "Student grades have been updated successfully. Dashboard and reports have been updated.",
+        description: "Student grades have been updated successfully. Dashboard, alerts, and reports have been updated.",
         variant: "default",
       });
     },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/ui/page-header";
+import { useQuery } from '@tanstack/react-query';
 
 interface StudentAlert {
   studentId: number;
@@ -23,42 +24,33 @@ export default function StudentAlertsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [alerts, setAlerts] = useState<StudentAlert[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'danger' | 'warning' | 'success'>('all');
 
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch('/api/students/alerts');
-        if (response.ok) {
-          const data = await response.json();
-          setAlerts(data || []);
-        } else {
-          toast({
-            title: "Error fetching alerts",
-            description: "There was a problem loading student alerts.",
-            variant: "destructive",
-          });
-          setAlerts([]);
-        }
-      } catch (error) {
-        console.error('Error fetching student alerts:', error);
-        toast({
-          title: "Error fetching alerts",
-          description: "There was a problem loading student alerts.",
-          variant: "destructive",
-        });
-        setAlerts([]);
-      } finally {
-        setIsLoading(false);
+  // Use react-query for fetching student alerts with automatic caching and refetching
+  const { data: alertsData, isLoading: isLoadingAlerts, refetch: refetchAlerts } = useQuery({
+    queryKey: ['/api/students/alerts'],
+    queryFn: async () => {
+      const response = await fetch('/api/students/alerts');
+      if (!response.ok) {
+        throw new Error('Failed to fetch student alerts');
       }
-    };
-    
-    if (user) {
-      fetchAlerts();
+      return response.json();
+    },
+    enabled: !!user,
+    staleTime: 60000, // Consider data stale after 1 minute
+    onSuccess: (data) => {
+      setAlerts(data || []);
+    },
+    onError: (error: Error) => {
+      console.error('Error fetching student alerts:', error);
+      toast({
+        title: "Error fetching alerts",
+        description: "There was a problem loading student alerts.",
+        variant: "destructive",
+      });
+      setAlerts([]);
     }
-  }, [user, toast]);
+  });
 
   const filteredAlerts = filter === 'all' 
     ? alerts 
