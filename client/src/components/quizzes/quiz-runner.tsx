@@ -13,6 +13,13 @@ import { QuizCelebration } from '@/components/quiz-celebration';
  * Uses multiple strategies to ensure images load in all environments
  * Now enhanced with stronger cache busting to ensure most recent files are used
  */
+/**
+ * Enhanced function to get the properly formatted URL for quiz images
+ * Uses direct upload path with aggressive cache busting to ensure images are always fresh
+ * 
+ * @param url - Original image URL from database or input
+ * @returns Direct path to image with cache busting parameters
+ */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
   
@@ -21,46 +28,39 @@ function getQuizImageUrl(url: string | null | undefined): string {
     return url;
   }
   
-  // Generate a timestamp with the precise date in milliseconds
-  // This guarantees a unique image URL on every page load, avoiding any browser caching
+  // Generate unique timestamp and random value for cache busting
   const timestamp = Date.now();
+  const randomValue = Math.random().toString(36).substring(2, 10);
   
-  // Add a random component for additional cache busting
-  const randomComponent = Math.random().toString(36).substring(2, 8);
+  // Extract the clean filename without any path or query parameters
+  let filename = '';
   
-  // Ensure the URL is clean - extract just the filename without any query params
-  let cleanFilename = '';
+  // Strip all query parameters first
+  const cleanUrl = url.split('?')[0];
   
-  if (url.includes('/uploads/images/')) {
-    // Format: /uploads/images/filename.jpg
-    const parts = url.split('/uploads/images/');
-    cleanFilename = (parts[1] || '').split('?')[0]; 
-  } else if (url.includes('/api/images/')) {
-    // Format: /api/images/filename.jpg
-    const parts = url.split('/api/images/');
-    cleanFilename = (parts[1] || '').split('?')[0]; 
-  } else if (url.includes('/') || url.includes('\\')) {
-    // Format: any/path/to/filename.jpg
-    const urlParts = url.split(/[\/\\]/);
-    cleanFilename = urlParts[urlParts.length - 1].split('?')[0];
+  if (cleanUrl.includes('/uploads/images/')) {
+    filename = cleanUrl.split('/uploads/images/').pop() || '';
+  } else if (cleanUrl.includes('/api/images/')) {
+    filename = cleanUrl.split('/api/images/').pop() || '';
+  } else if (cleanUrl.includes('/')) {
+    const parts = cleanUrl.split('/');
+    filename = parts[parts.length - 1];
   } else {
-    // Format: filename.jpg
-    cleanFilename = url.split('?')[0];
+    filename = cleanUrl;
   }
   
-  if (!cleanFilename) {
-    console.error(`No filename found in URL: ${url}`);
+  if (!filename) {
+    console.error(`Unable to extract filename from URL: ${url}`);
     return '';
   }
   
-  // For consistent image loading in deployed environment, ALWAYS use the /uploads/images/ direct path
-  // This path is directly handled by Express static file server which bypasses any redirection
-  // The double cache busting parameters ensure no stale images are shown
-  const directUploadPath = `/uploads/images/${cleanFilename}?v=${timestamp}&r=${randomComponent}`;
+  // Always use the direct uploads path with multiple cache busting parameters
+  // This ensures consistency across all environments including after deployment
+  const directPath = `/uploads/images/${filename}?v=${timestamp}&r=${randomValue}`;
   
-  console.log(`Quiz image: original=${url}, serving from=${directUploadPath}`);
+  console.log(`Image ${filename}: using direct path with cache busting (original: ${url})`);
   
-  return directUploadPath;
+  return directPath;
 }
 
 // Interface for our internal answer tracking

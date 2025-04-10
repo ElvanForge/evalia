@@ -2986,41 +2986,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Helper function to send placeholder images when needed
-  function sendPlaceholderImage(res: Response, filename: string, width = 400, height = 300) {
-    const placeholder = `
-    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100%" height="100%" fill="#f0f0f0"/>
-      <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not found</text>
-      <text x="50%" y="60%" font-family="Arial" font-size="16" fill="#999" text-anchor="middle" dominant-baseline="middle">${filename}</text>
-    </svg>`;
-    
-    res.set('Content-Type', 'image/svg+xml');
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-    res.send(placeholder);
-  }
-  
   // Helper function to serve image files with proper headers
   function serveImageFile(filePath: string, res: Response) {
     try {
       const contentType = getMimeType(filePath);
       res.set('Content-Type', contentType);
       
-      // Set cache control headers based on query parameters
-      const queryString = res.req?.url?.split('?')[1] || '';
-      const hasVersioning = queryString.includes('v=') || queryString.includes('t=');
-      
-      if (hasVersioning) {
-        // If versioning is present, allow caching for better performance
-        res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
-      } else {
-        // Otherwise prevent caching to ensure fresh content
-        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.set('Pragma', 'no-cache');
-        res.set('Expires', '0');
-      }
+      // Set strong cache control headers with cache busting
+      // This ensures the image is cached properly but will be revalidated
+      // when the URL changes (which we do with the cache busting parameters)
+      res.set('Cache-Control', 'no-cache, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
       
       // Set CORS headers for cross-origin access
       res.set('Access-Control-Allow-Origin', '*');
@@ -3029,7 +3006,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return fs.createReadStream(filePath).pipe(res);
     } catch (error) {
       console.error(`Error serving image file ${filePath}:`, error);
-      return sendPlaceholderImage(res, path.basename(filePath));
+      res.status(404).json({ 
+        error: "Image not found",
+        message: "The requested image could not be loaded"
+      });
     }
   }
   
@@ -3042,30 +3022,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.removeHeader('Pragma');
     res.removeHeader('Expires');
     
-    // If a placeholder is specifically requested, generate an SVG placeholder
-    if (req.query.placeholder === 'true') {
-      const width = Number(req.query.width) || 400;
-      const height = Number(req.query.height) || 300;
-      return sendPlaceholderImage(res, filename, width, height);
-    }
+    // Sanitize the filename to prevent path traversal
+    const sanitizedFilename = path.basename(filename);
     
     // Check for the file in uploads directory - the primary location
-    const uploadsPath = path.join('./uploads/images', filename);
+    const uploadsPath = path.join('./uploads/images', sanitizedFilename);
     if (fs.existsSync(uploadsPath)) {
       console.log(`Serving image from uploads: ${uploadsPath}`);
       return serveImageFile(uploadsPath, res);
     }
     
-    // If not found in uploads, check for the file in static directory
-    const staticPath = path.join('./static/images', filename);
-    if (fs.existsSync(staticPath)) {
-      console.log(`Serving image from static: ${staticPath}`);
-      return serveImageFile(staticPath, res);
+    // If not found in uploads, check alternate paths
+    const alternativePaths = [
+      path.join('/home/runner/workspace/uploads/images', sanitizedFilename),
+      path.join('/home/runner/evaliabeta/uploads/images', sanitizedFilename),
+      path.join(process.cwd(), 'uploads/images', sanitizedFilename)
+    ];
+    
+    for (const altPath of alternativePaths) {
+      if (fs.existsSync(altPath)) {
+        console.log(`Serving image from alternate path: ${altPath}`);
+        return serveImageFile(altPath, res);
+      }
     }
     
-    // If no direct file found, send a placeholder image
-    console.log(`Image not found, sending placeholder: ${filename}`);
-    return sendPlaceholderImage(res, filename);
+    // If the image isn't found, return a proper 404 error
+    console.log(`Image not found: ${sanitizedFilename}`);
+    return res.status(404).json({ 
+      error: "Image not found",
+      message: "The requested image could not be found on the server"
+    });
   });
   
   // New endpoint to list all available images
