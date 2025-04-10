@@ -1124,6 +1124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate request data is an array
       if (!Array.isArray(req.body)) {
+        console.error("Invalid request format:", typeof req.body);
         return res.status(400).json({ message: "Request body must be an array of grades" });
       }
       
@@ -1135,74 +1136,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extract assignmentId from the first grade
       const firstGrade = req.body[0];
       if (!firstGrade || !firstGrade.assignmentId) {
+        console.error("Invalid first grade:", firstGrade);
         return res.status(400).json({ message: "Invalid grade format - missing assignmentId" });
       }
       
       const assignmentId = Number(firstGrade.assignmentId);
+      console.log(`Processing grades for assignment ID: ${assignmentId}`);
       
       // Verify the assignment's class belongs to the teacher
       const assignment = await dbStorage.getAssignment(assignmentId);
       if (!assignment) {
+        console.error(`Assignment not found: ${assignmentId}`);
         return res.status(404).json({ message: "Assignment not found" });
       }
       
       const class_ = await dbStorage.getClass(assignment.classId);
-      if (!class_ || class_.teacherId !== teacherId) {
+      if (!class_) {
+        console.error(`Class not found for assignment: ${assignment.classId}`);
+        return res.status(404).json({ message: "Class not found" });
+      }
+      
+      if (class_.teacherId !== teacherId) {
+        console.error(`Unauthorized access: Teacher ${teacherId} trying to access class ${class_.id} owned by ${class_.teacherId}`);
         return res.status(403).json({ message: "Not authorized to create grades for this assignment" });
       }
       
-      console.log("Authorization checks passed, processing grades");
+      console.log(`Authorization checks passed for teacher ${teacherId}, class ${class_.id}, processing grades...`);
       
-      // Process each grade
+      // Process each grade in a transaction
       const results = [];
-      for (const gradeData of req.body) {
-        try {
-          // Validate each grade entry
-          if (!gradeData.studentId || !gradeData.assignmentId || gradeData.score === undefined) {
-            console.log("Invalid grade data:", JSON.stringify(gradeData));
-            continue;
+      
+      // Use db.transaction to ensure all operations are atomic
+      await dbStorage.db.transaction(async (tx) => {
+        for (const gradeData of req.body) {
+          try {
+            // Validate each grade entry
+            if (!gradeData.studentId || !gradeData.assignmentId || gradeData.score === undefined) {
+              console.error("Invalid grade data:", JSON.stringify(gradeData));
+              continue;
+            }
+            
+            const studentId = Number(gradeData.studentId);
+            const gradeAssignmentId = Number(gradeData.assignmentId);
+            const score = String(gradeData.score);
+            
+            console.log(`Processing grade: Student ${studentId}, Assignment ${gradeAssignmentId}, Score ${score}`);
+            
+            // Format grade data
+            const formattedGrade = {
+              studentId,
+              assignmentId: gradeAssignmentId,
+              score,
+              comments: gradeData.comments || null,
+              submittedAt: gradeData.submittedAt || null,
+              gradedAt: new Date()
+            };
+            
+            // Check if the student exists
+            const student = await dbStorage.getStudent(studentId);
+            if (!student) {
+              console.error(`Student ${studentId} not found, skipping grade`);
+              continue;
+            }
+            
+            // Check if a grade already exists for this student and assignment
+            const existingGrades = await dbStorage.getGradesByStudentAndClass(
+              studentId, 
+              assignment.classId
+            );
+            
+            console.log(`Found ${existingGrades.length} existing grades for student ${studentId} in class ${assignment.classId}`);
+            
+            const existingGrade = existingGrades.find(g => 
+              g.assignmentId === gradeAssignmentId
+            );
+            
+            let result;
+            
+            if (existingGrade) {
+              // Update existing grade
+              console.log(`Updating existing grade ID ${existingGrade.id} for student ${studentId}`);
+              result = await dbStorage.updateGrade(existingGrade.id, formattedGrade);
+              console.log(`Grade updated successfully: ${JSON.stringify(result)}`);
+            } else {
+              // Create new grade
+              console.log(`Creating new grade for student ${studentId}`);
+              result = await dbStorage.createGrade(formattedGrade);
+              console.log(`Grade created successfully: ${JSON.stringify(result)}`);
+            }
+            
+            results.push(result);
+          } catch (gradeError) {
+            console.error("Error processing individual grade:", gradeError);
+            // Continue with other grades even if one fails
           }
-          
-          // Format grade data
-          const formattedGrade = {
-            studentId: Number(gradeData.studentId),
-            assignmentId: Number(gradeData.assignmentId),
-            score: String(gradeData.score), // Ensure score is saved as string to match schema
-            comments: gradeData.comments || null,
-            submittedAt: gradeData.submittedAt || null,
-            gradedAt: new Date()
-          };
-          
-          // Check if a grade already exists for this student and assignment
-          const existingGrades = await dbStorage.getGradesByStudentAndClass(
-            formattedGrade.studentId, 
-            assignment.classId
-          );
-          
-          const existingGrade = existingGrades.find(g => 
-            g.assignmentId === formattedGrade.assignmentId
-          );
-          
-          let result;
-          
-          if (existingGrade) {
-            // Update existing grade
-            console.log(`Updating existing grade ID ${existingGrade.id}`);
-            result = await dbStorage.updateGrade(existingGrade.id, formattedGrade);
-          } else {
-            // Create new grade
-            console.log("Creating new grade");
-            result = await dbStorage.createGrade(formattedGrade);
-          }
-          
-          results.push(result);
-        } catch (gradeError) {
-          console.error("Error processing grade:", gradeError);
-          // Continue with other grades even if one fails
         }
-      }
+      });
       
       console.log(`Successfully processed ${results.length} of ${req.body.length} grades`);
+      
+      // Ensure comprehensive cache invalidation for dashboard stats
+      try {
+        // Force update alerts cache
+        await dbStorage.getDashboardStats(teacherId);
+      } catch (updateError) {
+        console.error("Error updating dashboard stats:", updateError);
+      }
       
       res.status(200).json({
         success: true,

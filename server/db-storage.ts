@@ -49,12 +49,14 @@ const PostgresStore = connectPg(session);
 // This is the database implementation of our storage interface
 export class DBStorage implements IStorage {
   public sessionStore: session.Store;
+  public db: any;
 
   constructor() {
     this.sessionStore = new PostgresStore({
       pool,
       createTableIfMissing: true
     });
+    this.db = db;
   }
 
   // School operations

@@ -41,6 +41,9 @@ export interface IStorage {
   // Session store
   sessionStore: session.Store;
   
+  // Database instance for transactions
+  db: any;
+  
   // School operations
   getSchool(id: number): Promise<School | undefined>;
   getAllSchools(): Promise<School[]>;
