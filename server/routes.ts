@@ -2986,8 +2986,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Helper function to send placeholder images when needed
+  function sendPlaceholderImage(res: Response, filename: string, width = 400, height = 300) {
+    const placeholder = `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#f0f0f0"/>
+      <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#999" text-anchor="middle" dominant-baseline="middle">Image not found</text>
+      <text x="50%" y="60%" font-family="Arial" font-size="16" fill="#999" text-anchor="middle" dominant-baseline="middle">${filename}</text>
+    </svg>`;
+    
+    res.set('Content-Type', 'image/svg+xml');
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.send(placeholder);
+  }
+  
+  // Helper function to serve image files with proper headers
+  function serveImageFile(filePath: string, res: Response) {
+    try {
+      const contentType = getMimeType(filePath);
+      res.set('Content-Type', contentType);
+      
+      // Set cache control headers based on query parameters
+      const queryString = res.req?.url?.split('?')[1] || '';
+      const hasVersioning = queryString.includes('v=') || queryString.includes('t=');
+      
+      if (hasVersioning) {
+        // If versioning is present, allow caching for better performance
+        res.set('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      } else {
+        // Otherwise prevent caching to ensure fresh content
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+      }
+      
+      // Set CORS headers for cross-origin access
+      res.set('Access-Control-Allow-Origin', '*');
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+      
+      return fs.createReadStream(filePath).pipe(res);
+    } catch (error) {
+      console.error(`Error serving image file ${filePath}:`, error);
+      return sendPlaceholderImage(res, path.basename(filePath));
+    }
+  }
+  
   // Dedicated direct image serving endpoint - PREFER THIS OVER STATIC FILES
-  app.get('/api/images/:filename', handleImageRequest);
+  app.get('/api/images/:filename', (req, res) => {
+    const filename = req.params.filename;
+    
+    // Clear any existing cache control headers to ensure we set them properly
+    res.removeHeader('Cache-Control');
+    res.removeHeader('Pragma');
+    res.removeHeader('Expires');
+    
+    // If a placeholder is specifically requested, generate an SVG placeholder
+    if (req.query.placeholder === 'true') {
+      const width = Number(req.query.width) || 400;
+      const height = Number(req.query.height) || 300;
+      return sendPlaceholderImage(res, filename, width, height);
+    }
+    
+    // Check for the file in uploads directory - the primary location
+    const uploadsPath = path.join('./uploads/images', filename);
+    if (fs.existsSync(uploadsPath)) {
+      console.log(`Serving image from uploads: ${uploadsPath}`);
+      return serveImageFile(uploadsPath, res);
+    }
+    
+    // If not found in uploads, check for the file in static directory
+    const staticPath = path.join('./static/images', filename);
+    if (fs.existsSync(staticPath)) {
+      console.log(`Serving image from static: ${staticPath}`);
+      return serveImageFile(staticPath, res);
+    }
+    
+    // If no direct file found, send a placeholder image
+    console.log(`Image not found, sending placeholder: ${filename}`);
+    return sendPlaceholderImage(res, filename);
+  });
   
   // New endpoint to list all available images
   app.get("/api/images-list", requireAuth, (req, res) => {
