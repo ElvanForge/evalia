@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import Layout from '@/components/Layout';
+import Layout from '@/components/layout';
 
 export default function ImageDebugPage() {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -83,7 +83,7 @@ export default function ImageDebugPage() {
   };
 
   return (
-    <Layout>
+    <Layout title="Image Debug Tool" requireAuth={false}>
       <div className="container mx-auto py-8 space-y-6">
         <h1 className="text-3xl font-bold mb-6">Image Debug Tool</h1>
         

@@ -47,15 +47,19 @@ export function ImageWithFallback({
     setError(false);
     setAttemptCount(0);
     
-    // Reset to original source when the src prop changes
+    // Extract the base URL without any query parameters
+    let cleanSrc = src.split('?')[0];
+    
+    // Add multiple cache busting parameters to ensure fresh content
     const timestamp = Date.now();
-    const hasQuery = src.includes('?');
-    const separator = hasQuery ? '&' : '?';
-    const newSrc = `${src}${separator}t=${timestamp}`;
+    const randomComponent = Math.random().toString(36).substring(2, 8);
+    
+    // Force a clean query string with multiple cache-busting parameters
+    const newSrc = `${cleanSrc}?v=${timestamp}&r=${randomComponent}&fresh=true`;
     setImageSrc(newSrc);
     
     // Log initial image loading attempt for debugging
-    console.log(`Loading image: ${newSrc} (original: ${src})`);
+    console.log(`Loading image with enhanced cache busting: ${newSrc} (original: ${src})`);
   }, [src]);
 
   const handleError = () => {

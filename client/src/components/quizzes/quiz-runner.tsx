@@ -21,46 +21,46 @@ function getQuizImageUrl(url: string | null | undefined): string {
     return url;
   }
   
-  // Generate a stable cache-busting timestamp
-  // Use the same timestamp for the entire request to avoid different images loading
-  // This is especially important for consistent rendering across deployed and local versions
+  // Generate a timestamp with the precise date in milliseconds
+  // This guarantees a unique image URL on every page load, avoiding any browser caching
   const timestamp = Date.now();
-  const randomVersion = Math.random().toString(36).substring(2, 8);
   
-  // Extract filename regardless of URL format
+  // Add a random component for additional cache busting
+  const randomComponent = Math.random().toString(36).substring(2, 8);
+  
+  // Ensure the URL is clean - extract just the filename without any query params
   let cleanFilename = '';
   
   if (url.includes('/uploads/images/')) {
-    // Extract the filename from /uploads/images/
+    // Format: /uploads/images/filename.jpg
     const parts = url.split('/uploads/images/');
-    cleanFilename = (parts[1] || '').split('?')[0]; // Remove any query parameters
+    cleanFilename = (parts[1] || '').split('?')[0]; 
   } else if (url.includes('/api/images/')) {
-    // Extract the filename from /api/images/
+    // Format: /api/images/filename.jpg
     const parts = url.split('/api/images/');
-    cleanFilename = (parts[1] || '').split('?')[0]; // Remove any query parameters
+    cleanFilename = (parts[1] || '').split('?')[0]; 
   } else if (url.includes('/') || url.includes('\\')) {
-    // Extract filename from the path for other URL formats
+    // Format: any/path/to/filename.jpg
     const urlParts = url.split(/[\/\\]/);
-    cleanFilename = urlParts[urlParts.length - 1].split('?')[0]; // Get last part and remove query params
+    cleanFilename = urlParts[urlParts.length - 1].split('?')[0];
   } else {
-    // It's already just a filename
-    cleanFilename = url.split('?')[0]; // Remove any query parameters
+    // Format: filename.jpg
+    cleanFilename = url.split('?')[0];
   }
   
-  if (!cleanFilename) return '';
+  if (!cleanFilename) {
+    console.error(`No filename found in URL: ${url}`);
+    return '';
+  }
   
-  // Log the full processing information for troubleshooting
-  console.log(`Processing quiz image: ${url}`);
-  console.log(`Extracted clean filename: ${cleanFilename}`);
+  // For consistent image loading in deployed environment, ALWAYS use the /uploads/images/ direct path
+  // This path is directly handled by Express static file server which bypasses any redirection
+  // The double cache busting parameters ensure no stale images are shown
+  const directUploadPath = `/uploads/images/${cleanFilename}?v=${timestamp}&r=${randomComponent}`;
   
-  // Always use /uploads/images/ direct path as primary source for deployed version compatibility
-  // with consistent parameters across all environments
-  const primaryUrl = `/uploads/images/${cleanFilename}?v=${timestamp}&t=${randomVersion}`;
+  console.log(`Quiz image: original=${url}, serving from=${directUploadPath}`);
   
-  // Log the formatted URL for debugging
-  console.log(`Loading image: ${primaryUrl} (original: ${url})`);
-  
-  return primaryUrl;
+  return directUploadPath;
 }
 
 // Interface for our internal answer tracking
