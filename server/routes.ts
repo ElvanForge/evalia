@@ -2989,6 +2989,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dedicated direct image serving endpoint - PREFER THIS OVER STATIC FILES
   app.get('/api/images/:filename', handleImageRequest);
   
+  // New endpoint to list all available images
+  app.get("/api/images-list", requireAuth, (req, res) => {
+    try {
+      const imagesDir = path.join('./uploads/images');
+      
+      // Make sure the directory exists
+      if (!fs.existsSync(imagesDir)) {
+        return res.status(404).json({ 
+          message: "Images directory not found",
+          imagesDir
+        });
+      }
+      
+      // Read all files in the directory
+      const files = fs.readdirSync(imagesDir);
+      
+      // Get file stats for each file
+      const fileDetails = files.map(filename => {
+        const filePath = path.join(imagesDir, filename);
+        const stats = fs.statSync(filePath);
+        
+        return {
+          filename,
+          path: `/uploads/images/${filename}`,
+          apiPath: `/api/images/${filename}`,
+          size: stats.size,
+          lastModified: stats.mtime,
+          isFile: stats.isFile()
+        };
+      });
+      
+      res.status(200).json({
+        count: fileDetails.length,
+        directory: imagesDir,
+        files: fileDetails
+      });
+    } catch (error) {
+      console.error("Error listing images:", error);
+      res.status(500).json({ 
+        message: "Error listing images",
+        error: String(error)
+      });
+    }
+  });
+  
   // Direct route for images with improved CORS headers
   app.get('/uploads/images/:filename', (req, res, next) => {
     const filename = req.params.filename;

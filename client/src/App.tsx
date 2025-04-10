@@ -26,6 +26,7 @@ import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import BetaApplication from "@/pages/beta-application";
 import ImageTest from "@/pages/image-test";
+import ImageDebug from "@/pages/image-debug";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 // Import our new assignment pages
@@ -72,6 +73,7 @@ function Router() {
       <Route path="/subscribe/:planId" component={Subscribe} />
       <Route path="/beta-application" component={BetaApplication} />
       <Route path="/image-test" component={ImageTest} />
+      <Route path="/image-debug" component={ImageDebug} />
       <Route path="/lesson-plans" component={LessonPlans} />
       <Route path="/lesson-plans/create" component={CreateLessonPlan} />
       <Route path="/lesson-plans/:id" component={LessonPlanDetail} />
