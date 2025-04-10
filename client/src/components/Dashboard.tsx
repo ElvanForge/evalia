@@ -298,9 +298,19 @@ export default function Dashboard({ currentUser }: DashboardProps) {
       });
       setIsCreatingAssignment(false);
       
+      // Invalidate relevant queries to reflect the new assignment
+      queryClient.invalidateQueries({ queryKey: [`/api/dashboard/${teacherId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      
+      // Invalidate class-specific assignments
+      if (newAssignment.classId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/assignments/class/${newAssignment.classId}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/classes/${newAssignment.classId}`] });
+      }
+      
       toast({
         title: "Assignment Created",
-        description: "Your assignment has been created successfully.",
+        description: "Your assignment has been created successfully. The dashboard has been updated.",
         variant: "default",
       });
     },

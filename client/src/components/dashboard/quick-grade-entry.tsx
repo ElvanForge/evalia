@@ -294,12 +294,28 @@ export function QuickGradeEntry({ classes }: { classes: Class[] }) {
       // Reset form state after successful save
       setIsGrading(false);
       
-      // Invalidate queries that might be affected
+      // Invalidate all related queries to ensure data consistency across the app
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/grades'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assignments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/students'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
+      
+      // Also invalidate any class-specific or student-specific queries
+      if (selectedClass) {
+        queryClient.invalidateQueries({ queryKey: [`/api/classes/${selectedClass}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/classes/${selectedClass}/students`] });
+      }
+      
+      // Invalidate the specific assignment data
+      if (selectedAssignment) {
+        queryClient.invalidateQueries({ queryKey: [`/api/assignments/${selectedAssignment}`] });
+        queryClient.invalidateQueries({ queryKey: ['/api/students/assignment', selectedAssignment] });
+      }
       
       toast({
         title: "Grades Saved",
-        description: "Student grades have been updated successfully.",
+        description: "Student grades have been updated successfully. Dashboard and reports have been updated.",
         variant: "default",
       });
     },
