@@ -21,61 +21,46 @@ function getQuizImageUrl(url: string | null | undefined): string {
     return url;
   }
   
-  // Generate a cache-busting timestamp with high precision 
-  // Use precise timestamp rather than rounded one to ensure we get the latest file version
-  // This is especially important after image updates/replacements with file cleanup
+  // Generate a stable cache-busting timestamp
+  // Use the same timestamp for the entire request to avoid different images loading
+  // This is especially important for consistent rendering across deployed and local versions
   const timestamp = Date.now();
+  const randomVersion = Math.random().toString(36).substring(2, 8);
   
-  // If it's already a fully formatted URL with cache busting, update the timestamp
-  if ((url.startsWith('/api/') || url.startsWith('http') || url.startsWith('/uploads/'))) {
-    // Parse existing URL to retain structure but update cache bust parameter
-    const urlObj = new URL(url.startsWith('http') ? url : `${window.location.origin}${url}`);
-    
-    // Update or add cache bust parameter with current timestamp
-    urlObj.searchParams.set('t', timestamp.toString());
-    urlObj.searchParams.set('v', Math.random().toString(36).substring(2, 8)); // Add random component
-    
-    // Return the path part for relative URLs, or the full URL for absolute ones
-    return url.startsWith('http') ? urlObj.toString() : urlObj.pathname + urlObj.search;
-  }
+  // Extract filename regardless of URL format
+  let cleanFilename = '';
   
-  // Determine if it's a full path or just a filename
-  const isFullPath = url.includes('/') || url.includes('\\');
-  
-  // For full paths, extract the filename
-  let filename = '';
-  if (isFullPath) {
-    // Extract filename from the URL path
+  if (url.includes('/uploads/images/')) {
+    // Extract the filename from /uploads/images/
+    const parts = url.split('/uploads/images/');
+    cleanFilename = (parts[1] || '').split('?')[0]; // Remove any query parameters
+  } else if (url.includes('/api/images/')) {
+    // Extract the filename from /api/images/
+    const parts = url.split('/api/images/');
+    cleanFilename = (parts[1] || '').split('?')[0]; // Remove any query parameters
+  } else if (url.includes('/') || url.includes('\\')) {
+    // Extract filename from the path for other URL formats
     const urlParts = url.split(/[\/\\]/);
-    filename = urlParts[urlParts.length - 1];
+    cleanFilename = urlParts[urlParts.length - 1].split('?')[0]; // Get last part and remove query params
   } else {
-    // Already just a filename
-    filename = url;
+    // It's already just a filename
+    cleanFilename = url.split('?')[0]; // Remove any query parameters
   }
-  
-  // Clean up any query parameters
-  const cleanFilename = filename.split('?')[0];
   
   if (!cleanFilename) return '';
   
-  // Store all potential URLs we might try - with enhanced cache busting
-  const imageUrls = [
-    // Primary approach - use our centralized image formatting utility with extra params
-    `/api/images/${cleanFilename}?t=${timestamp}&v=${Math.random().toString(36).substring(2, 8)}`,
-    
-    // Direct file access with aggressive cache busting
-    `/uploads/images/${cleanFilename}?t=${timestamp}&v=${Math.random().toString(36).substring(2, 8)}`,
-    
-    // Full URLs if the image is from an external source
-    isFullPath && url.startsWith('http') ? `${url}?t=${timestamp}` : ''
-  ].filter(Boolean);
+  // Log the full processing information for troubleshooting
+  console.log(`Processing quiz image: ${url}`);
+  console.log(`Extracted clean filename: ${cleanFilename}`);
   
-  // For debugging
-  console.log(`Quiz image options for ${cleanFilename}:`, imageUrls);
+  // Always use /uploads/images/ direct path as primary source for deployed version compatibility
+  // with consistent parameters across all environments
+  const primaryUrl = `/uploads/images/${cleanFilename}?v=${timestamp}&t=${randomVersion}`;
   
-  // Return the primary URL strategy (our formatImageUrl utility)
-  // The ImageWithFallback component will try others if this fails
-  return imageUrls[0];
+  // Log the formatted URL for debugging
+  console.log(`Loading image: ${primaryUrl} (original: ${url})`);
+  
+  return primaryUrl;
 }
 
 // Interface for our internal answer tracking
