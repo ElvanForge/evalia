@@ -210,14 +210,16 @@ export default function Reports() {
             <div className="flex gap-2">
               <Button 
                 className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white"
-                onClick={() => window.location.href="/api/export/grades/csv"}
+                onClick={() => window.location.href=`/api/export/grades/csv?classId=${selectedClassId}`}
+                disabled={!selectedClassId}
               >
                 <Download className="mr-2 h-4 w-4" />
                 Export CSV
               </Button>
               <Button 
                 className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white"
-                onClick={() => window.location.href="/api/export/grades/xml"}
+                onClick={() => window.location.href=`/api/export/grades/xml?classId=${selectedClassId}`}
+                disabled={!selectedClassId}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Export XML

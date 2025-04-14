@@ -3611,7 +3611,277 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Grade Export in XML or CSV format
+  // Direct GET endpoints for grade exports (for direct browser download)
+  app.get('/api/export/grades/csv', requireAuth, async (req, res) => {
+    try {
+      // Get teacher ID from the authenticated user
+      const teacherId = req.user && typeof req.user.id === 'number' ? req.user.id : 0;
+      
+      // Get class ID from query params
+      const classId = Number(req.query.classId);
+      
+      if (!classId) {
+        return res.status(400).send('Missing classId parameter. Please select a class to export grades.');
+      }
+      
+      // Verify the class belongs to the teacher
+      const class_ = await dbStorage.getClass(classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).send('Not authorized to export grades for this class');
+      }
+      
+      // Use CSV format
+      const format = 'csv';
+      
+      // Continue with the export logic as in the POST endpoint
+      // Get students in this class
+      const students = await dbStorage.getStudentsByClass(classId);
+      
+      // Get assignments for this class
+      const assignments = await dbStorage.getAssignmentsByClass(classId);
+      
+      // For each student, get their grades
+      const studentGrades = await Promise.all(
+        students.map(async (student) => {
+          const grades = await dbStorage.getGradesByStudentAndClass(student.id, classId);
+          
+          // Calculate average grade percentage 
+          const totalScore = grades.reduce((sum, grade) => {
+            const assignment = assignments.find(a => a.id === grade.assignmentId);
+            if (!assignment) return sum;
+            return sum + (grade.score / assignment.maxScore);
+          }, 0);
+          
+          const averagePercentage = grades.length 
+            ? (totalScore / grades.length) * 100 
+            : 0;
+          
+          // Return the student with their grades and average
+          return {
+            id: student.id,
+            firstName: student.firstName,
+            lastName: student.lastName || '',
+            studentNumber: student.studentNumber || '',
+            grades: grades.map(grade => {
+              const assignment = assignments.find(a => a.id === grade.assignmentId);
+              return {
+                ...grade,
+                assignmentName: assignment ? assignment.name : "Unknown",
+                assignmentType: assignment ? assignment.type : "Unknown", // Using assignment.type
+                type: assignment ? assignment.type : "Unknown", // Add type field for XML export
+                maxScore: assignment ? assignment.maxScore : 0
+              };
+            }),
+            averagePercentage
+          };
+        })
+      );
+      
+      // Prepare data for CSV export - using manual CSV generation
+      const flattenedData = [];
+      
+      // Add header row
+      const header = ['Student ID', 'Student Name', 'Assignment', 'Type', 'Score', 'Max Score', 'Percentage', 'Letter Grade', 'Comments', 'Graded At'];
+      flattenedData.push(header);
+      
+      // Add data rows
+      studentGrades.forEach(student => {
+        const studentName = `${student.firstName} ${student.lastName || ''}`.trim();
+        
+        if (student.grades.length === 0) {
+          // If no grades, add a row with just student info
+          flattenedData.push([
+            student.studentNumber || student.id.toString(),
+            studentName,
+            'No grades', '', '', '', '', '', '', ''
+          ]);
+        } else {
+          // Add a row for each grade
+          student.grades.forEach(grade => {
+            const percentage = grade.maxScore > 0 
+              ? (grade.score / grade.maxScore) * 100 
+              : 0;
+            
+            const letterGrade = getLetterGrade(percentage);
+            
+            const row = [
+              student.studentNumber || student.id.toString(),
+              studentName,
+              grade.assignmentName || '',
+              grade.assignmentType || '',
+              grade.score.toString(),
+              grade.maxScore.toString(),
+              percentage.toFixed(1) + '%',
+              letterGrade,
+              grade.comments || '',
+              grade.gradedAt ? new Date(grade.gradedAt).toLocaleString() : ''
+            ];
+            
+            flattenedData.push(row);
+          });
+        }
+      });
+      
+      // Generate CSV
+      let csvOutput = '';
+      flattenedData.forEach(row => {
+        // Process each cell to handle commas and quotes
+        const processedRow = row.map(cell => {
+          const stringCell = String(cell);
+          return stringCell.includes(',') || stringCell.includes('"')
+            ? `"${stringCell.replace(/"/g, '""')}"`
+            : stringCell;
+        });
+        csvOutput += processedRow.join(',') + '\n';
+      });
+      
+      // Set headers for CSV download
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="class_${classId}_grades.csv"`);
+      
+      // Send the CSV response
+      res.status(200).send(csvOutput);
+    } catch (error) {
+      console.error("Error exporting grades to CSV:", error);
+      res.status(500).send("Server error exporting grades to CSV. Please try again later.");
+    }
+  });
+  
+  // Direct GET endpoint for XML export
+  app.get('/api/export/grades/xml', requireAuth, async (req, res) => {
+    try {
+      // Get teacher ID from the authenticated user
+      const teacherId = req.user && typeof req.user.id === 'number' ? req.user.id : 0;
+      
+      // Get class ID from query params
+      const classId = Number(req.query.classId);
+      
+      if (!classId) {
+        return res.status(400).send('Missing classId parameter. Please select a class to export grades.');
+      }
+      
+      // Verify the class belongs to the teacher
+      const class_ = await dbStorage.getClass(classId);
+      if (!class_ || class_.teacherId !== teacherId) {
+        return res.status(403).send('Not authorized to export grades for this class');
+      }
+      
+      // Use XML format
+      const format = 'xml';
+      
+      // Continue with the export logic as in the POST endpoint
+      // Get students in this class
+      const students = await dbStorage.getStudentsByClass(classId);
+      
+      // Get assignments for this class
+      const assignments = await dbStorage.getAssignmentsByClass(classId);
+      
+      // For each student, get their grades
+      const studentGrades = await Promise.all(
+        students.map(async (student) => {
+          const grades = await dbStorage.getGradesByStudentAndClass(student.id, classId);
+          
+          // Calculate average grade percentage 
+          const totalScore = grades.reduce((sum, grade) => {
+            const assignment = assignments.find(a => a.id === grade.assignmentId);
+            if (!assignment) return sum;
+            return sum + (grade.score / assignment.maxScore);
+          }, 0);
+          
+          const averagePercentage = grades.length 
+            ? (totalScore / grades.length) * 100 
+            : 0;
+          
+          // Return the student with their grades and average
+          return {
+            id: student.id,
+            firstName: student.firstName,
+            lastName: student.lastName || '',
+            studentNumber: student.studentNumber || '',
+            grades: grades.map(grade => {
+              const assignment = assignments.find(a => a.id === grade.assignmentId);
+              return {
+                ...grade,
+                assignmentName: assignment ? assignment.name : "Unknown",
+                assignmentType: assignment ? assignment.type : "Unknown", // Using assignment.type
+                type: assignment ? assignment.type : "Unknown", // Add type field for XML export
+                maxScore: assignment ? assignment.maxScore : 0
+              };
+            }),
+            averagePercentage
+          };
+        })
+      );
+      
+      // Build XML document
+      const builder = require('xmlbuilder');
+      
+      const root = builder.create('ClassGrades', { version: '1.0', encoding: 'UTF-8' })
+        .att('classId', classId)
+        .att('className', class_.name)
+        .att('exportDate', new Date().toISOString());
+      
+      // Add class information
+      const classInfo = root.ele('ClassInfo');
+      classInfo.ele('Name', {}, class_.name);
+      classInfo.ele('Description', {}, class_.description || '');
+      classInfo.ele('GradeLevel', {}, class_.gradeLevel || '');
+      classInfo.ele('Term', {}, class_.term || '');
+      
+      // Add students and their grades
+      const studentsEl = root.ele('Students');
+      
+      studentGrades.forEach(student => {
+        const studentEl = studentsEl.ele('Student')
+          .att('id', student.id)
+          .att('studentNumber', student.studentNumber || '');
+          
+        studentEl.ele('Name', {}, `${student.firstName} ${student.lastName || ''}`.trim());
+        studentEl.ele('AveragePercentage', {}, student.averagePercentage.toFixed(1));
+        studentEl.ele('LetterGrade', {}, getLetterGrade(student.averagePercentage));
+        
+        const gradesEl = studentEl.ele('Grades');
+        
+        if (student.grades.length === 0) {
+          gradesEl.ele('NoGrades', { message: 'No grades recorded for this student' });
+        } else {
+          student.grades.forEach(grade => {
+            const percentage = grade.maxScore > 0 
+              ? (grade.score / grade.maxScore) * 100 
+              : 0;
+              
+            const gradeEl = gradesEl.ele('Grade')
+              .att('id', grade.id)
+              .att('assignmentId', grade.assignmentId);
+              
+            gradeEl.ele('AssignmentName', {}, grade.assignmentName || '');
+            gradeEl.ele('Type', {}, grade.type || '');
+            gradeEl.ele('Score', {}, grade.score);
+            gradeEl.ele('MaxScore', {}, grade.maxScore);
+            gradeEl.ele('Percentage', {}, percentage.toFixed(1));
+            gradeEl.ele('LetterGrade', {}, calculateLetterGrade(percentage));
+            gradeEl.ele('Comments', {}, grade.comments || '');
+            gradeEl.ele('GradedAt', {}, grade.gradedAt ? new Date(grade.gradedAt).toISOString() : '');
+          });
+        }
+      });
+      
+      // Generate the XML
+      const xml = root.end({ pretty: true });
+      
+      // Set headers for XML download
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Content-Disposition', `attachment; filename="class_${classId}_grades.xml"`);
+      
+      // Send the XML response
+      res.status(200).send(xml);
+    } catch (error) {
+      console.error("Error exporting grades to XML:", error);
+      res.status(500).send("Server error exporting grades to XML. Please try again later.");
+    }
+  });
+  
+  // Original POST API for grade exports (keep for backward compatibility)
   app.post('/api/export/grades', requireAuth, async (req, res) => {
     try {
       const teacherId = Number(req.session.teacherId);
