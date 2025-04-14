@@ -3099,15 +3099,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Direct route for images with improved CORS headers
+  // Direct route for images with improved CORS headers and aggressive caching controls
   app.get('/uploads/images/:filename', (req, res, next) => {
     const filename = req.params.filename;
-    console.log(`Direct upload access for: ${filename}`);
+    console.log(`Direct upload access requested for: ${filename}`);
     
     // Set CORS headers for all image requests
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Range');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Range, Cache-Control');
     res.header('Cross-Origin-Resource-Policy', 'cross-origin');
     
     // For OPTIONS requests (preflight), return immediately
@@ -3115,21 +3115,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).end();
     }
     
-    // Try various file paths
+    // Parse query parameters to check for cache busting
+    const url = req.url || '';
+    const hasCacheBusting = url.includes('v=') || url.includes('r=') || url.includes('t=');
+    
+    // Always set no-cache headers to prevent stale images after deployment
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', '0');
+    
+    // Enhanced file resolution to handle deployed environments
+    
+    // Try various file paths - THE ORDER HERE IS CRITICAL
+    // We prioritize workspace paths (which persist) over local paths (which may not)
     const possiblePaths = [
-      path.join(process.cwd(), 'uploads/images', filename),
+      // First check the persistent storage locations
       path.join('/home/runner/workspace/uploads/images', filename),
       path.join('/home/runner/evaliabeta/uploads/images', filename),
-      `/home/runner/${process.env.REPL_SLUG}/uploads/images/${filename}`
-    ];
+      
+      // Then check relative paths
+      path.join(process.cwd(), 'uploads/images', filename),
+      
+      // Finally try absolute paths with REPL_SLUG
+      process.env.REPL_SLUG ? 
+        path.join('/home/runner', process.env.REPL_SLUG, 'uploads/images', filename) : 
+        null
+    ].filter(Boolean) as string[];
     
-    // Try each path
+    // Try each path in order
     for (const filePath of possiblePaths) {
       if (fs.existsSync(filePath)) {
-        console.log(`Found image at: ${filePath}, serving directly`);
-        return serveImageFile(filePath, res);
+        try {
+          // Get file stats to check if it's a valid file
+          const stats = fs.statSync(filePath);
+          if (stats.isFile() && stats.size > 0) {
+            console.log(`Found image at: ${filePath}, serving directly`);
+            
+            // Set proper content type
+            const ext = path.extname(filePath).toLowerCase();
+            const contentType = {
+              '.jpg': 'image/jpeg',
+              '.jpeg': 'image/jpeg',
+              '.png': 'image/png',
+              '.gif': 'image/gif',
+              '.webp': 'image/webp',
+              '.svg': 'image/svg+xml'
+            }[ext] || 'application/octet-stream';
+            
+            res.setHeader('Content-Type', contentType);
+            
+            // Send the file with explicit no-cache headers
+            return fs.createReadStream(filePath).pipe(res);
+          }
+        } catch (error) {
+          console.error(`Error checking file ${filePath}:`, error);
+          // Continue to next path
+        }
       }
     }
+    
+    // Log the failure for debugging
+    console.log(`Image file not found: ${filename} - Checked paths:`, possiblePaths);
     
     // If no direct file found, continue to static middleware
     next();

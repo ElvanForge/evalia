@@ -3,8 +3,9 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import fs from "fs";
+import ensureImageFiles from './scripts/ensure-uploads';
 
-// Create uploads directory for images if it doesn't exist
+// Set up basic upload directories
 const uploadsDir = path.join(process.cwd(), 'uploads');
 const imagesDir = path.join(uploadsDir, 'images');
 
@@ -25,6 +26,16 @@ console.log('Updated upload directory permissions to 0755');
 
 fs.chmodSync(uploadsDir, 0o755);
 console.log('Updated parent uploads directory permissions to 0755');
+
+// Run advanced image synchronization to handle deployment issues
+// This ensures images are preserved and accessible after redeployment
+(async () => {
+  try {
+    await ensureImageFiles();
+  } catch (error) {
+    console.error('Error during image synchronization:', error);
+  }
+})();
 
 const app = express();
 app.use(express.json());
