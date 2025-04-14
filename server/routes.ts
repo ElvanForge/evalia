@@ -3859,7 +3859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             gradeEl.ele('Score', {}, grade.score);
             gradeEl.ele('MaxScore', {}, grade.maxScore);
             gradeEl.ele('Percentage', {}, percentage.toFixed(1));
-            gradeEl.ele('LetterGrade', {}, calculateLetterGrade(percentage));
+            gradeEl.ele('LetterGrade', {}, getLetterGrade(percentage));
             gradeEl.ele('Comments', {}, grade.comments || '');
             gradeEl.ele('GradedAt', {}, grade.gradedAt ? new Date(grade.gradedAt).toISOString() : '');
           });
