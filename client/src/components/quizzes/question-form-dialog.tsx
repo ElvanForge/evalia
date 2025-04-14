@@ -636,20 +636,10 @@ export function QuestionFormDialog({
                         <div className="relative w-full rounded-md overflow-hidden border border-border">
                           <img
                             src={imagePreview && imagePreview.startsWith('data:') 
-                              ? imagePreview // Keep data URLs as is (for newly selected files)
-                              : `${window.location.origin}/api/images/${imagePreview?.split('/').pop()?.split('?')[0]}?t=${Date.now()}`}
+                              ? imagePreview // Keep data URLs as is
+                              : `/uploads/images/${imagePreview.split('/').pop()?.split('?')[0]}`}
                             alt="Question preview"
                             className="w-full h-auto max-h-[200px] object-contain"
-                            onLoad={() => console.log(`Question image preview loaded from direct API: ${imagePreview}`)}
-                            onError={(e) => {
-                              console.log(`Failed to load from API, trying fallback: ${imagePreview}`);
-                              const target = e.target as HTMLImageElement;
-                              if (imagePreview && !imagePreview.startsWith('data:')) {
-                                const filename = imagePreview.split('/').pop()?.split('?')[0];
-                                // Try static route as backup
-                                target.src = `${window.location.origin}/uploads/images/${filename}?direct=1&t=${Date.now()}`;
-                              }
-                            }}
                           />
                           <Button
                             type="button"
