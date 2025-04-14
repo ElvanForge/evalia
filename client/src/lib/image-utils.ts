@@ -4,7 +4,7 @@
 
 /**
  * Formats an image path for use with the API
- * Handles both local and external images
+ * Handles both local and external images with enhanced caching controls and fallbacks
  * 
  * @param imagePath The path or filename of the image
  * @param options Additional formatting options
@@ -14,35 +14,73 @@ export function formatImageUrl(
   imagePath: string | null | undefined,
   options: {
     addCacheBusting?: boolean;
+    enhancedCacheBusting?: boolean;
     enableFallback?: boolean;
     fullUrl?: boolean;
+    forceBase64?: boolean;
   } = {}
 ): string {
   const { 
     addCacheBusting = true, 
+    enhancedCacheBusting = false,
     enableFallback = true,
-    fullUrl = false
+    fullUrl = false,
+    forceBase64 = false
   } = options;
   
   // Return an empty string if no path provided
   if (!imagePath) return '';
   
-  // If it's already a full URL, return it as is (possibly with cache busting)
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) {
+  // If it's a data URL or external URL, return it as is
+  if (imagePath.startsWith('data:')) {
     return imagePath;
+  }
+
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    // If external URL but we still want cache busting, add it
+    if (addCacheBusting) {
+      const url = new URL(imagePath);
+      url.searchParams.append('t', Date.now().toString());
+      return url.toString();
+    }
+    return imagePath;
+  }
+  
+  // If forcing base64 mode, extract filename and redirect to base64 endpoint
+  if (forceBase64) {
+    const filename = imagePath.split('/').pop()?.split('?')[0];
+    if (filename) {
+      return `/api/images/base64/${filename}`;
+    }
   }
   
   // If it's an API path but doesn't start with /api, prepend it
   let path = imagePath;
   if (!path.startsWith('/api/') && !path.startsWith('/uploads/')) {
-    path = `/api/images/${path}`;
+    // Prefer direct uploads path for better caching and reliability
+    if (path.includes('image-') || path.includes('.jpg') || path.includes('.jpeg') || path.includes('.png') || path.includes('.gif')) {
+      path = `/uploads/images/${path.split('/').pop()}`;
+    } else {
+      path = `/api/images/${path}`;
+    }
   }
   
   // Add query parameters
   const params = new URLSearchParams();
   
-  // Add cache busting if requested
-  if (addCacheBusting) {
+  // Enhanced cache busting with multiple parameters for more aggressive cache invalidation
+  if (enhancedCacheBusting) {
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    
+    params.append('v', timestamp.toString());
+    params.append('r', randomStr);
+    params.append('fresh', 'true'); // Signal to CDN and browsers to fetch fresh
+    
+    console.log(`Loading image with enhanced cache busting: ${path}?${params.toString()} (original: ${imagePath}${addCacheBusting ? '?t=' + Date.now() : ''})`);
+  } 
+  // Simple cache busting
+  else if (addCacheBusting) {
     params.append('t', Date.now().toString());
   }
   

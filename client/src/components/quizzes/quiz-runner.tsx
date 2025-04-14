@@ -108,23 +108,67 @@ export function QuizRunner({
   const [preloadedImages, setPreloadedImages] = useState<Record<number, boolean>>({});
   
   // Preload the next question's image when the current question is displayed
+  // Using enhanced image handling to ensure proper caching and fallbacks
   useEffect(() => {
     if (!questions || currentQuestionIndex >= questions.length - 1) return;
     
     // Get next question
     const nextQuestion = questions[currentQuestionIndex + 1];
     if (nextQuestion && nextQuestion.imageUrl && !preloadedImages[nextQuestion.id]) {
-      // Create a new image object to preload
-      const img = new Image();
-      img.src = getQuizImageUrl(nextQuestion.imageUrl);
+      // Advanced preloading with fetch for base64 when needed
+      const preloadImageWithFallbacks = async () => {
+        try {
+          // First try normal preloading
+          const img = new Image();
+          
+          // Set up event listeners
+          img.onload = () => {
+            console.log(`Successfully preloaded next question image via standard method: ${nextQuestion.id}`);
+          };
+          
+          img.onerror = async () => {
+            console.log(`Standard preload failed, trying base64 method for question: ${nextQuestion.id}`);
+            
+            // Extract filename for API request
+            const filename = nextQuestion.imageUrl?.split(/[\/\\]/).pop()?.split('?')[0];
+            
+            if (filename) {
+              try {
+                // Try to get the image as base64
+                const response = await fetch(`/api/images/base64/${filename}`);
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  if (data.success && data.data) {
+                    // Preload the base64 image
+                    const base64Img = new Image();
+                    base64Img.src = data.data;
+                    console.log(`Successfully preloaded next question image via base64: ${nextQuestion.id}`);
+                  }
+                }
+              } catch (err) {
+                console.log(`Failed to preload image via all methods: ${nextQuestion.id}`);
+              }
+            }
+          };
+          
+          // Start the preload with normal image loading
+          img.src = getQuizImageUrl(nextQuestion.imageUrl);
+        } catch (err) {
+          console.error(`Error in preload logic: ${err}`);
+        }
+      };
       
-      // Mark this question as preloaded
+      // Execute the preload function
+      preloadImageWithFallbacks();
+      
+      // Mark this question as preloaded regardless of outcome
       setPreloadedImages(prev => ({
         ...prev,
         [nextQuestion.id]: true
       }));
       
-      console.log(`Preloading image for next question: ${nextQuestion.id}`);
+      console.log(`Started preloading for next question: ${nextQuestion.id}`);
     }
   }, [currentQuestionIndex, questions, preloadedImages]);
   
@@ -179,7 +223,7 @@ export function QuizRunner({
   const [isNextImageLoading, setIsNextImageLoading] = useState(false);
   const nextImageRef = useRef<HTMLImageElement | null>(null);
   
-  // Function to preload the next question image before transitioning
+  // Enhanced function to preload the next question image with multiple fallback strategies
   const preloadNextQuestionImage = (callback: () => void) => {
     if (currentQuestionIndex >= questions.length - 1) {
       // No next question, just call the callback directly
@@ -197,34 +241,84 @@ export function QuizRunner({
     // Start loading state
     setIsNextImageLoading(true);
     
-    // Create a hidden image to preload
-    const img = new Image();
-    nextImageRef.current = img;
-    
-    // Set up event handlers
-    img.onload = () => {
-      console.log(`Next question image preloaded successfully: ${nextQuestion.imageUrl}`);
-      setIsNextImageLoading(false);
-      callback(); // Proceed once loaded
-    };
-    
-    img.onerror = () => {
-      console.log(`Failed to preload next question image: ${nextQuestion.imageUrl}`);
-      setIsNextImageLoading(false);
-      callback(); // Proceed anyway, the fallback will handle it
-    };
-    
-    // Set source with cache busting to ensure we get the latest version
-    img.src = getQuizImageUrl(nextQuestion.imageUrl);
-    
-    // Set a safety timeout in case the image load events don't fire
-    setTimeout(() => {
+    // Create a timeout for safety
+    const safetyTimeoutId = setTimeout(() => {
       if (isNextImageLoading) {
         console.log('Preload timeout reached, proceeding anyway');
         setIsNextImageLoading(false);
         callback();
       }
     }, 3000);
+    
+    // Advanced preloading with multiple fallback strategies
+    const tryPreloadWithFallbacks = async () => {
+      try {
+        // First attempt: standard image preloading
+        const img = new Image();
+        nextImageRef.current = img;
+        
+        // Set up event handlers
+        img.onload = () => {
+          console.log(`Next question image preloaded successfully: ${nextQuestion.imageUrl}`);
+          clearTimeout(safetyTimeoutId);
+          setIsNextImageLoading(false);
+          callback(); // Proceed once loaded
+        };
+        
+        img.onerror = async () => {
+          console.log(`Standard preload failed, trying base64 method for: ${nextQuestion.imageUrl}`);
+          
+          // Extract filename for API request
+          const filename = nextQuestion.imageUrl?.split(/[\/\\]/).pop()?.split('?')[0];
+          
+          if (filename) {
+            try {
+              // Try to get the image as base64
+              const response = await fetch(`/api/images/base64/${filename}`);
+              
+              if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data) {
+                  console.log(`Successfully preloaded image via base64 for next question`);
+                  // Success with base64 method
+                  clearTimeout(safetyTimeoutId);
+                  setIsNextImageLoading(false);
+                  callback();
+                  return;
+                }
+              }
+              
+              // If we got here, both methods failed
+              console.log(`All preload methods failed for: ${nextQuestion.imageUrl}, proceeding anyway`);
+              clearTimeout(safetyTimeoutId);
+              setIsNextImageLoading(false);
+              callback();
+            } catch (err) {
+              console.error(`Error in base64 preload: ${err}`);
+              clearTimeout(safetyTimeoutId);
+              setIsNextImageLoading(false);
+              callback();
+            }
+          } else {
+            // No valid filename, move on
+            clearTimeout(safetyTimeoutId);
+            setIsNextImageLoading(false);
+            callback();
+          }
+        };
+        
+        // Set source with cache busting to ensure we get the latest version
+        img.src = getQuizImageUrl(nextQuestion.imageUrl);
+      } catch (err) {
+        console.error(`Error in preload logic: ${err}`);
+        clearTimeout(safetyTimeoutId);
+        setIsNextImageLoading(false);
+        callback();
+      }
+    };
+    
+    // Start the preload process
+    tryPreloadWithFallbacks();
   };
 
   // Handle when a user selects an answer
@@ -520,17 +614,13 @@ export function QuizRunner({
         {/* Image container - larger with fullscreen capabilities */}
         {currentQuestion.imageUrl && (
           <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative">
-            {/* Add loading state */}
-            <div className="absolute inset-0 flex items-center justify-center z-0">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            </div>
             
-            <ImageWithFallback 
+            <ReliableImage 
               src={getQuizImageUrl(currentQuestion.imageUrl)}
               alt={`Question ${currentQuestionIndex + 1}`}
               className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10 relative"
-              containerClassName="w-[98%] h-[65vh] flex items-center justify-center"
-              fallbackSrc={getFallbackImage('quiz')}
+              fallbackClassName="w-[98%] h-[65vh] flex items-center justify-center"
+              showLoader={true}
               onLoad={() => {
                 console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`);
               }}
