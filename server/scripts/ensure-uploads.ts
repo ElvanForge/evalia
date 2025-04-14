@@ -206,6 +206,42 @@ async function cleanupBrokenLinks() {
 }
 
 /**
+ * List all available images for debugging
+ */
+async function listAllAvailableImages() {
+  console.log('--- DEBUGGING: LISTING ALL AVAILABLE IMAGES ---');
+  
+  for (const dirPath of UPLOAD_PATHS) {
+    try {
+      if (await existsAsync(dirPath)) {
+        const files = await readdirAsync(dirPath);
+        console.log(`Images in ${dirPath} (${files.length} files):`);
+        
+        if (files.length > 0) {
+          for (const file of files) {
+            try {
+              const filePath = path.join(dirPath, file);
+              const stats = await statAsync(filePath);
+              console.log(`  - ${file} (${stats.size} bytes, modified: ${stats.mtime.toISOString()})`);
+            } catch (err) {
+              console.log(`  - ${file} (error getting stats: ${err.message})`);
+            }
+          }
+        } else {
+          console.log('  No images found');
+        }
+      } else {
+        console.log(`Directory does not exist: ${dirPath}`);
+      }
+    } catch (error) {
+      console.error(`Error listing images in ${dirPath}:`, error);
+    }
+  }
+  
+  console.log('--- END OF IMAGE LISTING ---');
+}
+
+/**
  * Main function to ensure image files are properly handled
  */
 export async function ensureImageFiles() {
@@ -220,6 +256,9 @@ export async function ensureImageFiles() {
     
     // Sync files between directories
     await syncImageDirectories();
+    
+    // List all available images after synchronization
+    await listAllAvailableImages();
     
     console.log('Image synchronization completed successfully.');
   } catch (error) {

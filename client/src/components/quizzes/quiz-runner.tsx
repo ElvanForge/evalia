@@ -14,11 +14,11 @@ import { QuizCelebration } from '@/components/quiz-celebration';
  * Now enhanced with stronger cache busting to ensure most recent files are used
  */
 /**
- * Enhanced function to get the properly formatted URL for quiz images
- * Uses direct upload path with aggressive cache busting to ensure images are always fresh
+ * Simple function to get the image URL with cache busting
+ * Uses the direct upload path and adds a timestamp to prevent caching
  * 
  * @param url - Original image URL from database or input
- * @returns Direct path to image with cache busting parameters
+ * @returns Image URL with cache busting timestamp
  */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
@@ -28,25 +28,17 @@ function getQuizImageUrl(url: string | null | undefined): string {
     return url;
   }
   
-  // Generate unique timestamp and random value for cache busting
-  const timestamp = Date.now();
-  const randomValue = Math.random().toString(36).substring(2, 10);
+  // Simple extraction of filename
+  let filename = url;
   
-  // Extract the clean filename without any path or query parameters
-  let filename = '';
+  // Strip any path information to get just the filename
+  if (url.includes('/')) {
+    filename = url.split('/').pop() || '';
+  }
   
-  // Strip all query parameters first
-  const cleanUrl = url.split('?')[0];
-  
-  if (cleanUrl.includes('/uploads/images/')) {
-    filename = cleanUrl.split('/uploads/images/').pop() || '';
-  } else if (cleanUrl.includes('/api/images/')) {
-    filename = cleanUrl.split('/api/images/').pop() || '';
-  } else if (cleanUrl.includes('/')) {
-    const parts = cleanUrl.split('/');
-    filename = parts[parts.length - 1];
-  } else {
-    filename = cleanUrl;
+  // Remove any query parameters
+  if (filename.includes('?')) {
+    filename = filename.split('?')[0];
   }
   
   if (!filename) {
@@ -54,13 +46,11 @@ function getQuizImageUrl(url: string | null | undefined): string {
     return '';
   }
   
-  // Always use the direct uploads path with multiple cache busting parameters
-  // This ensures consistency across all environments including after deployment
-  const directPath = `/uploads/images/${filename}?v=${timestamp}&r=${randomValue}`;
+  // Simple cache busting with just a timestamp
+  const timestamp = Date.now();
   
-  console.log(`Image ${filename}: using direct path with cache busting (original: ${url})`);
-  
-  return directPath;
+  // Use the direct path with simple cache busting
+  return `/uploads/images/${filename}?t=${timestamp}`;
 }
 
 // Interface for our internal answer tracking
@@ -166,6 +156,16 @@ export function QuizRunner({
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Add more detailed image error logging
+  const handleImageError = (question: QuizQuestion, url: string) => {
+    console.error(
+      `Failed to load image for question ${question.id}:`,
+      `\nOriginal URL: ${question.imageUrl}`,
+      `\nProcessed URL: ${url}`,
+      `\nQuestion text: ${question.question.substring(0, 50)}...`
+    );
   };
 
   // State to prevent multiple rapid answers
