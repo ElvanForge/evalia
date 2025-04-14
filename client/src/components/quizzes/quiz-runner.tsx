@@ -15,11 +15,11 @@ import { QuizCelebration } from '@/components/quiz-celebration';
  * Now enhanced with stronger cache busting to ensure most recent files are used
  */
 /**
- * Simple function to get the image URL with cache busting
- * Uses the direct upload path and adds a timestamp to prevent caching
+ * Enhanced function to get the image URL with aggressive cache busting
+ * Uses multiple strategies to ensure images load correctly in all environments
  * 
  * @param url - Original image URL from database or input
- * @returns Image URL with cache busting timestamp
+ * @returns Image URL with enhanced cache busting
  */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
@@ -29,29 +29,11 @@ function getQuizImageUrl(url: string | null | undefined): string {
     return url;
   }
   
-  // Simple extraction of filename
-  let filename = url;
-  
-  // Strip any path information to get just the filename
-  if (url.includes('/')) {
-    filename = url.split('/').pop() || '';
-  }
-  
-  // Remove any query parameters
-  if (filename.includes('?')) {
-    filename = filename.split('?')[0];
-  }
-  
-  if (!filename) {
-    console.error(`Unable to extract filename from URL: ${url}`);
-    return '';
-  }
-  
-  // Simple cache busting with just a timestamp
-  const timestamp = Date.now();
-  
-  // Use the direct path with simple cache busting
-  return `/uploads/images/${filename}?t=${timestamp}`;
+  // Use our enhanced formatImageUrl function with aggressive cache busting
+  return formatImageUrl(url, {
+    enhancedCacheBusting: true, // Use more aggressive cache busting
+    enableFallback: true
+  });
 }
 
 // Interface for our internal answer tracking
