@@ -5,6 +5,7 @@ import builder from "xmlbuilder";
 import Stripe from "stripe";
 import * as openAIService from "./openai-service";
 import { handleImageRequest, serveImageFile } from './image-handler';
+import { getImageAsBase64, listAvailableImages } from './scripts/debug-images';
 
 // Helper function to convert numerical score to letter grade
 function getLetterGrade(score: number): string {
@@ -3221,6 +3222,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     return mimeTypes[ext] || 'application/octet-stream';
   }
+  
+  // Image handling endpoints
+  
+  // Direct API endpoint to get image as base64
+  app.get('/api/images/base64/:filename', async (req, res) => {
+    try {
+      const filename = req.params.filename;
+      console.log(`Base64 image request for: ${filename}`);
+      
+      const base64Data = await getImageAsBase64(filename);
+      
+      if (base64Data) {
+        res.status(200).json({ 
+          success: true, 
+          data: base64Data 
+        });
+      } else {
+        console.log(`Image not found: ${filename}`);
+        
+        // Return list of available images
+        const availableImages = await listAvailableImages();
+        
+        res.status(404).json({ 
+          success: false, 
+          message: `Image ${filename} not found`,
+          availableImages: availableImages.slice(0, 20) // First 20 to avoid huge response
+        });
+      }
+    } catch (error) {
+      console.error('Error retrieving base64 image:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error retrieving image' 
+      });
+    }
+  });
+  
+  // List all available images
+  app.get('/api/images/list', async (req, res) => {
+    try {
+      const images = await listAvailableImages();
+      res.status(200).json({ 
+        success: true, 
+        images, 
+        count: images.length 
+      });
+    } catch (error) {
+      console.error('Error listing images:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error listing images' 
+      });
+    }
+  });
   
   // School routes
   app.get('/api/schools', requireAuth, async (req, res) => {
