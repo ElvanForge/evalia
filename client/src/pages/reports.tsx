@@ -211,7 +211,7 @@ export default function Reports() {
               <Button 
                 className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white"
                 onClick={() => window.location.href=`/api/export/grades/csv?classId=${selectedClassId}`}
-                disabled={!selectedClassId}
+                disabled={selectedClassId === "all" || !selectedClassId}
               >
                 <Download className="mr-2 h-4 w-4" />
                 Export CSV
@@ -219,7 +219,7 @@ export default function Reports() {
               <Button 
                 className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90 text-white"
                 onClick={() => window.location.href=`/api/export/grades/xml?classId=${selectedClassId}`}
-                disabled={!selectedClassId}
+                disabled={selectedClassId === "all" || !selectedClassId}
               >
                 <FileText className="mr-2 h-4 w-4" />
                 Export XML
