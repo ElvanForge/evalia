@@ -2,24 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Clock, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class, InsertQuizAnswer } from '@shared/schema';
-import { formatImageUrl, getFallbackImage } from '@/lib/image-utils';
-import { ImageWithFallback } from '@/components/ui/image-with-fallback';
-import { ReliableImage } from '@/components/ui/reliable-image';
-import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { QuizCelebration } from '@/components/quiz-celebration';
+import { BasicImage } from '@/components/quizzes/basic-image';
 
 /**
- * Enhanced helper function to get the properly formatted URL for quiz images
- * Uses multiple strategies to ensure images load in all environments
- * Now enhanced with stronger cache busting to ensure most recent files are used
- */
-/**
- * Enhanced function to get the image URL with aggressive cache busting
- * Uses multiple strategies to ensure images load correctly in all environments
+ * Simple, direct function to get an image URL for quiz questions
+ * No fancy formatters or cache busting that could cause the stuttering issues
  * 
- * @param url - Original image URL from database or input
- * @returns Image URL with enhanced cache busting
+ * @param url - Original image URL from database
+ * @returns Direct URL to the image
  */
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
@@ -29,11 +21,23 @@ function getQuizImageUrl(url: string | null | undefined): string {
     return url;
   }
   
-  // Use our enhanced formatImageUrl function with aggressive cache busting
-  return formatImageUrl(url, {
-    enhancedCacheBusting: true, // Use more aggressive cache busting
-    enableFallback: true
-  });
+  // External URLs should be returned as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If it's an API path, return it directly
+  if (url.startsWith('/api/') || url.startsWith('/uploads/')) {
+    return url;
+  }
+  
+  // For other paths, assume it's an image name and construct the path to uploads
+  if (url.includes('image-') || url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif')) {
+    return `/uploads/images/${url.split('/').pop()}`;
+  }
+  
+  // Default case - direct API path
+  return `/api/images/${url}`;
 }
 
 // Interface for our internal answer tracking
@@ -638,42 +642,11 @@ export function QuizRunner({
         {currentQuestion.imageUrl && (
           <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative" id={`question-container-${currentQuestion.id}`}>
             {/* Add a key based on question ID to force re-render when question changes */}
-            <ReliableImage 
+            <BasicImage
               key={`question-image-${currentQuestion.id}-${currentQuestionIndex}`}
               src={getQuizImageUrl(currentQuestion.imageUrl)}
               alt={`Question ${currentQuestionIndex + 1}`}
               className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10 relative"
-              fallbackClassName="w-[98%] h-[65vh] flex items-center justify-center"
-              showLoader={true}
-              onLoad={() => {
-                console.log(`Quiz question image loaded successfully for question ${currentQuestion.id}`);
-              }}
-              onError={() => {
-                console.log(`Quiz image failed to load: ${currentQuestion.imageUrl || 'no image'}`);
-                
-                // Extract filename for better error reporting
-                const filename = currentQuestion.imageUrl ? currentQuestion.imageUrl.split(/[\/\\]/).pop() : null;
-                
-                if (filename) {
-                  // Clean up any query parameters
-                  const cleanFilename = filename.split('?')[0];
-                  
-                  // Try the direct URL with fetch to check availability
-                  fetch(`/uploads/images/${cleanFilename}`)
-                    .then(response => {
-                      console.log(`Fetch test for ${cleanFilename}: ${response.status}`);
-                    })
-                    .catch(err => {
-                      console.log(`Fetch test error for ${cleanFilename}: ${err.message}`);
-                    });
-                  
-                  // Log detailed troubleshooting info
-                  console.log(`Quiz image troubleshooting - Question ID: ${currentQuestion.id}`);
-                  console.log(`Original imageUrl: ${currentQuestion.imageUrl}`);
-                  console.log(`Extracted filename: ${cleanFilename}`);
-                  console.log(`Formatted URL: ${getQuizImageUrl(currentQuestion.imageUrl)}`);
-                }
-              }}
             />
           </div>
         )}
