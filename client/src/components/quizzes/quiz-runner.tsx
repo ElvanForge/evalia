@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Clock, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Clock, ArrowRight, ArrowLeft, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class, InsertQuizAnswer } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { QuizCelebration } from '@/components/quiz-celebration';
-import { BasicImage } from '@/components/quizzes/basic-image';
 
 /**
  * Simple, direct function to get an image URL for quiz questions
@@ -638,16 +637,24 @@ export function QuizRunner({
           {currentQuestion.question}
         </div>
         
-        {/* Image container - larger with fullscreen capabilities */}
+        {/* Simple image container with no fancy features */}
         {currentQuestion.imageUrl && (
           <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative" id={`question-container-${currentQuestion.id}`}>
-            {/* Add a key based on question ID to force re-render when question changes */}
-            <BasicImage
-              key={`question-image-${currentQuestion.id}-${currentQuestionIndex}`}
-              src={getQuizImageUrl(currentQuestion.imageUrl)}
-              alt={`Question ${currentQuestionIndex + 1}`}
-              className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10 relative"
-            />
+            {/* Plain HTML img element with simple loading state */}
+            <div className="relative">
+              {/* Regular img tag for maximum browser compatibility */}
+              <img
+                key={`question-image-${currentQuestion.id}-${currentQuestionIndex}`}
+                src={`/uploads/images/${currentQuestion.imageUrl.split('/').pop()?.split('?')[0]}`}
+                alt={`Question ${currentQuestionIndex + 1}`}
+                className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10"
+                onError={(e) => {
+                  console.error(`Failed to load image for question ${currentQuestion.id}: ${currentQuestion.imageUrl}`);
+                  // Hide the broken image icon
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           </div>
         )}
         
