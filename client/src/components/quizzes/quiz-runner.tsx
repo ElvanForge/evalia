@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class, InsertQuizAnswer } from '@shared/schema';
 import { formatImageUrl, getFallbackImage } from '@/lib/image-utils';
 import { ImageWithFallback } from '@/components/ui/image-with-fallback';
+import { ReliableImage } from '@/components/ui/reliable-image';
 import { normalizeUrlPath, joinUrlPaths } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { QuizCelebration } from '@/components/quiz-celebration';

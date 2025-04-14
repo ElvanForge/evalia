@@ -1,77 +1,98 @@
+/**
+ * Debug utilities for image handling
+ * Provides tools to diagnose image loading issues and retrieve images directly as base64
+ */
+
 import fs from 'fs';
 import path from 'path';
-import { promises as fsPromises } from 'fs';
 
-// Utility function to get image as base64
+// Possible image locations to check
+const IMAGE_PATHS = [
+  path.join(process.cwd(), 'uploads/images'),
+  path.join('/home/runner/workspace/uploads/images'),
+  path.join('/home/runner/evaliabeta/uploads/images')
+];
+
+/**
+ * Get an image file as base64 string
+ * This can be used to embed images directly in HTML/CSS when regular URLs fail
+ * 
+ * @param filename The name of the image file to retrieve (without path)
+ * @returns Base64 encoded string of the image or null if not found
+ */
 export async function getImageAsBase64(filename: string): Promise<string | null> {
   try {
-    // Define possible paths to check
-    const possiblePaths = [
-      // Check workspace path first (most reliable for deployed version)
-      path.join('/home/runner/workspace/uploads/images', filename),
-      // Then deployed app path
-      path.join('/home/runner/evaliabeta/uploads/images', filename),
-      // Then local path
-      path.join(process.cwd(), 'uploads/images', filename)
-    ];
-    
-    // Try each path
-    for (const imagePath of possiblePaths) {
-      if (fs.existsSync(imagePath)) {
-        try {
-          const data = await fsPromises.readFile(imagePath);
-          const mimeType = getMimeType(filename);
-          return `data:${mimeType};base64,${data.toString('base64')}`;
-        } catch (err) {
-          console.error(`Error reading file ${imagePath}:`, err);
-          continue; // Try next path
-        }
+    // Check various possible paths for the image
+    for (const basePath of IMAGE_PATHS) {
+      const filePath = path.join(basePath, filename);
+      
+      if (fs.existsSync(filePath)) {
+        console.log(`Found image at ${filePath}`);
+        const data = fs.readFileSync(filePath);
+        const mime = getMimeType(filename);
+        
+        // Format as data URL with appropriate MIME type
+        return `data:${mime};base64,${data.toString('base64')}`;
       }
     }
     
-    console.error(`Image not found in any location: ${filename}`);
+    console.log(`Image ${filename} not found in any of the checked directories`);
     return null;
-  } catch (error) {
-    console.error('Error converting image to base64:', error);
+  } catch (err: unknown) {
+    console.error('Error getting image as base64:', err);
     return null;
   }
 }
 
-// Helper function to determine MIME type from filename
+/**
+ * Get MIME type based on file extension
+ * 
+ * @param filename File name to extract MIME type from
+ * @returns MIME type string
+ */
 function getMimeType(filename: string): string {
   const ext = path.extname(filename).toLowerCase();
   const mimeTypes: Record<string, string> = {
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
-    '.gif': 'image/gif',
+    '.gif': 'image/gif', 
     '.svg': 'image/svg+xml',
-    '.webp': 'image/webp'
+    '.webp': 'image/webp',
+    '.pdf': 'application/pdf'
   };
   
   return mimeTypes[ext] || 'application/octet-stream';
 }
 
-// List all available images for direct debugging
+/**
+ * List all available images in all potential image directories
+ * 
+ * @returns Array of available image filenames
+ */
 export async function listAvailableImages(): Promise<string[]> {
+  const allImages = new Set<string>();
+  
   try {
-    // Check for workspace path first (most reliable for deployed version)
-    const workspacePath = '/home/runner/workspace/uploads/images';
-    if (fs.existsSync(workspacePath)) {
-      const files = await fsPromises.readdir(workspacePath);
-      return files;
+    // Check each potential image path
+    for (const basePath of IMAGE_PATHS) {
+      if (fs.existsSync(basePath)) {
+        const files = fs.readdirSync(basePath);
+        
+        // Only include image files (ignore other files like .txt)
+        const imageFiles = files.filter(file => {
+          const ext = path.extname(file).toLowerCase();
+          return ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'].includes(ext);
+        });
+        
+        // Add to our set of unique filenames
+        imageFiles.forEach(file => allImages.add(file));
+      }
     }
     
-    // Fall back to local path if workspace path doesn't exist
-    const localPath = path.join(process.cwd(), 'uploads/images');
-    if (fs.existsSync(localPath)) {
-      const files = await fsPromises.readdir(localPath);
-      return files;
-    }
-    
-    return [];
-  } catch (error) {
-    console.error('Error listing available images:', error);
+    return Array.from(allImages);
+  } catch (err: unknown) {
+    console.error('Error listing available images:', err);
     return [];
   }
 }
