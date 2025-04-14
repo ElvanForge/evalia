@@ -1,6 +1,7 @@
 /**
  * This script ensures that uploaded images are properly preserved and accessible.
  * It runs during server startup to check for and fix any potential issues.
+ * Enhanced to handle persistent storage between sessions and deployments.
  */
 import fs from 'fs';
 import path from 'path';
@@ -15,12 +16,16 @@ const existsAsync = promisify(fs.exists);
 const readdirAsync = promisify(fs.readdir);
 const statAsync = promisify(fs.stat);
 const chmodAsync = promisify(fs.chmod);
+const writeFileAsync = promisify(fs.writeFile);
+const readFileAsync = promisify(fs.readFile);
 
 // Possible paths where uploaded images might be stored
 const UPLOAD_PATHS = [
   './uploads/images',                          // Local dev environment
   '/home/runner/workspace/uploads/images',     // Replit workspace
-  '/home/runner/evaliabeta/uploads/images'     // Deployed name reference
+  '/home/runner/evaliabeta/uploads/images',    // Deployed name reference
+  '/tmp/evalia-persistence/images',            // Persistent storage location
+  '/home/runner/app/uploads/images'            // Alternative deployed path
 ];
 
 /**
@@ -242,6 +247,92 @@ async function listAllAvailableImages() {
 }
 
 /**
+ * Create a persistent storage location that survives redeployment
+ * This creates a special directory in /tmp which tends to persist longer
+ */
+async function ensurePersistentStorage() {
+  const PERSISTENT_DIR = '/tmp/evalia-persistence';
+  const PERSISTENT_IMAGES_DIR = path.join(PERSISTENT_DIR, 'images');
+  const INDEX_FILE = path.join(PERSISTENT_DIR, 'image-index.json');
+  
+  try {
+    // Create the persistent directories if they don't exist
+    if (!await existsAsync(PERSISTENT_DIR)) {
+      await mkdirAsync(PERSISTENT_DIR, { recursive: true });
+      await chmodAsync(PERSISTENT_DIR, 0o755);
+      console.log(`Created persistent directory: ${PERSISTENT_DIR}`);
+    }
+    
+    if (!await existsAsync(PERSISTENT_IMAGES_DIR)) {
+      await mkdirAsync(PERSISTENT_IMAGES_DIR, { recursive: true });
+      await chmodAsync(PERSISTENT_IMAGES_DIR, 0o755);
+      console.log(`Created persistent images directory: ${PERSISTENT_IMAGES_DIR}`);
+    }
+    
+    // Find the most recent image directory
+    const sourceDir = await findMostRecentImageDirectory();
+    if (!sourceDir) {
+      return;
+    }
+    
+    // Get the current image list
+    const sourceFiles = await readdirAsync(sourceDir);
+    
+    // Create an index of available images
+    const imageIndex = {
+      lastUpdated: new Date().toISOString(),
+      sources: UPLOAD_PATHS.filter(async (dir) => await existsAsync(dir)),
+      count: sourceFiles.length,
+      files: sourceFiles.map(file => {
+        return {
+          name: file,
+          sourcePath: path.join(sourceDir, file),
+          persistentPath: path.join(PERSISTENT_IMAGES_DIR, file)
+        };
+      })
+    };
+    
+    // Save the index for tracking
+    await writeFileAsync(INDEX_FILE, JSON.stringify(imageIndex, null, 2));
+    console.log(`Created image index with ${sourceFiles.length} files`);
+    
+    // Copy all files to the persistent storage
+    for (const file of sourceFiles) {
+      const sourceFile = path.join(sourceDir, file);
+      const targetFile = path.join(PERSISTENT_IMAGES_DIR, file);
+      
+      try {
+        if (await existsAsync(sourceFile)) {
+          const sourceStats = await statAsync(sourceFile);
+          
+          if (sourceStats.isFile()) {
+            let shouldCopy = false;
+            
+            if (!await existsAsync(targetFile)) {
+              shouldCopy = true;
+            } else {
+              const targetStats = await statAsync(targetFile);
+              if (sourceStats.mtimeMs > targetStats.mtimeMs) {
+                shouldCopy = true;
+              }
+            }
+            
+            if (shouldCopy) {
+              await copyFileAsync(sourceFile, targetFile);
+              console.log(`Backed up ${file} to persistent storage`);
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`Error backing up file ${file}:`, err);
+      }
+    }
+  } catch (error) {
+    console.error('Error ensuring persistent storage:', error);
+  }
+}
+
+/**
  * Main function to ensure image files are properly handled
  */
 export async function ensureImageFiles() {
@@ -253,6 +344,9 @@ export async function ensureImageFiles() {
     
     // Clean up any broken symlinks
     await cleanupBrokenLinks();
+    
+    // Create persistent storage backup
+    await ensurePersistentStorage();
     
     // Sync files between directories
     await syncImageDirectories();
