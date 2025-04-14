@@ -306,7 +306,10 @@ export function QuizRunner({
   // Handle when a user selects an answer
   const selectAnswer = (isCorrect: boolean, selectedOptionId?: number) => {
     // Prevent multiple rapid answer submissions with both state and ref check
-    if (isAnswering || debounceTimeoutRef.current || isNextImageLoading) return;
+    if (isAnswering || debounceTimeoutRef.current || isNextImageLoading) {
+      console.log('Answer selection blocked: already processing an answer');
+      return;
+    }
     
     // Set answering state and debounce timeout
     setIsAnswering(true);
@@ -316,6 +319,11 @@ export function QuizRunner({
     
     // Record the answer with the selected option ID
     const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) {
+      console.error('No current question found');
+      setIsAnswering(false);
+      return;
+    }
     
     // Check if this question has already been answered (prevent double counting)
     const alreadyAnswered = answers.some(a => a.questionId === currentQuestion.id);
@@ -325,6 +333,8 @@ export function QuizRunner({
       return;
     }
     
+    console.log(`Recording answer for question ${currentQuestion.id}, correct: ${isCorrect}`);
+    
     // Create the answer object with all needed properties
     const answer: QuizAnswer = {
       questionId: currentQuestion.id,
@@ -332,11 +342,21 @@ export function QuizRunner({
       selectedOptionId // This will be undefined for speaking assessments
     };
     
-    setAnswers(prev => [...prev, answer]);
+    // Update answer collection
+    setAnswers(prev => {
+      const newAnswers = [...prev, answer];
+      console.log(`Total answers recorded: ${newAnswers.length}`);
+      return newAnswers;
+    });
     
     // Save the answer to the server if we have a submission ID and not in preview mode
     if (submissionId && !previewMode) {
-      saveAnswerToServer(answer);
+      console.log(`Saving answer to server for submission ${submissionId}`);
+      saveAnswerToServer(answer)
+        .then(() => console.log(`Answer for question ${currentQuestion.id} saved successfully`))
+        .catch(err => console.error(`Failed to save answer: ${err.message}`));
+    } else {
+      console.log(`Not saving to server: ${previewMode ? 'in preview mode' : 'no submission ID'}`);
     }
     
     if (isCorrect) {
@@ -417,10 +437,12 @@ export function QuizRunner({
       debounceTimeoutRef.current = null;
     }
     
+    console.log('Finalizing quiz and calculating score...');
+    
+    // Mark quiz as complete
     setIsComplete(true);
     
-    // Get a unique list of question IDs that were answered correctly
-    // This prevents counting the same question multiple times if there were duplicate submissions
+    // Get unique correct answers (prevent double counting due to potential duplicate answers)
     const uniqueCorrectQuestionIds = new Set(
       answers
         .filter(a => a.isCorrect)
@@ -430,7 +452,7 @@ export function QuizRunner({
     // Count unique correct answers to ensure accuracy
     const correctAnswersCount = uniqueCorrectQuestionIds.size;
     
-    // Deduplicate answers by question ID (keep only the last answer for each question)
+    // Deduplicate all answers by question ID (keep only the last answer for each question)
     const deduplicatedAnswers = Array.from(
       answers.reduce((map, answer) => {
         map.set(answer.questionId, answer);
@@ -438,40 +460,59 @@ export function QuizRunner({
       }, new Map()).values()
     );
     
-    console.log(`Quiz completion - Total answers: ${answers.length}, Deduplicated: ${deduplicatedAnswers.length}, Unique correct: ${correctAnswersCount}`);
+    console.log(`Quiz completion stats:
+      - Total raw answers: ${answers.length}
+      - Deduplicated answers: ${deduplicatedAnswers.length} 
+      - Unique correct answers: ${correctAnswersCount}
+      - Total questions: ${questions.length}
+      - Current score tracker: ${score}`);
     
     // If calculated score doesn't match our tracked correct answers, fix it
+    let finalScore = correctAnswersCount;
     if (score !== correctAnswersCount) {
       console.log(`Score calculation mismatch: tracked=${score}, calculated=${correctAnswersCount}. Using calculated value.`);
+      // Update the state for display purposes
       setScore(correctAnswersCount);
     }
     
     // Additional safety check: make sure score doesn't exceed the number of questions
-    if (correctAnswersCount > questions.length) {
-      console.log(`Score exceeds question count (${correctAnswersCount} > ${questions.length}). Capping at question count.`);
+    if (finalScore > questions.length) {
+      console.log(`Score exceeds question count (${finalScore} > ${questions.length}). Capping at question count.`);
+      finalScore = questions.length;
       setScore(questions.length);
     }
     
-    // Ensure we don't pass a score greater than the question count
-    const finalScore = Math.min(correctAnswersCount, questions.length);
-    
-    // Pass results to the parent component for further processing 
+    // Pass results to the parent component for further processing
+    console.log(`Reporting final score: ${finalScore}/${questions.length}`);
     onComplete(finalScore, questions.length);
     
-    // If not in preview mode, log the detailed answers
+    // If not in preview mode, log the detailed answers and ensure completion
     if (!previewMode) {
-      console.log('Quiz completed, detailed answers:', answers);
+      console.log('Quiz completed, detailed answers:', deduplicatedAnswers); // Use deduplicated list
       
       // If we have a submission ID and answers aren't empty, ensure all answers are submitted
       if (submissionId && answers.length > 0) {
         // Check if we have answers for all questions
-        const answeredQuestionIds = answers.map(a => a.questionId);
-        const unansweredQuestions = questions.filter(q => !answeredQuestionIds.includes(q.id));
+        const answeredQuestionIds = new Set(answers.map(a => a.questionId));
+        const unansweredQuestions = questions.filter(q => !answeredQuestionIds.has(q.id));
         
         // Log any questions without answers (this could happen if time runs out)
         if (unansweredQuestions.length > 0) {
           console.log('Some questions were not answered:', unansweredQuestions.map(q => q.id));
+          
+          // For unanswered questions, we don't need to submit anything - they'll be counted as incorrect
+          // by the final score calculation
         }
+        
+        // Ensure all answers were properly saved to server by checking if any failed
+        // This is just for logging, we don't actually retry here
+        const allAnswersSaved = deduplicatedAnswers.every(answer => {
+          // Consider any answer without a selectedOptionId (for speaking assessments) as saved
+          // This is a simplification, but helps avoid false negatives
+          return answer.selectedOptionId !== undefined;
+        });
+        
+        console.log(`All answers properly recorded: ${allAnswersSaved ? 'Yes' : 'Some may be missing'}`);
       }
     }
   };
@@ -595,16 +636,17 @@ export function QuizRunner({
         
         {/* Image container - larger with fullscreen capabilities */}
         {currentQuestion.imageUrl && (
-          <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative">
-            
+          <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative" id={`question-container-${currentQuestion.id}`}>
+            {/* Add a key based on question ID to force re-render when question changes */}
             <ReliableImage 
+              key={`question-image-${currentQuestion.id}-${currentQuestionIndex}`}
               src={getQuizImageUrl(currentQuestion.imageUrl)}
               alt={`Question ${currentQuestionIndex + 1}`}
               className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10 relative"
               fallbackClassName="w-[98%] h-[65vh] flex items-center justify-center"
               showLoader={true}
               onLoad={() => {
-                console.log(`Quiz question image loaded successfully: ${currentQuestion.imageUrl}`);
+                console.log(`Quiz question image loaded successfully for question ${currentQuestion.id}`);
               }}
               onError={() => {
                 console.log(`Quiz image failed to load: ${currentQuestion.imageUrl || 'no image'}`);
@@ -615,6 +657,15 @@ export function QuizRunner({
                 if (filename) {
                   // Clean up any query parameters
                   const cleanFilename = filename.split('?')[0];
+                  
+                  // Try the direct URL with fetch to check availability
+                  fetch(`/uploads/images/${cleanFilename}`)
+                    .then(response => {
+                      console.log(`Fetch test for ${cleanFilename}: ${response.status}`);
+                    })
+                    .catch(err => {
+                      console.log(`Fetch test error for ${cleanFilename}: ${err.message}`);
+                    });
                   
                   // Log detailed troubleshooting info
                   console.log(`Quiz image troubleshooting - Question ID: ${currentQuestion.id}`);

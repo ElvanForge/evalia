@@ -274,6 +274,8 @@ const QuizPreview = () => {
   
   // Handle quiz completion
   const handleComplete = (correctAnswers: number, totalQuestions: number) => {
+    console.log(`Quiz completed with score: ${correctAnswers}/${totalQuestions}`);
+    
     setCompleted(true);
     setResults({ 
       correctAnswers, 
@@ -283,13 +285,33 @@ const QuizPreview = () => {
     
     // If not in preview mode and we have a submission ID, update the quiz results
     if (!previewMode && submissionId) {
+      console.log(`Recording final quiz result for submission ${submissionId}`);
+      
       try {
+        // Ensure numeric scores to prevent type issues
+        const score = Number(correctAnswers);
+        const maxScore = Number(totalQuestions);
+        
+        // Safety check for scores
+        if (isNaN(score) || isNaN(maxScore)) {
+          console.error(`Invalid score values: score=${correctAnswers}, maxScore=${totalQuestions}`);
+          toast({
+            title: "Quiz completed with warning",
+            description: "There was an issue with the score calculation. Please verify the results.",
+            variant: "default"
+          });
+          return;
+        }
+        
+        // Update the submission record
         updateQuizResultMutation.mutate({
           submissionId: submissionId,
-          score: correctAnswers,
-          maxScore: totalQuestions,
+          score: score,
+          maxScore: maxScore,
           completed: true
         });
+        
+        console.log(`Quiz result update initiated with score: ${score}/${maxScore}`);
       } catch (error) {
         console.error("Failed to update quiz results:", error);
         toast({
@@ -298,6 +320,8 @@ const QuizPreview = () => {
           variant: "default" 
         });
       }
+    } else {
+      console.log(`Not recording final result: ${previewMode ? 'Preview mode active' : 'No submission ID'}`);
     }
   };
 
