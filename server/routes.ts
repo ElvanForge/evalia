@@ -96,11 +96,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Get file stats
           const stats = fs.statSync(imgPath);
           
-          // Set CORS headers
+          // Set CORS headers - these are crucial for deployment
           res.setHeader('Access-Control-Allow-Origin', '*');
           res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
           res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
           res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+          res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
           
           // Set content type based on file extension
           const ext = path.extname(imgPath).toLowerCase();
