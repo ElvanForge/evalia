@@ -67,7 +67,7 @@ export default function Landing() {
             </div>
             <div className="flex justify-center">
               <img 
-                src="/src/assets/images/teacher-illustration.svg" 
+                src={teacherIllustration}
                 alt="Teacher with analytics" 
                 className="max-w-full h-auto"
               />
@@ -218,7 +218,7 @@ export default function Landing() {
             </div>
             <div className="flex justify-center">
               <img 
-                src="/src/assets/images/analytics-illustration.svg" 
+                src={analyticsIllustration} 
                 alt="Analytics dashboard" 
                 className="max-w-full h-auto shadow-lg rounded-lg" 
               />
@@ -263,7 +263,7 @@ export default function Landing() {
             </div>
             <div className="flex justify-center md:order-1">
               <img 
-                src="/src/assets/images/quiz-illustration.svg" 
+                src={quizIllustration} 
                 alt="Quiz builder" 
                 className="max-w-full h-auto shadow-lg rounded-lg" 
               />
