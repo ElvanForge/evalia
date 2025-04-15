@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Quiz, QuizQuestion, QuizOption, Class, InsertQuizAnswer } from '@shared/schema';
 import { apiRequest } from '@/lib/queryClient';
 import { QuizCelebration } from '@/components/quiz-celebration';
+import { ImageWithFallbacks } from './image-with-fallbacks';
 
 /**
  * Simple, direct function to get an image URL for quiz questions
@@ -653,60 +654,15 @@ export function QuizRunner({
           {currentQuestion.question}
         </div>
         
-        {/* Simple image container with no fancy features */}
+        {/* Enhanced image container with robust fallbacks */}
         {currentQuestion.imageUrl && (
           <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative" id={`question-container-${currentQuestion.id}`}>
-            {/* Plain HTML img element with simple loading state */}
-            <div className="relative">
-              {/* Regular img tag using the exact image URL from database */}
-              <img
-                key={`question-image-${currentQuestion.id}-${currentQuestionIndex}`}
-                src={currentQuestion.imageUrl}
-                alt={`Question ${currentQuestionIndex + 1}`}
-                className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10"
-                onError={(e) => {
-                  console.error(`Failed to load image for question ${currentQuestion.id}: ${currentQuestion.imageUrl}`);
-                  
-                  // Try multiple fallback approaches to find the image
-                  if (currentQuestion.imageUrl) {
-                    // FALLBACK 1: Try without cache busting parameters
-                    if (currentQuestion.imageUrl.includes('?')) {
-                      const baseUrl = currentQuestion.imageUrl.split('?')[0];
-                      console.log(`Trying fallback URL without cache params: ${baseUrl}`);
-                      e.currentTarget.src = baseUrl;
-                      return; // Give this a chance to load
-                    }
-                    
-                    // FALLBACK 2: Try extracting just the filename and use direct path
-                    const filename = currentQuestion.imageUrl.split('/').pop();
-                    if (filename) {
-                      const directPath = `/uploads/images/${filename}`;
-                      console.log(`Trying direct filename path: ${directPath}`);
-                      e.currentTarget.src = directPath;
-                      return; // Give this a chance to load
-                    }
-                    
-                    // FALLBACK 3: Try the special API endpoint
-                    fetch(`/api/image-debug/find?path=${encodeURIComponent(currentQuestion.imageUrl)}`)
-                      .then(response => response.json())
-                      .then(data => {
-                        if (data.success && data.url) {
-                          console.log(`Found image via debug API: ${data.url}`);
-                          e.currentTarget.src = data.url;
-                        } else {
-                          console.error('Image not found via debug API');
-                          e.currentTarget.style.display = 'none';
-                        }
-                      })
-                      .catch(err => {
-                        console.error('Error checking image debug API:', err);
-                        e.currentTarget.style.display = 'none';
-                      });
-                  } else {
-                    // Hide the broken image icon if all attempts fail
-                    e.currentTarget.style.display = 'none';
-                  }
-                }}
+            <div className="relative w-full flex justify-center">
+              <ImageWithFallbacks 
+                questionId={currentQuestion.id}
+                questionIndex={currentQuestionIndex}
+                imageUrl={currentQuestion.imageUrl}
+                isLoading={isNextImageLoading}
               />
             </div>
           </div>
