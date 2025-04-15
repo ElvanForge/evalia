@@ -388,6 +388,7 @@ export default function Assignments() {
                                 <GradeForm 
                                   assignmentId={selectedAssignment.id}
                                   studentId={selectedStudent.id}
+                                  selectedClassId={gradingClassId}
                                   onSuccess={() => {
                                     // Invalidate the grades query to refresh the data
                                     queryClient.invalidateQueries({

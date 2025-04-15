@@ -62,7 +62,12 @@ export function BulkGradeEntry({
 
   const createGradeMutation = useMutation({
     mutationFn: async (data: { assignmentId: number; studentId: number; score: number }) => {
-      return apiRequest('POST', '/api/grades', data);
+      // Include submittedAt date to satisfy validation
+      return apiRequest('POST', '/api/grades', {
+        ...data,
+        submittedAt: new Date(),
+        comments: null
+      });
     },
     onError: (error: any) => {
       toast({

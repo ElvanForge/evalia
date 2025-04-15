@@ -28,13 +28,14 @@ interface GradeFormProps {
   grade?: Grade;
   assignmentId?: number;
   studentId?: number;
+  selectedClassId?: number | null;
   onSuccess: () => void;
 }
 
-export function GradeForm({ grade, assignmentId, studentId, onSuccess }: GradeFormProps) {
+export function GradeForm({ grade, assignmentId, studentId, selectedClassId: initialClassId, onSuccess }: GradeFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<number | null>(initialClassId || null);
   const isEditing = !!grade;
 
   // Fetch assignments based on selected class
@@ -173,7 +174,8 @@ export function GradeForm({ grade, assignmentId, studentId, onSuccess }: GradeFo
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {!isEditing && (
+        {/* Only show class dropdown if not editing and a classId was not provided */}
+        {!isEditing && !selectedClassId && (
           <FormItem className="flex flex-col space-y-1.5">
             <FormLabel>Class</FormLabel>
             <Select
@@ -196,63 +198,69 @@ export function GradeForm({ grade, assignmentId, studentId, onSuccess }: GradeFo
           </FormItem>
         )}
 
-        <FormField
-          control={form.control}
-          name="assignmentId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Assignment</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(parseInt(value))}
-                value={field.value ? field.value.toString() : ""}
-                disabled={isEditing || !selectedClassId}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an assignment" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {availableAssignments.map((assignment) => (
-                    <SelectItem key={assignment.id} value={assignment.id.toString()}>
-                      {assignment.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Only show assignment dropdown if assignment is not provided from parent component */}
+        {!assignmentId ? (
+          <FormField
+            control={form.control}
+            name="assignmentId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Assignment</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(parseInt(value))}
+                  value={field.value ? field.value.toString() : ""}
+                  disabled={isEditing || !selectedClassId}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an assignment" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {availableAssignments.map((assignment) => (
+                      <SelectItem key={assignment.id} value={assignment.id.toString()}>
+                        {assignment.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
 
-        <FormField
-          control={form.control}
-          name="studentId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Student</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(parseInt(value))}
-                value={field.value ? field.value.toString() : ""}
-                disabled={isEditing || !selectedClassId}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a student" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {availableStudents.map((student) => (
-                    <SelectItem key={student.id} value={student.id.toString()}>
-                      {student.lastName}, {student.firstName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Only show student dropdown if student is not provided from parent component */}
+        {!studentId ? (
+          <FormField
+            control={form.control}
+            name="studentId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Student</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(parseInt(value))}
+                  value={field.value ? field.value.toString() : ""}
+                  disabled={isEditing || !selectedClassId}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a student" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {availableStudents.map((student) => (
+                      <SelectItem key={student.id} value={student.id.toString()}>
+                        {student.lastName ? `${student.lastName}, ${student.firstName}` : student.firstName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
 
         <FormField
           control={form.control}
