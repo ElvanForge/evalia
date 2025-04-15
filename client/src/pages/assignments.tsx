@@ -4,15 +4,18 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Assignment, Class, Student } from "@shared/schema";
+import { Assignment, Class, Student, Grade } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { PlusCircle, Pencil, Trash2, ClipboardCheck, AlertCircle, Loader2 } from "lucide-react";
 import { AssignmentForm } from "@/components/forms/assignment-form";
 import { GradeForm } from "@/components/forms/grade-form";
@@ -46,6 +49,7 @@ export default function Assignments() {
   const [selectedClassId, setSelectedClassId] = useState<string>("all");
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [currentTab, setCurrentTab] = useState<string>("students");
+  const [hideGradedStudents, setHideGradedStudents] = useState<boolean>(true);
 
   // Fetch classes
   const { data: classes, isLoading: isClassesLoading } = useQuery<Class[]>({
@@ -68,7 +72,7 @@ export default function Assignments() {
   });
   
   // Fetch existing grades for this assignment
-  const { data: existingGrades, isLoading: isGradesLoading } = useQuery({
+  const { data: existingGrades, isLoading: isGradesLoading } = useQuery<Grade[]>({
     queryKey: [selectedAssignment ? `/api/assignments/${selectedAssignment.id}/grades` : ''],
     enabled: !!selectedAssignment && isGradeDialogOpen,
   });
@@ -152,6 +156,7 @@ export default function Assignments() {
   const handleGradeDialogClose = () => {
     setSelectedStudent(null);
     setGradingClassId(null);
+    setHideGradedStudents(true); // Reset the filter to default (hide graded students)
     setIsGradeDialogOpen(false);
   };
   
@@ -407,52 +412,89 @@ export default function Assignments() {
                                   </p>
                                 </div>
                                 
+                                {/* Filter controls for showing graded students */}
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="text-sm text-muted-foreground">
+                                    {students?.length || 0} students in this class
+                                    {hideGradedStudents && existingGrades && existingGrades.length > 0 && (
+                                      <span className="ml-1 text-primary">
+                                        ({students.filter(student => 
+                                          !existingGrades.some(grade => grade.studentId === student.id)
+                                        ).length} without grades)
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center">
+                                    <Switch 
+                                      id="show-graded"
+                                      checked={!hideGradedStudents}
+                                      onCheckedChange={(checked) => setHideGradedStudents(!checked)}
+                                      className="mr-2"
+                                    />
+                                    <Label htmlFor="show-graded" className="text-sm">
+                                      Show students with existing grades
+                                    </Label>
+                                  </div>
+                                </div>
+                                
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                                  {students.map(student => {
-                                    // Check if student already has a grade for this assignment
-                                    const hasExistingGrade = existingGrades?.some(
-                                      grade => grade.studentId === student.id
-                                    );
-                                    
-                                    return (
-                                      <Button
-                                        key={student.id}
-                                        variant="outline"
-                                        className={`justify-start h-auto py-3 px-4 ${
-                                          hasExistingGrade ? "border-primary/30 bg-primary/5" : ""
-                                        }`}
-                                        onClick={() => setSelectedStudent(student)}
-                                      >
-                                        <div className="flex items-center w-full">
-                                          <div className={`p-2 rounded-full mr-3 ${
-                                            hasExistingGrade ? "bg-primary/20" : "bg-primary/10"
-                                          }`}>
-                                            <span className="text-sm font-semibold text-primary">
-                                              {student.firstName.charAt(0)}
-                                              {student.lastName?.charAt(0) || ''}
-                                            </span>
-                                          </div>
-                                          <div className="text-left flex-grow">
-                                            <p className="font-medium">
-                                              {student.lastName ? 
-                                                `${student.lastName}, ${student.firstName}` : 
-                                                student.firstName}
-                                            </p>
-                                            {student.studentNumber && (
-                                              <p className="text-xs text-muted-foreground">
-                                                ID: {student.studentNumber}
+                                  {students
+                                    .filter(student => {
+                                      // If filter is disabled, show all students
+                                      if (!hideGradedStudents) return true;
+                                      
+                                      // Otherwise, only show students without grades
+                                      const hasGrade = existingGrades?.some(
+                                        grade => grade.studentId === student.id
+                                      );
+                                      return !hasGrade;
+                                    })
+                                    .map(student => {
+                                      // Check if student already has a grade for this assignment
+                                      const hasExistingGrade = existingGrades?.some(
+                                        grade => grade.studentId === student.id
+                                      );
+                                      
+                                      return (
+                                        <Button
+                                          key={student.id}
+                                          variant="outline"
+                                          className={`justify-start h-auto py-3 px-4 ${
+                                            hasExistingGrade ? "border-primary/30 bg-primary/5" : ""
+                                          }`}
+                                          onClick={() => setSelectedStudent(student)}
+                                        >
+                                          <div className="flex items-center w-full">
+                                            <div className={`p-2 rounded-full mr-3 ${
+                                              hasExistingGrade ? "bg-primary/20" : "bg-primary/10"
+                                            }`}>
+                                              <span className="text-sm font-semibold text-primary">
+                                                {student.firstName.charAt(0)}
+                                                {student.lastName?.charAt(0) || ''}
+                                              </span>
+                                            </div>
+                                            <div className="text-left flex-grow">
+                                              <p className="font-medium">
+                                                {student.lastName ? 
+                                                  `${student.lastName}, ${student.firstName}` : 
+                                                  student.firstName}
                                               </p>
+                                              {student.studentNumber && (
+                                                <p className="text-xs text-muted-foreground">
+                                                  ID: {student.studentNumber}
+                                                </p>
+                                              )}
+                                            </div>
+                                            {hasExistingGrade && (
+                                              <div className="flex items-center ml-2 px-2 py-1 rounded-full bg-primary/10 text-xs text-primary">
+                                                Graded
+                                              </div>
                                             )}
                                           </div>
-                                          {hasExistingGrade && (
-                                            <div className="flex items-center ml-2 px-2 py-1 rounded-full bg-primary/10 text-xs text-primary">
-                                              Graded
-                                            </div>
-                                          )}
-                                        </div>
-                                      </Button>
-                                    );
-                                  })}
+                                        </Button>
+                                      );
+                                    })}
                                 </div>
                               </div>
                             )
