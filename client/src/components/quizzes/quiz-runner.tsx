@@ -642,16 +642,23 @@ export function QuizRunner({
           <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative" id={`question-container-${currentQuestion.id}`}>
             {/* Plain HTML img element with simple loading state */}
             <div className="relative">
-              {/* Regular img tag for maximum browser compatibility */}
+              {/* Regular img tag using the exact image URL from database */}
               <img
                 key={`question-image-${currentQuestion.id}-${currentQuestionIndex}`}
-                src={`/uploads/images/${currentQuestion.imageUrl.split('/').pop()?.split('?')[0]}`}
+                src={currentQuestion.imageUrl}
                 alt={`Question ${currentQuestionIndex + 1}`}
                 className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10"
                 onError={(e) => {
                   console.error(`Failed to load image for question ${currentQuestion.id}: ${currentQuestion.imageUrl}`);
-                  // Hide the broken image icon
-                  e.currentTarget.style.display = 'none';
+                  // Try without cache busting parameters as fallback
+                  if (currentQuestion.imageUrl && currentQuestion.imageUrl.includes('?')) {
+                    const baseUrl = currentQuestion.imageUrl.split('?')[0];
+                    console.log(`Trying fallback URL: ${baseUrl}`);
+                    e.currentTarget.src = baseUrl;
+                  } else {
+                    // Hide the broken image icon if all attempts fail
+                    e.currentTarget.style.display = 'none';
+                  }
                 }}
               />
             </div>

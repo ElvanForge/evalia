@@ -75,14 +75,12 @@ export function QuestionFormDialog({
     }
   }, [open, quizId]);
   
-  // Simple, direct image preview from question
+  // Use the exact image URL from the question
   useEffect(() => {
     if (questionToEdit?.imageUrl) {
       console.log("Setting image preview from questionToEdit.imageUrl:", questionToEdit.imageUrl);
-      const imagePath = questionToEdit.imageUrl.split('/').pop()?.split('?')[0]; // Extract just the filename
-      const fullUrl = `/uploads/images/${imagePath}`;
-      console.log("Using direct image path:", fullUrl);
-      setImagePreview(fullUrl);
+      // Use the exact URL as stored in the database
+      setImagePreview(questionToEdit.imageUrl);
     } else {
       console.log("No image URL in questionToEdit, clearing preview");
       setImagePreview(null);
