@@ -6,9 +6,9 @@ import { Check, ArrowRight, Award, BarChart2, BookOpen, Users } from "lucide-rea
 
 // Import the custom illustrations and logo
 import EvaliaLogo from "@/assets/evalia-logo.svg";
-import teacherIllustration from "@assets/images/teacher-illustration.svg";
-import analyticsIllustration from "@assets/images/analytics-illustration.svg";
-import quizIllustration from "@assets/images/quiz-illustration.svg";
+import teacherIllustration from "@/assets/images/teacher-illustration.svg";
+import analyticsIllustration from "@/assets/images/analytics-illustration.svg";
+import quizIllustration from "@/assets/images/quiz-illustration.svg";
 
 export default function Landing() {
   // Set page title
