@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Layout from "../components/layout";
+import Layout from "@/components/layout";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, ExternalLink, FileImage, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
