@@ -1,13 +1,23 @@
 class QuizCourse < ApplicationRecord
+  # Use original table name
+  self.table_name = 'quiz_classes'
+  
+  # Associations
   belongs_to :quiz
   belongs_to :course, foreign_key: 'class_id'
   
   # Validations
-  validates :quiz_id, presence: true
-  validates :class_id, presence: true
-  validates :quiz_id, uniqueness: { scope: :class_id, message: "is already assigned to this class" }
+  validates :quiz_id, uniqueness: { scope: :class_id, message: "is already assigned to this course" }
   
   # Scopes
-  scope :by_quiz, ->(quiz_id) { where(quiz_id: quiz_id) }
-  scope :by_course, ->(course_id) { where(class_id: course_id) }
+  scope :active, -> { where(active: true) }
+  
+  # Assign date with default
+  before_create :set_assign_date
+  
+  private
+  
+  def set_assign_date
+    self.assigned_at ||= Time.current
+  end
 end

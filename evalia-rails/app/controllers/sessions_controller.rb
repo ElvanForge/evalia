@@ -1,36 +1,26 @@
 class SessionsController < ApplicationController
+  before_action :redirect_if_logged_in, only: [:new, :create]
+  
+  # GET /login
   def new
-    # If already logged in, redirect to dashboard
-    redirect_to root_path if logged_in?
   end
   
+  # POST /login
   def create
     teacher = Teacher.find_by(username: params[:username])
     
-    if teacher&.authenticate(params[:password])
-      # Set session
-      session[:user_id] = teacher.id
-      
-      # Set flash message
-      flash[:notice] = "Welcome back, #{teacher.first_name}!"
-      
-      # Redirect to dashboard
-      redirect_to root_path
+    if teacher && teacher.authenticate(params[:password])
+      session[:teacher_id] = teacher.id
+      redirect_to root_path, notice: "Logged in successfully!"
     else
-      # Login failed
       flash.now[:alert] = "Invalid username or password"
       render :new
     end
   end
   
+  # DELETE /logout
   def destroy
-    # Clear session
-    session.delete(:user_id)
-    
-    # Set flash message
-    flash[:notice] = "You have been logged out successfully"
-    
-    # Redirect to login page
-    redirect_to login_path
+    session[:teacher_id] = nil
+    redirect_to login_path, notice: "Logged out successfully!"
   end
 end

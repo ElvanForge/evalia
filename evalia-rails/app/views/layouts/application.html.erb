@@ -3,167 +3,164 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= content_for?(:page_title) ? yield(:page_title) + " | Evalia" : "Evalia - Student Grade Tracker" %></title>
+  <title><%= content_for?(:page_title) ? "#{yield(:page_title)} | Evalia" : "Evalia" %></title>
   
-  <!-- Rails assets -->
-  <%= csrf_meta_tags %>
-  <%= csp_meta_tag %>
-  <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png">
+  
+  <!-- Tailwind CSS -->
+  <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+  
+  <!-- Font -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Alpine.js (for simple interactions) -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- Application JavaScript -->
   <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Lucide Icons (loaded via CDN for simplicity) -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  
+  <!-- Additional Styles -->
   <style>
-    /* Global custom styles */
     body {
+      font-family: 'Inter', sans-serif;
       background-color: #ede8dd;
-      font-family: 'Inter', system-ui, sans-serif;
     }
     
-    /* Custom class styles */
-    .bg-primary {
-      background-color: #0ba2b0;
-    }
-    
-    .text-primary {
-      color: #0ba2b0;
-    }
-    
-    .btn-primary {
-      background-color: #0ba2b0;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.2s;
-    }
-    
-    .btn-primary:hover {
-      background-color: #088996;
-    }
-    
+    /* Card styles */
     .card {
-      background-color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
+      @apply bg-white rounded-lg shadow-sm overflow-hidden;
     }
     
     .card-header {
-      background-color: #0ba2b0;
-      color: white;
-      padding: 0.75rem 1rem;
+      @apply bg-primary text-white px-6 py-4 flex items-center;
     }
     
     .card-body {
-      padding: 1rem;
+      @apply p-6;
+    }
+    
+    /* Button styles */
+    .btn {
+      @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+    }
+    
+    .btn-primary {
+      @apply bg-primary text-white hover:bg-primary/90;
+    }
+    
+    .btn-secondary {
+      @apply bg-secondary text-white hover:bg-secondary/90;
+    }
+    
+    .btn-outline {
+      @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+    }
+    
+    /* Form styles */
+    .form-group {
+      @apply mb-4;
     }
     
     .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: #374151;
+      @apply block text-sm font-medium text-gray-700 mb-1;
     }
     
-    .form-control {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
+    .form-input, .form-select, .form-textarea {
+      @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50;
     }
     
-    .form-control:focus {
-      outline: none;
-      border-color: #0ba2b0;
-      box-shadow: 0 0 0 2px rgba(11, 162, 176, 0.2);
+    .form-checkbox, .form-radio {
+      @apply rounded border-gray-300 text-primary focus:ring-primary;
     }
     
+    /* Progress bar */
     .progress {
-      height: 0.5rem;
-      background-color: #e5e7eb;
-      border-radius: 0.25rem;
-      overflow: hidden;
+      @apply h-2 w-full bg-gray-200 rounded-full overflow-hidden;
     }
     
     .progress-bar {
-      height: 100%;
+      @apply h-full;
     }
     
-    .dropdown-menu {
-      background-color: white;
-      border-radius: 0.375rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      min-width: 10rem;
+    /* Pagination */
+    .pagination {
+      @apply flex justify-center space-x-1 mt-4;
     }
     
-    .dropdown-item {
-      display: flex;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-      color: #374151;
+    .pagination a, .pagination span {
+      @apply px-3 py-1 rounded hover:bg-gray-100;
     }
     
-    .dropdown-item:hover {
-      background-color: #f3f4f6;
+    .pagination em {
+      @apply px-3 py-1 rounded bg-primary text-white font-normal;
     }
     
-    /* Tab styles */
-    .active-tab {
-      color: #0ba2b0;
-      border-color: #0ba2b0;
+    /* Flash messages */
+    .flash {
+      @apply p-4 mb-4 rounded-md;
+    }
+    
+    .flash-success {
+      @apply bg-green-100 text-green-800;
+    }
+    
+    .flash-error {
+      @apply bg-red-100 text-red-800;
+    }
+    
+    .flash-info {
+      @apply bg-blue-100 text-blue-800;
     }
   </style>
 </head>
+
 <body>
-  <div class="min-h-screen flex">
-    <% unless @hide_sidebar %>
+  <% if logged_in? %>
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
       <%= render 'shared/sidebar' %>
-    <% end %>
-    
-    <div class="flex-1 flex flex-col">
-      <% unless @hide_sidebar %>
+      
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col">
+        <!-- Top Bar -->
         <%= render 'shared/topbar' %>
-      <% end %>
-      
-      <main class="flex-grow p-6">
-        <% if flash[:notice] %>
-          <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6" role="alert">
-            <p><%= flash[:notice] %></p>
-          </div>
-        <% end %>
         
-        <% if flash[:alert] %>
-          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-            <p><%= flash[:alert] %></p>
-          </div>
-        <% end %>
-        
-        <%= yield %>
-      </main>
-      
-      <footer class="bg-white py-4 px-6 border-t border-gray-200">
-        <div class="text-center text-sm text-gray-500">
-          <p>&copy; <%= Date.today.year %> Evalia - Student Grade Tracker</p>
-        </div>
-      </footer>
+        <!-- Page Content -->
+        <main class="flex-1 overflow-auto p-6">
+          <!-- Flash Messages -->
+          <% flash.each do |type, message| %>
+            <div class="flash <%= flash_class(type) %>">
+              <%= message %>
+            </div>
+          <% end %>
+          
+          <!-- Breadcrumbs (if provided) -->
+          <% if content_for?(:breadcrumbs) %>
+            <div class="flex items-center text-sm text-gray-500 mb-4">
+              <a href="/" class="hover:text-gray-700">Dashboard</a>
+              <i data-lucide="chevron-right" class="h-4 w-4 mx-1"></i>
+              <%= yield(:breadcrumbs) %>
+            </div>
+          <% end %>
+          
+          <!-- Page Content -->
+          <%= yield %>
+        </main>
+      </div>
     </div>
-  </div>
+  <% else %>
+    <!-- Guest layout (for login and public pages) -->
+    <div class="min-h-screen">
+      <%= yield %>
+    </div>
+  <% end %>
   
+  <!-- Initialize Lucide Icons -->
   <script>
-    // Initialize Lucide icons
     document.addEventListener('DOMContentLoaded', function() {
       lucide.createIcons();
     });

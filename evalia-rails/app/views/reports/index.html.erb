@@ -1,0 +1,306 @@
+<% content_for :page_title do %>
+  Reports & Analytics
+<% end %>
+
+<div class="mb-6 flex justify-between items-center">
+  <h1 class="text-2xl font-semibold">Reports & Analytics</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <!-- Class Analytics -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-lg font-medium">Class Analytics</h2>
+    </div>
+    
+    <div class="card-body">
+      <p class="text-gray-600 mb-4">
+        View and export comprehensive analytics for an entire class, including grade distributions, student averages, and assignment performance.
+      </p>
+      
+      <% if @courses.any? %>
+        <div class="space-y-4">
+          <div class="form-group">
+            <label class="form-label">Select Class</label>
+            <select id="class-analytics-select" class="form-select">
+              <option value="">Choose a class...</option>
+              <% @courses.each do |course| %>
+                <option value="<%= course.id %>"><%= course.name %></option>
+              <% end %>
+            </select>
+          </div>
+          
+          <div class="flex flex-col space-y-2">
+            <button type="button" class="btn btn-primary w-full" onclick="viewClassAnalytics()">
+              <i data-lucide="eye" class="h-4 w-4 mr-2"></i>
+              View Analytics
+            </button>
+            
+            <div class="flex space-x-2">
+              <button type="button" class="btn btn-outline flex-1" onclick="exportClassAnalyticsFormat('csv')">
+                <i data-lucide="file-text" class="h-4 w-4 mr-1"></i>
+                CSV
+              </button>
+              
+              <button type="button" class="btn btn-outline flex-1" onclick="exportClassAnalyticsFormat('pdf')">
+                <i data-lucide="file" class="h-4 w-4 mr-1"></i>
+                PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <div class="text-gray-400 mb-3">
+            <i data-lucide="layers" class="h-12 w-12 mx-auto"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-1">No Classes Available</h3>
+          <p class="text-gray-500 mb-4">Create a class first to generate analytics</p>
+          
+          <a href="<%= new_course_path %>" class="btn btn-primary">
+            <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+            Add Class
+          </a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Student Analytics -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-lg font-medium">Student Analytics</h2>
+    </div>
+    
+    <div class="card-body">
+      <p class="text-gray-600 mb-4">
+        View and export detailed performance analytics for individual students, including grades, progress, and completion rates.
+      </p>
+      
+      <% if @courses.any? %>
+        <div class="space-y-4">
+          <div class="form-group">
+            <label class="form-label">Select Class</label>
+            <select id="student-analytics-class" class="form-select" onchange="loadStudents(this.value)">
+              <option value="">Choose a class...</option>
+              <% @courses.each do |course| %>
+                <option value="<%= course.id %>"><%= course.name %></option>
+              <% end %>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Select Student</label>
+            <select id="student-analytics-student" class="form-select" disabled>
+              <option value="">First select a class...</option>
+            </select>
+          </div>
+          
+          <div class="flex flex-col space-y-2">
+            <button type="button" class="btn btn-primary w-full" onclick="viewStudentAnalytics()">
+              <i data-lucide="eye" class="h-4 w-4 mr-2"></i>
+              View Analytics
+            </button>
+            
+            <div class="flex space-x-2">
+              <button type="button" class="btn btn-outline flex-1" onclick="exportStudentAnalyticsFormat('csv')">
+                <i data-lucide="file-text" class="h-4 w-4 mr-1"></i>
+                CSV
+              </button>
+              
+              <button type="button" class="btn btn-outline flex-1" onclick="exportStudentAnalyticsFormat('pdf')">
+                <i data-lucide="file" class="h-4 w-4 mr-1"></i>
+                PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <div class="text-gray-400 mb-3">
+            <i data-lucide="user" class="h-12 w-12 mx-auto"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-1">No Students Available</h3>
+          <p class="text-gray-500 mb-4">Add students to a class first to generate analytics</p>
+          
+          <a href="<%= courses_path %>" class="btn btn-primary">
+            <i data-lucide="layers" class="h-4 w-4 mr-2"></i>
+            View Classes
+          </a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Grades Export -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-lg font-medium">Grades Export</h2>
+    </div>
+    
+    <div class="card-body">
+      <p class="text-gray-600 mb-4">
+        View and export a complete grade book for a class with all students and assignments in your preferred format.
+      </p>
+      
+      <% if @courses.any? %>
+        <div class="space-y-4">
+          <div class="form-group">
+            <label class="form-label">Select Class</label>
+            <select id="grades-export-class" class="form-select">
+              <option value="">Choose a class...</option>
+              <% @courses.each do |course| %>
+                <option value="<%= course.id %>"><%= course.name %></option>
+              <% end %>
+            </select>
+          </div>
+          
+          <div class="flex flex-col space-y-2">
+            <button type="button" class="btn btn-primary w-full" onclick="viewGradesExport()">
+              <i data-lucide="eye" class="h-4 w-4 mr-2"></i>
+              View Grades Matrix
+            </button>
+            
+            <div class="flex space-x-2">
+              <button type="button" class="btn btn-outline flex-1" onclick="exportGradesFormat('csv')">
+                <i data-lucide="file-text" class="h-4 w-4 mr-1"></i>
+                CSV
+              </button>
+              
+              <button type="button" class="btn btn-outline flex-1" onclick="exportGradesFormat('pdf')">
+                <i data-lucide="file" class="h-4 w-4 mr-1"></i>
+                PDF
+              </button>
+              
+              <button type="button" class="btn btn-outline flex-1" onclick="exportGradesFormat('xml')">
+                <i data-lucide="code" class="h-4 w-4 mr-1"></i>
+                XML
+              </button>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <div class="text-gray-400 mb-3">
+            <i data-lucide="file-text" class="h-12 w-12 mx-auto"></i>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-1">No Grades Available</h3>
+          <p class="text-gray-500 mb-4">Create assignments and grade them first</p>
+          
+          <a href="<%= courses_path %>" class="btn btn-primary">
+            <i data-lucide="layers" class="h-4 w-4 mr-2"></i>
+            View Classes
+          </a>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  function loadStudents(courseId) {
+    const studentSelect = document.getElementById('student-analytics-student');
+    
+    if (!courseId) {
+      studentSelect.disabled = true;
+      studentSelect.innerHTML = '<option value="">First select a class...</option>';
+      return;
+    }
+    
+    fetch(`/api/courses/${courseId}/students`)
+      .then(response => response.json())
+      .then(students => {
+        studentSelect.disabled = false;
+        
+        // Clear and add students
+        studentSelect.innerHTML = '<option value="">Select a student...</option>';
+        students.forEach(student => {
+          const option = document.createElement('option');
+          option.value = student.id;
+          option.textContent = student.full_name;
+          studentSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Error loading students:', error);
+      });
+  }
+  
+  function viewClassAnalytics() {
+    const courseId = document.getElementById('class-analytics-select').value;
+    
+    if (!courseId) {
+      alert('Please select a class');
+      return;
+    }
+    
+    window.location.href = `/reports/class_analytics?course_id=${courseId}`;
+  }
+  
+  function exportClassAnalyticsFormat(format) {
+    const courseId = document.getElementById('class-analytics-select').value;
+    
+    if (!courseId) {
+      alert('Please select a class');
+      return;
+    }
+    
+    window.location.href = `/reports/class_analytics?course_id=${courseId}&format=${format}`;
+  }
+  
+  function viewStudentAnalytics() {
+    const courseId = document.getElementById('student-analytics-class').value;
+    const studentId = document.getElementById('student-analytics-student').value;
+    
+    if (!courseId) {
+      alert('Please select a class');
+      return;
+    }
+    
+    if (!studentId) {
+      alert('Please select a student');
+      return;
+    }
+    
+    window.location.href = `/reports/student_analytics?course_id=${courseId}&student_id=${studentId}`;
+  }
+  
+  function exportStudentAnalyticsFormat(format) {
+    const courseId = document.getElementById('student-analytics-class').value;
+    const studentId = document.getElementById('student-analytics-student').value;
+    
+    if (!courseId) {
+      alert('Please select a class');
+      return;
+    }
+    
+    if (!studentId) {
+      alert('Please select a student');
+      return;
+    }
+    
+    window.location.href = `/reports/student_analytics?course_id=${courseId}&student_id=${studentId}&format=${format}`;
+  }
+  
+  function viewGradesExport() {
+    const courseId = document.getElementById('grades-export-class').value;
+    
+    if (!courseId) {
+      alert('Please select a class');
+      return;
+    }
+    
+    window.location.href = `/reports/grades_export?course_id=${courseId}`;
+  }
+  
+  function exportGradesFormat(format) {
+    const courseId = document.getElementById('grades-export-class').value;
+    
+    if (!courseId) {
+      alert('Please select a class');
+      return;
+    }
+    
+    window.location.href = `/reports/grades_export?course_id=${courseId}&format=${format}`;
+  }
+</script>

@@ -1,38 +1,32 @@
 class School < ApplicationRecord
   has_many :teachers, dependent: :nullify
-  has_many :students, dependent: :nullify
-  has_many :courses, dependent: :nullify
+  has_many :courses, through: :teachers
+  has_many :students, through: :courses
   
-  # Validations
   validates :name, presence: true
-  validates :subscription_status, inclusion: { in: %w(active canceled trial pending), allow_nil: true }
   
-  # Scopes
-  scope :active, -> { where(subscription_status: 'active') }
-  scope :trial, -> { where(subscription_status: 'trial') }
-  
-  # Methods
-  def active?
-    subscription_status == 'active'
+  # Check if school has an active subscription
+  def subscribed?
+    stripe_subscription_id.present? && stripe_subscription_status == 'active'
   end
   
-  def in_trial?
-    subscription_status == 'trial'
-  end
-  
-  def student_count
-    students.count
-  end
-  
+  # Count teachers in this school
   def teacher_count
     teachers.count
   end
   
+  # Count students in this school
+  def student_count
+    students.distinct.count
+  end
+  
+  # Count courses in this school
   def course_count
     courses.count
   end
   
-  def managers
-    teachers.where(role: 'manager')
+  # Get all courses for this school
+  def all_courses
+    Course.where(teacher_id: teachers.pluck(:id))
   end
 end

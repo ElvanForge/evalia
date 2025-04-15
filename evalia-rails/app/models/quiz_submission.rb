@@ -1,103 +1,136 @@
 class QuizSubmission < ApplicationRecord
-  belongs_to :student
+  # Associations
   belongs_to :quiz
-  
-  has_many :quiz_answers, foreign_key: 'submission_id', dependent: :destroy
+  belongs_to :student
+  has_many :quiz_answers, dependent: :destroy
   
   # Validations
-  validates :student_id, presence: true
-  validates :quiz_id, presence: true
-  validates :score, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_nil: true
+  validates :score, numericality: { greater_than_or_equal_to: 0 }
+  validates :score_percent, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
   validates :student_id, uniqueness: { scope: :quiz_id, message: "has already submitted this quiz" }
-  
-  # Callbacks
-  before_save :calculate_score, if: :completed?
-  after_save :create_grade, if: :completed?
   
   # Scopes
   scope :completed, -> { where(completed: true) }
-  scope :in_progress, -> { where(completed: false) }
   scope :recent, -> { order(created_at: :desc) }
+  scope :passing, -> { joins(:quiz).where('quiz_submissions.score_percent >= quizzes.passing_score') }
+  scope :failing, -> { joins(:quiz).where('quiz_submissions.score_percent < quizzes.passing_score') }
   
-  # Methods
-  def answer_count
-    quiz_answers.count
+  # Callbacks
+  before_validation :calculate_score, on: [:create, :update]
+  
+  def completed?
+    completed
   end
   
-  def correct_answer_count
-    quiz_answers.joins(:selected_option).where(quiz_options: { is_correct: true }).count
+  def passed?
+    passing_score = quiz.passing_score || 60
+    score_percent >= passing_score
   end
   
-  def question_count
-    quiz.quiz_questions.count
-  end
-  
-  def calculate_score
-    return unless completed?
-    return if question_count == 0
-    
-    correct = correct_answer_count
-    total = question_count
-    
-    self.score = ((correct.to_f / total) * 100).round(1)
+  def failed?
+    !passed?
   end
   
   def letter_grade
-    # Get the teacher's grade scale
-    teacher_id = quiz.teacher_id
-    teacher = Teacher.find(teacher_id)
+    teacher = quiz.teacher
     grade_scale = teacher.default_grade_scale
     
-    # If no grade scale exists, use standard scale
-    unless grade_scale
-      return case score
-             when 90..100 then 'A'
-             when 80...90 then 'B'
-             when 70...80 then 'C'
-             when 60...70 then 'D'
-             else 'F'
-             end
-    end
-    
-    # Find the appropriate entry in the grade scale
-    entries = grade_scale.grade_scale_entries.order(min_score: :desc)
-    
-    entries.each do |entry|
-      if score >= entry.min_score
-        return entry.letter_grade
+    grade_scale.grade_scale_entries.each do |entry|
+      if score_percent >= entry.min_score && score_percent <= entry.max_score
+        return entry.letter
       end
     end
     
-    # Default to F if no match found
-    'F'
+    'F' # Default to F if no matching range found
+  end
+  
+  def color_class
+    case letter_grade
+    when 'A'
+      'text-green-600 bg-green-100'
+    when 'B'
+      'text-blue-600 bg-blue-100'
+    when 'C'
+      'text-yellow-600 bg-yellow-100'
+    when 'D'
+      'text-orange-600 bg-orange-100'
+    when 'F'
+      'text-red-600 bg-red-100'
+    else
+      'text-gray-600 bg-gray-100'
+    end
+  end
+  
+  def completion_time
+    return nil unless started_at && completed_at
+    
+    seconds = (completed_at - started_at).to_i
+    minutes = seconds / 60
+    
+    if minutes > 60
+      hours = minutes / 60
+      remaining_minutes = minutes % 60
+      "#{hours}h #{remaining_minutes}m"
+    else
+      "#{minutes}m #{seconds % 60}s"
+    end
+  end
+  
+  def answers_by_question
+    result = {}
+    
+    quiz_answers.includes(:quiz_question, :quiz_option).each do |answer|
+      result[answer.quiz_question_id] = answer
+    end
+    
+    result
+  end
+  
+  def calculate_grade_for_assignment(assignment_id)
+    assignment = Assignment.find_by(id: assignment_id)
+    return unless assignment
+    
+    # Create or update grade
+    grade = Grade.find_or_initialize_by(
+      student_id: student_id,
+      assignment_id: assignment_id
+    )
+    
+    # Calculate score based on assignment max_score
+    if assignment.max_score
+      grade.score = (score_percent / 100.0) * assignment.max_score
+    else
+      grade.score = score
+    end
+    
+    grade.save
   end
   
   private
   
-  def create_grade
-    # Find or create a corresponding grade record
-    # First check if an assignment exists for this quiz in the student's classes
-    student_class_ids = student.courses.pluck(:id)
+  def calculate_score
+    return if quiz_answers.empty?
     
-    quiz.quiz_courses.where(class_id: student_class_ids).each do |quiz_course|
-      # Find or create an assignment for this quiz in this class
-      assignment = Assignment.find_or_create_by(
-        class_id: quiz_course.class_id,
-        name: "Quiz: #{quiz.title}",
-        description: "Automatically generated from quiz #{quiz.title}",
-        points_possible: quiz.total_points
-      )
+    total_points = quiz.quiz_questions.sum(:points)
+    earned_points = 0
+    
+    quiz_answers.includes(:quiz_question, :quiz_option).each do |answer|
+      question = answer.quiz_question
       
-      # Create or update the grade
-      grade = Grade.find_or_initialize_by(
-        student_id: student_id,
-        assignment_id: assignment.id
-      )
-      
-      grade.score = score
-      grade.letter_grade = letter_grade
-      grade.comment = "Quiz submission on #{created_at.strftime('%Y-%m-%d')}"
-      grade.save!
+      if question.multiple_choice? || question.true_false?
+        if answer.quiz_option&.is_correct
+          earned_points += question.points
+        end
+      elsif question.short_answer?
+        # For short answer, a teacher needs to grade manually
+        # For now, we'll give full points if there's an answer
+        if answer.answer_text.present?
+          earned_points += question.points * (answer.score_override || 0) / 100.0
+        end
+      end
     end
+    
+    self.score = earned_points
+    self.score_percent = total_points > 0 ? (earned_points / total_points * 100).round : 0
   end
 end

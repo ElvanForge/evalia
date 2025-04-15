@@ -2,106 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Evalia styles */
-body {
-  @apply bg-background;
+:root {
+  --primary: 187, 162, 176;
+  --primary-foreground: 255, 255, 255;
+  
+  --secondary: 187, 134, 252;
+  --secondary-foreground: 255, 255, 255;
+  
+  --background: 237, 232, 221;
+  --foreground: 0, 0, 0;
+  
+  --card: 255, 255, 255;
+  --card-foreground: 0, 0, 0;
+  
+  --border: 229, 231, 235;
+  --input: 229, 231, 235;
+  
+  --ring: 11, 162, 176;
+  
+  --radius: 0.5rem;
 }
 
-.btn {
-  @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2;
+.active {
+  @apply bg-primary/10 text-primary font-medium;
 }
 
-.btn-primary {
-  @apply bg-primary hover:bg-primary-dark focus:ring-primary;
-}
-
-.btn-secondary {
-  @apply bg-secondary hover:bg-blue-700 focus:ring-blue-500;
-}
-
-.btn-danger {
-  @apply bg-danger hover:bg-red-700 focus:ring-red-500;
-}
-
-.btn-success {
-  @apply bg-success hover:bg-green-700 focus:ring-green-500;
-}
-
+/* Card styling */
 .card {
-  @apply bg-white shadow rounded-lg overflow-hidden;
+  @apply bg-white rounded-lg shadow-sm overflow-hidden;
 }
 
 .card-header {
-  @apply px-4 py-5 sm:px-6 bg-primary text-white font-medium;
+  @apply bg-primary text-white px-6 py-4 flex items-center;
 }
 
 .card-body {
-  @apply px-4 py-5 sm:p-6;
+  @apply p-6;
 }
 
-.form-control {
-  @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm;
+/* Button styling */
+.btn {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+}
+
+.btn-primary {
+  @apply bg-primary text-white hover:bg-primary/90;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-white hover:bg-secondary/90;
+}
+
+.btn-outline {
+  @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+}
+
+/* Form styling */
+.form-group {
+  @apply mb-4;
 }
 
 .form-label {
   @apply block text-sm font-medium text-gray-700 mb-1;
 }
 
-.section-header {
-  @apply bg-primary text-white font-medium py-2 px-4 rounded-t-md;
+.form-input,
+.form-select,
+.form-textarea {
+  @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50;
 }
 
-.sidebar {
-  @apply h-screen w-64 bg-white shadow-lg fixed top-0 left-0 z-10 transition-all duration-300 ease-in-out;
+.form-checkbox,
+.form-radio {
+  @apply rounded border-gray-300 text-primary focus:ring-primary;
 }
 
-.sidebar-link {
-  @apply flex items-center px-4 py-2 text-gray-700 hover:bg-primary hover:text-white rounded-md transition-colors duration-150;
+/* Custom styles */
+body {
+  background-color: #ede8dd;
 }
 
-.sidebar-link.active {
-  @apply bg-primary text-white;
-}
-
-/* For user menu dropdown */
-.dropdown {
-  @apply relative inline-block text-left;
-}
-
-.dropdown-menu {
-  @apply absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none;
-}
-
-.dropdown-item {
-  @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900;
-}
-
-/* Progress bars and stats */
-.progress {
-  @apply overflow-hidden h-2 text-xs flex rounded bg-gray-200;
-}
-
-.progress-bar {
-  @apply flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary;
-}
-
-/* Alerts */
-.alert {
-  @apply p-4 mb-4 rounded-md;
-}
-
-.alert-success {
-  @apply bg-green-100 text-green-800;
-}
-
-.alert-danger {
-  @apply bg-red-100 text-red-800;
-}
-
-.alert-warning {
-  @apply bg-yellow-100 text-yellow-800;
-}
-
-.alert-info {
-  @apply bg-blue-100 text-blue-800;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 186 84% 36.5%; /* #0ba2b0 */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 186 84% 36.5%; /* #0ba2b0 */
+    --radius: 0.5rem;
+  }
 }

@@ -1,83 +1,75 @@
 class Teacher < ApplicationRecord
+  has_many :courses, dependent: :destroy
+  has_many :grade_scales, dependent: :destroy
+  has_many :quizzes, dependent: :destroy
+  has_many :lesson_plans, dependent: :destroy
   belongs_to :school, optional: true
   
-  has_many :courses, dependent: :destroy
-  has_many :students, dependent: :nullify
-  has_many :assignments, through: :courses
-  has_many :quizzes, dependent: :destroy
-  has_many :grade_scales, dependent: :destroy
-  has_many :lesson_plans, dependent: :destroy
-  
-  has_secure_password
-  
-  # Validations
   validates :username, presence: true, uniqueness: true
-  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :password, presence: true, if: :password_required?
   validates :first_name, presence: true
-  validates :last_name, presence: true
-  validates :role, presence: true, inclusion: { in: %w(teacher admin manager) }
   
-  # Callbacks
-  before_validation :set_default_role, on: :create
-  after_create :create_default_grade_scale
-  
-  # Scopes
-  scope :teachers, -> { where(role: 'teacher') }
-  scope :admins, -> { where(role: 'admin') }
-  scope :managers, -> { where(role: 'manager') }
-  scope :beta_testers, -> { where(is_beta_tester: true) }
-  
-  # Methods
+  # Returns the full name of the teacher
   def full_name
-    "#{first_name} #{last_name}"
+    if last_name.present?
+      "#{first_name} #{last_name}"
+    else
+      first_name
+    end
   end
   
-  def admin?
-    role == 'admin'
+  # Get all students for this teacher
+  def all_students
+    Student.joins(:courses).where(courses: { teacher_id: id }).distinct
   end
   
-  def manager?
-    role == 'manager'
+  # Find the default grade scale for this teacher
+  def default_grade_scale
+    # Try to find an explicitly marked default scale
+    default = grade_scales.find_by(is_default: true)
+    
+    # If none is marked as default, use the first scale
+    default ||= grade_scales.first
+    
+    # If no scales exist, create a standard one
+    if default.nil?
+      default = GradeScale.create_standard(self)
+    end
+    
+    default
   end
   
-  def teacher?
-    role == 'teacher'
-  end
-  
+  # Check if this teacher is a beta tester
   def beta_tester?
     is_beta_tester
   end
   
-  def has_subscription?
-    stripe_subscription_id.present?
+  # Check if teacher has an active Stripe subscription
+  def subscribed?
+    stripe_subscription_id.present? && stripe_subscription_status == 'active'
   end
   
-  def default_grade_scale
-    grade_scales.find_by(is_default: true)
+  # Subscription plan logic
+  def subscription_plan
+    if subscribed?
+      'pro'
+    elsif school&.subscribed?
+      'school'
+    elsif beta_tester?
+      'beta'
+    else
+      'free'
+    end
+  end
+  
+  # Check if teacher can use premium features
+  def premium?
+    %w[pro school beta].include?(subscription_plan)
   end
   
   private
   
-  def set_default_role
-    self.role ||= 'teacher'
-  end
-  
-  def create_default_grade_scale
-    return if grade_scales.exists?
-    
-    scale = grade_scales.create!(
-      name: 'Standard Scale',
-      description: 'Default grading scale',
-      is_default: true
-    )
-    
-    # Create standard grade scale entries
-    scale.grade_scale_entries.create!([
-      { min_score: 90, max_score: 100, letter_grade: 'A' },
-      { min_score: 80, max_score: 89.99, letter_grade: 'B' },
-      { min_score: 70, max_score: 79.99, letter_grade: 'C' },
-      { min_score: 60, max_score: 69.99, letter_grade: 'D' },
-      { min_score: 0, max_score: 59.99, letter_grade: 'F' }
-    ])
+  def password_required?
+    password_digest.blank? || !password.blank?
   end
 end

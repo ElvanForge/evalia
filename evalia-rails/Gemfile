@@ -2,48 +2,40 @@ source "https://rubygems.org"
 
 ruby "3.2.2"
 
-# Core Rails gems
-gem "rails", "~> 7.0.8"
-gem "pg", "~> 1.5"
+# Rails and application-specific gems
+gem "rails", "~> 7.1.0"
+gem "pg", "~> 1.1"
 gem "puma", "~> 6.0"
+gem "bcrypt", "~> 3.1.7"
 
-# Asset pipeline and frontend
+# Asset management
 gem "sprockets-rails"
-gem "tailwindcss-rails", "~> 2.0"
-gem "stimulus-rails"
+gem "importmap-rails"
 gem "turbo-rails"
+gem "stimulus-rails"
+gem "tailwindcss-rails"
 gem "jbuilder"
 
-# Authentication and authorization
-gem "bcrypt", "~> 3.1.7"
-gem "devise"
-gem "pundit"
-
-# Document Generation
-gem "docx", "~> 0.8.0"
-gem "prawn" # For PDF generation
+# PDF generation
+gem "prawn"
 gem "prawn-table"
 
-# XML/CSV Handling
-gem "nokogiri"
+# XML builder
+gem "builder"
 
-# Job Processing and Background Jobs
-gem "sidekiq", "~> 7.0"
-gem "redis", "~> 5.0"
+# File upload
+gem "active_storage_validations"
+gem "image_processing", "~> 1.2"
 
-# Stripe payment processing
+# Payment processing
 gem "stripe"
 
-# HTTP client for API calls
-gem "faraday"
+# Set up project structure
+gem "bootsnap", require: false
 
-# Performance monitoring
-gem "rack-mini-profiler"
-gem "memory_profiler"
-
-# Development and testing gems
 group :development, :test do
-  gem "debug", platforms: %i[ mri mingw x64_mingw ]
+  gem "debug", platforms: %i[ mri windows ]
+  gem "pry-rails"
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "faker"
@@ -52,9 +44,10 @@ end
 group :development do
   gem "web-console"
   gem "annotate"
-  gem "bullet"
-  gem "brakeman"
+  gem "rails-erd"
+  gem "database_cleaner"
   gem "rubocop", require: false
+  gem "rubocop-rails", require: false
 end
 
 group :test do

@@ -2,113 +2,113 @@
   Classes
 <% end %>
 
-<div class="flex justify-between items-center mb-6">
-  <h1 class="text-2xl font-bold text-gray-900">Your Classes</h1>
+<div class="mb-6 flex justify-between items-center">
+  <h1 class="text-2xl font-semibold">Your Classes</h1>
   
   <a href="<%= new_course_path %>" class="btn btn-primary">
-    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add Class
+    <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+    Add New Class
   </a>
 </div>
 
 <% if @courses.any? %>
-  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  <!-- Classes Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <% @courses.each do |course| %>
-      <div class="card">
-        <div class="card-header flex justify-between items-center">
-          <h2 class="text-lg font-medium"><%= course.name %></h2>
+      <div class="card hover:shadow-md transition-shadow">
+        <div class="card-header">
+          <h2 class="text-lg font-medium truncate flex-1"><%= course.name %></h2>
           
-          <div class="dropdown">
-            <button type="button" class="text-white" data-dropdown-toggle="course-<%= course.id %>-dropdown">
-              <i data-lucide="more-vertical" class="w-5 h-5"></i>
-            </button>
+          <div class="flex">
+            <a href="<%= edit_course_path(course) %>" class="text-white hover:text-gray-200 ml-2" title="Edit Class">
+              <i data-lucide="edit" class="h-4 w-4"></i>
+            </a>
             
-            <div id="course-<%= course.id %>-dropdown" class="dropdown-menu hidden z-10">
-              <div class="py-1" role="none">
-                <a href="<%= edit_course_path(course) %>" class="dropdown-item" role="menuitem">
-                  <i data-lucide="edit" class="w-4 h-4 mr-2"></i> Edit
-                </a>
-                
-                <%= link_to course_path(course), method: :delete, data: { confirm: "Are you sure you want to delete this class? This will remove all associated assignments and grades." }, class: "dropdown-item text-red-600" do %>
-                  <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Delete
-                <% end %>
-              </div>
-            </div>
+            <%= button_to course_path(course), method: :delete, data: { confirm: "Are you sure you want to delete this class?" }, 
+                         class: "text-white hover:text-gray-200 ml-2", title: "Delete Class" do %>
+              <i data-lucide="trash-2" class="h-4 w-4"></i>
+            <% end %>
           </div>
         </div>
         
         <div class="card-body">
-          <% if course.description.present? %>
-            <p class="text-sm text-gray-500 mb-4"><%= course.description %></p>
+          <div class="mb-4">
+            <% if course.subject.present? || course.grade_level.present? %>
+              <div class="text-sm text-gray-500 mb-2">
+                <% if course.subject.present? %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                    <%= course.subject %>
+                  </span>
+                <% end %>
+                
+                <% if course.grade_level.present? %>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                    Grade <%= course.grade_level %>
+                  </span>
+                <% end %>
+              </div>
+            <% end %>
+            
+            <% if course.description.present? %>
+              <p class="text-sm text-gray-600 line-clamp-2"><%= course.description %></p>
+            <% end %>
+          </div>
+          
+          <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+            <div class="flex items-center">
+              <i data-lucide="user" class="h-4 w-4 mr-1 text-gray-400"></i>
+              <span><%= course.students.count %> Students</span>
+            </div>
+            
+            <div class="flex items-center">
+              <i data-lucide="file-text" class="h-4 w-4 mr-1 text-gray-400"></i>
+              <span><%= course.assignments.count %> Assignments</span>
+            </div>
+          </div>
+          
+          <% if course.period.present? || course.room.present? %>
+            <div class="flex items-center text-xs text-gray-500 mb-4">
+              <% if course.period.present? %>
+                <div class="flex items-center mr-4">
+                  <i data-lucide="clock" class="h-3 w-3 mr-1 text-gray-400"></i>
+                  <span>Period <%= course.period %></span>
+                </div>
+              <% end %>
+              
+              <% if course.room.present? %>
+                <div class="flex items-center">
+                  <i data-lucide="home" class="h-3 w-3 mr-1 text-gray-400"></i>
+                  <span>Room <%= course.room %></span>
+                </div>
+              <% end %>
+            </div>
           <% end %>
           
-          <div class="flex items-center text-sm text-gray-500 mb-4">
-            <% if course.subject.present? %>
-              <span class="mr-3">
-                <i data-lucide="book" class="w-4 h-4 inline-block mr-1"></i>
-                <%= course.subject %>
-              </span>
-            <% end %>
-            
-            <% if course.grade_level.present? %>
-              <span class="mr-3">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 inline-block mr-1"></i>
-                Grade <%= course.grade_level %>
-              </span>
-            <% end %>
-            
-            <% if course.period.present? %>
-              <span>
-                <i data-lucide="clock" class="w-4 h-4 inline-block mr-1"></i>
-                Period <%= course.period %>
-              </span>
-            <% end %>
-          </div>
-          
-          <div class="flex items-center justify-between mb-4">
-            <div class="text-sm">
-              <span class="font-medium text-gray-900"><%= course.student_count %></span> 
-              <span class="text-gray-500">students</span>
-            </div>
-            
-            <div class="text-sm">
-              <span class="font-medium text-gray-900"><%= course.assignments.count %></span> 
-              <span class="text-gray-500">assignments</span>
-            </div>
-            
-            <div class="text-sm">
-              <span class="font-medium text-gray-900"><%= course.quizzes.count %></span> 
-              <span class="text-gray-500">quizzes</span>
-            </div>
-          </div>
-          
-          <div class="flex space-x-2 mt-4">
-            <a href="<%= course_path(course) %>" class="btn btn-primary py-1 px-3 text-sm">
-              View Class
-            </a>
-            
-            <a href="<%= course_assignments_path(course) %>" class="bg-gray-100 text-gray-700 hover:bg-gray-200 py-1 px-3 rounded text-sm font-medium">
-              Assignments
-            </a>
-            
-            <a href="<%= course_students_path(course) %>" class="bg-gray-100 text-gray-700 hover:bg-gray-200 py-1 px-3 rounded text-sm font-medium">
-              Students
-            </a>
-          </div>
+          <a href="<%= course_path(course) %>" class="btn w-full">
+            View Class
+          </a>
         </div>
       </div>
     <% end %>
   </div>
+  
+  <!-- Pagination -->
+  <div class="mt-6">
+    <%= will_paginate @courses, class: "pagination" %>
+  </div>
 <% else %>
-  <div class="bg-white shadow rounded-lg p-8 text-center">
+  <!-- Empty State -->
+  <div class="bg-white rounded-lg shadow p-8 text-center">
     <div class="text-gray-400 mb-4">
       <i data-lucide="book-open" class="h-12 w-12 mx-auto"></i>
     </div>
     
-    <h3 class="text-lg font-medium text-gray-900 mb-1">No classes yet</h3>
-    <p class="text-gray-500 mb-4">Get started by creating your first class.</p>
+    <h3 class="text-lg font-medium text-gray-900 mb-2">No Classes Yet</h3>
+    <p class="text-gray-500 mb-6">Get started by creating your first class</p>
     
     <a href="<%= new_course_path %>" class="btn btn-primary">
-      <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add Class
+      <i data-lucide="plus" class="h-4 w-4 mr-2"></i>
+      Add Class
     </a>
   </div>
 <% end %>

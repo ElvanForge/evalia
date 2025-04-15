@@ -1,104 +1,98 @@
-<% content_for :page_title do %>
-  Login
-<% end %>
-
-<% @hide_sidebar = true %>
-
-<div class="min-h-screen flex items-center justify-center bg-background">
-  <div class="max-w-6xl w-full mx-auto flex rounded-lg shadow-lg overflow-hidden bg-white">
-    <!-- Form Side -->
-    <div class="w-full md:w-1/2 p-8">
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-primary mb-2">Evalia</h1>
-        <p class="text-gray-600">Student Grade Tracker & Analytics</p>
+<div class="min-h-screen flex flex-col md:flex-row">
+  <!-- Login Form -->
+  <div class="w-full md:w-1/2 flex flex-col justify-center p-8 md:p-12 lg:p-20">
+    <div class="mx-auto w-full max-w-sm">
+      <!-- Logo -->
+      <div class="mb-8 text-center">
+        <img src="/logo.png" alt="Evalia" class="h-12 mx-auto" />
+        <h1 class="mt-4 text-3xl font-bold text-primary">Evalia</h1>
+        <p class="mt-2 text-gray-600">Student Grade Tracking System</p>
       </div>
       
-      <%= form_with url: login_path, method: :post, class: "space-y-6" do |f| %>
-        <div>
-          <label for="username" class="form-label">Username</label>
-          <%= f.text_field :username, class: "form-control", required: true, autofocus: true %>
-        </div>
-        
-        <div>
-          <label for="password" class="form-label">Password</label>
-          <%= f.password_field :password, class: "form-control", required: true %>
-        </div>
-        
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <%= f.check_box :remember_me, class: "h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" %>
-            <label for="remember_me" class="ml-2 block text-sm text-gray-700">Remember me</label>
-          </div>
-          
-          <div class="text-sm">
-            <a href="#" class="text-primary hover:underline">Forgot password?</a>
-          </div>
-        </div>
-        
-        <div>
-          <%= f.submit "Sign in", class: "btn btn-primary w-full" %>
+      <!-- Flash Messages -->
+      <% flash.each do |type, message| %>
+        <div class="flash <%= flash_class(type) %> mb-4">
+          <%= message %>
         </div>
       <% end %>
       
-      <div class="mt-6 text-center text-sm">
-        <p class="text-gray-600">
-          Don't have an account? Contact your school administrator.
-        </p>
-        
-        <div class="mt-4 text-xs text-gray-500">
-          <p>Default admin account:</p>
-          <p>Username: <strong>admin</strong>, Password: <strong>evalia123</strong></p>
+      <!-- Login Form -->
+      <%= form_tag login_path, method: :post, class: "space-y-6" do %>
+        <div class="form-group">
+          <label for="username" class="form-label">Username</label>
+          <input type="text" id="username" name="username" class="form-input" autofocus required />
         </div>
-      </div>
-    </div>
-    
-    <!-- Hero Side -->
-    <div class="hidden md:block md:w-1/2 bg-primary-dark">
-      <div class="p-12 text-white">
-        <h2 class="text-2xl font-bold mb-6">Welcome to Evalia</h2>
         
-        <div class="space-y-6">
-          <div class="flex items-start">
-            <div class="flex-shrink-0">
-              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-lg font-medium">Track Student Progress</h3>
-              <p class="mt-1 text-sm text-white/80">Monitor student achievements and identify areas for improvement.</p>
-            </div>
+        <div class="form-group">
+          <div class="flex items-center justify-between">
+            <label for="password" class="form-label">Password</label>
+            <a href="#" class="text-xs font-medium text-primary hover:text-primary/90">Forgot password?</a>
           </div>
-          
-          <div class="flex items-start">
-            <div class="flex-shrink-0">
-              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-lg font-medium">Manage Classes Efficiently</h3>
-              <p class="mt-1 text-sm text-white/80">Organize courses, assignments, and quizzes in one place.</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start">
-            <div class="flex-shrink-0">
-              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-lg font-medium">Generate Insightful Reports</h3>
-              <p class="mt-1 text-sm text-white/80">Create detailed analytics and export data in multiple formats.</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start">
-            <div class="flex-shrink-0">
-              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
-            </div>
-            <div class="ml-3">
-              <h3 class="text-lg font-medium">Create AI-powered Lesson Plans</h3>
-              <p class="mt-1 text-sm text-white/80">Develop comprehensive lesson plans with AI assistance.</p>
-            </div>
-          </div>
+          <input type="password" id="password" name="password" class="form-input" required />
         </div>
+        
+        <div class="flex items-center">
+          <input type="checkbox" id="remember_me" name="remember_me" class="form-checkbox" />
+          <label for="remember_me" class="ml-2 block text-sm text-gray-600">Remember me</label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-full py-2.5">
+          Sign in
+        </button>
+      <% end %>
+      
+      <div class="mt-6 text-center text-sm text-gray-500">
+        <p>Don't have an account? Please contact your school administrator.</p>
       </div>
     </div>
   </div>
+  
+  <!-- Hero Section -->
+  <div class="w-full md:w-1/2 bg-primary hidden md:block">
+    <div class="h-full flex flex-col justify-center p-8 md:p-12 lg:p-20 text-white">
+      <h2 class="text-3xl font-bold mb-6">Streamline Your Classroom Management</h2>
+      <div class="space-y-6">
+        <div class="flex items-start">
+          <div class="flex-shrink-0 rounded-full p-1.5 bg-white/10">
+            <i data-lucide="chart-bar" class="h-5 w-5"></i>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium">Comprehensive Analytics</h3>
+            <p class="mt-1 text-white/80">Gain insights into student performance with detailed analytics and reporting.</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start">
+          <div class="flex-shrink-0 rounded-full p-1.5 bg-white/10">
+            <i data-lucide="check-square" class="h-5 w-5"></i>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium">Interactive Assessments</h3>
+            <p class="mt-1 text-white/80">Create and administer engaging quizzes with automatic grading.</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start">
+          <div class="flex-shrink-0 rounded-full p-1.5 bg-white/10">
+            <i data-lucide="book" class="h-5 w-5"></i>
+          </div>
+          <div class="ml-4">
+            <h3 class="text-lg font-medium">Intelligent Lesson Planning</h3>
+            <p class="mt-1 text-white/80">Create, organize, and export lesson plans with AI-powered assistance.</p>
+          </div>
+        </div>
+      </div>
+      
+      <blockquote class="mt-12 border-l-4 border-white/30 pl-4 italic">
+        <p>"Evalia has transformed how I manage my classroom. I can't imagine teaching without it now!"</p>
+        <footer class="mt-2 text-white/70">- Sarah Johnson, Mathematics Teacher</footer>
+      </blockquote>
+    </div>
+  </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
+  });
+</script>

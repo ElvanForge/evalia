@@ -1,63 +1,155 @@
-<div class="bg-white shadow-sm z-10">
-  <div class="py-3 px-6 flex items-center justify-between">
-    <div class="flex-1 flex items-center">
-      <h1 class="text-lg font-medium leading-6 text-gray-900">
-        <%= content_for?(:page_title) ? yield(:page_title) : 'Dashboard' %>
-      </h1>
-    </div>
-    
-    <div class="ml-4 flex items-center md:ml-6 space-x-4">
-      <!-- Search Box -->
-      <div class="relative">
-        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
-        </div>
-        <input type="text" placeholder="Search..." class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary focus:border-primary block w-full pl-10 p-2">
-      </div>
-      
-      <!-- Notification Bell -->
-      <button type="button" class="rounded-full p-1 text-gray-400 hover:text-gray-600 focus:outline-none">
-        <span class="sr-only">View notifications</span>
-        <i data-lucide="bell" class="h-6 w-6"></i>
+<header class="bg-white shadow-sm border-b h-16 flex items-center px-6">
+  <!-- Page Title -->
+  <h1 class="text-xl font-semibold text-gray-800">
+    <%= yield(:page_title) || 'Dashboard' %>
+  </h1>
+  
+  <div class="ml-auto flex items-center space-x-4">
+    <!-- Quick Actions -->
+    <div class="relative" x-data="{ open: false }">
+      <button type="button" @click="open = !open" class="flex items-center text-gray-500 hover:text-gray-700">
+        <i data-lucide="plus-circle" class="h-5 w-5"></i>
+        <span class="ml-1">New</span>
       </button>
       
-      <!-- Profile Dropdown -->
-      <div class="relative">
-        <button type="button" class="rounded-full bg-gray-800 w-8 h-8 overflow-hidden" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
-          <span class="sr-only">Open user menu</span>
-          <div class="w-full h-full flex items-center justify-center text-white">
-            <%= current_user&.first_name&.first&.upcase %>
+      <!-- Dropdown Menu -->
+      <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" style="display: none;">
+        <%= link_to new_course_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="book-open" class="h-4 w-4 mr-2"></i>
+            <span>New Class</span>
           </div>
-        </button>
+        <% end %>
+        
+        <%= link_to new_student_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="user-plus" class="h-4 w-4 mr-2"></i>
+            <span>New Student</span>
+          </div>
+        <% end %>
+        
+        <%= link_to new_assignment_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="file-text" class="h-4 w-4 mr-2"></i>
+            <span>New Assignment</span>
+          </div>
+        <% end %>
+        
+        <%= link_to new_quiz_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="check-square" class="h-4 w-4 mr-2"></i>
+            <span>New Quiz</span>
+          </div>
+        <% end %>
+        
+        <%= link_to new_lesson_plan_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="book" class="h-4 w-4 mr-2"></i>
+            <span>New Lesson Plan</span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Search -->
+    <div class="relative flex-1 max-w-xs hidden md:block">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
+      </div>
+      <input type="search" placeholder="Search..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary">
+    </div>
+    
+    <!-- Notifications -->
+    <div class="relative" x-data="{ open: false }">
+      <button type="button" @click="open = !open" class="p-1 rounded-full text-gray-500 hover:text-gray-700 relative">
+        <i data-lucide="bell" class="h-6 w-6"></i>
+        <% if current_user&.unread_notifications_count&.positive? %>
+          <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+        <% end %>
+      </button>
+      
+      <!-- Notifications Dropdown -->
+      <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 z-10 mt-2 w-80 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" style="display: none;">
+        <div class="px-4 py-2 border-b">
+          <h3 class="text-sm font-medium text-gray-700">Notifications</h3>
+        </div>
+        
+        <% if current_user&.notifications&.any? %>
+          <div class="max-h-64 overflow-y-auto">
+            <% current_user.notifications.limit(5).each do |notification| %>
+              <a href="<%= notification.link %>" class="block px-4 py-3 hover:bg-gray-50 border-b">
+                <div class="flex items-start">
+                  <div class="flex-shrink-0">
+                    <i data-lucide="<%= notification.icon || 'bell' %>" class="h-5 w-5 text-gray-400"></i>
+                  </div>
+                  <div class="ml-3 w-0 flex-1">
+                    <p class="text-sm font-medium text-gray-900"><%= notification.title %></p>
+                    <p class="text-sm text-gray-500 truncate"><%= notification.message %></p>
+                    <p class="text-xs text-gray-400 mt-1"><%= time_ago_in_words(notification.created_at) %> ago</p>
+                  </div>
+                </div>
+              </a>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="px-4 py-6 text-center text-gray-500 text-sm">
+            <i data-lucide="check-circle" class="h-8 w-8 mx-auto text-gray-400 mb-2"></i>
+            <p>You're all caught up!</p>
+            <p class="text-xs mt-1">No new notifications</p>
+          </div>
+        <% end %>
+        
+        <div class="border-t px-4 py-2">
+          <a href="#" class="text-xs text-primary hover:text-primary/90 font-medium">View all notifications</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- User Menu -->
+    <div class="relative" x-data="{ open: false }">
+      <button type="button" @click="open = !open" class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+        <img src="<%= gravatar_url(current_user&.email || '', 32) %>" alt="Profile" class="h-8 w-8 rounded-full" />
+      </button>
+      
+      <!-- User Dropdown -->
+      <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" style="display: none;">
+        <div class="px-4 py-3 border-b">
+          <p class="text-sm font-medium text-gray-900 truncate"><%= current_user&.full_name || 'User' %></p>
+          <p class="text-xs text-gray-500 truncate"><%= current_user&.email || '' %></p>
+        </div>
+        
+        <%= link_to settings_account_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="user" class="h-4 w-4 mr-2"></i>
+            <span>Account</span>
+          </div>
+        <% end %>
+        
+        <% if current_user&.is_admin? %>
+          <%= link_to settings_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+            <div class="flex items-center">
+              <i data-lucide="settings" class="h-4 w-4 mr-2"></i>
+              <span>Settings</span>
+            </div>
+          <% end %>
+        <% end %>
+        
+        <%= link_to settings_subscription_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="credit-card" class="h-4 w-4 mr-2"></i>
+            <span>Subscription</span>
+          </div>
+        <% end %>
+        
+        <div class="border-t"></div>
+        
+        <%= link_to logout_path, method: :delete, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" do %>
+          <div class="flex items-center">
+            <i data-lucide="log-out" class="h-4 w-4 mr-2"></i>
+            <span>Sign out</span>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>
-  
-  <!-- Breadcrumb Navigation -->
-  <div class="border-t border-gray-200 px-6 py-2">
-    <nav class="flex" aria-label="Breadcrumb">
-      <ol role="list" class="flex items-center space-x-2 text-sm text-gray-500">
-        <li>
-          <a href="<%= root_path %>" class="hover:text-gray-700">
-            <i data-lucide="home" class="h-4 w-4"></i>
-            <span class="sr-only">Home</span>
-          </a>
-        </li>
-        
-        <% if content_for?(:breadcrumbs) %>
-          <li class="flex items-center">
-            <i data-lucide="chevron-right" class="h-4 w-4"></i>
-            <%= yield(:breadcrumbs) %>
-          </li>
-        <% else %>
-          <% if content_for?(:page_title) && !current_page?(root_path) %>
-            <li class="flex items-center">
-              <i data-lucide="chevron-right" class="h-4 w-4"></i>
-              <span class="ml-2"><%= yield(:page_title) %></span>
-            </li>
-          <% end %>
-        <% end %>
-      </ol>
-    </nav>
-  </div>
-</div>
+</header>

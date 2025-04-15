@@ -1,82 +1,69 @@
 class Assignment < ApplicationRecord
-  belongs_to :course, foreign_key: 'class_id'
+  belongs_to :course
   has_many :grades, dependent: :destroy
   
-  # Validations
   validates :name, presence: true
-  validates :class_id, presence: true
-  validates :points_possible, numericality: { greater_than: 0 }, allow_nil: true
   
-  # Scopes
-  scope :upcoming, -> { where('due_date >= ?', Date.today).order(due_date: :asc) }
-  scope :past_due, -> { where('due_date < ?', Date.today).order(due_date: :desc) }
-  scope :recent, -> { order(created_at: :desc) }
+  # Get a specific student's grade for this assignment
+  def grade_for_student(student_id)
+    grades.find_by(student_id: student_id)
+  end
   
-  # Methods
+  # Calculate the average score for this assignment
   def average_score
-    grades.average(:score)&.round(1)
-  end
-  
-  def completion_rate
-    total_students = course.students.count
-    total_graded = grades.count
+    return 0 if grades.empty?
     
-    total_students > 0 ? ((total_graded.to_f / total_students) * 100).round : 0
-  end
-  
-  def submission_status_for(student_id)
-    grade = grades.find_by(student_id: student_id)
-    
-    if grade
-      {
-        status: 'submitted',
-        score: grade.score,
-        letter_grade: grade.letter_grade,
-        comments: grade.comment
-      }
-    else
-      due = due_date.present? ? due_date < Date.today : false
-      {
-        status: due ? 'missing' : 'not_submitted',
-        score: nil,
-        letter_grade: nil,
-        comments: nil
-      }
-    end
-  end
-  
-  def highest_score
-    grades.maximum(:score)
-  end
-  
-  def lowest_score
-    grades.minimum(:score)
-  end
-  
-  def letter_grade_distribution
-    grades.group(:letter_grade).count
-  end
-  
-  def score_distribution
-    # Group scores into 10% ranges
-    distributions = {}
-    
+    total = 0
     grades.each do |grade|
-      range = (grade.score / 10).floor * 10
-      range_key = "#{range}-#{range + 9}"
-      
-      distributions[range_key] ||= 0
-      distributions[range_key] += 1
+      total += grade.score
     end
     
-    distributions
+    total / grades.count
   end
   
+  # Get the letter grade representation of the average score
+  def average_letter
+    return nil if grades.empty?
+    
+    avg = average_score
+    course.teacher.default_grade_scale.letter_for_percent(avg)
+  end
+  
+  # Count how many students have been graded for this assignment
+  def graded_count
+    grades.count
+  end
+  
+  # Calculate the percentage of enrolled students who have been graded
+  def graded_percentage
+    total_students = course.students.count
+    return 100 if total_students.zero?
+    
+    (graded_count.to_f / total_students * 100).round
+  end
+  
+  # Check if the assignment is overdue
   def overdue?
-    due_date.present? && due_date < Date.today
+    due_date.present? && due_date < Time.current
   end
   
-  def due_soon?
-    due_date.present? && due_date >= Date.today && due_date <= 3.days.from_now
+  # Check if all students have been graded
+  def fully_graded?
+    graded_count == course.students.count
+  end
+  
+  # Get grades in descending order (highest first)
+  def grades_by_score
+    grades.order(score: :desc)
+  end
+  
+  # Get the highest score
+  def highest_score
+    grades.maximum(:score) || 0
+  end
+  
+  # Get the lowest score
+  def lowest_score
+    grades.minimum(:score) || 0
   end
 end

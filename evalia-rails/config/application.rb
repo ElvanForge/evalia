@@ -6,7 +6,7 @@ require "rails/all"
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-module Evalia
+module EvaliaRails
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
@@ -19,37 +19,44 @@ module Evalia
     config.time_zone = "UTC"
     # config.eager_load_paths << Rails.root.join("extras")
     
-    # Set session store to use cookies
-    config.session_store :cookie_store, key: '_evalia_session'
+    # Use Vips for image processing
+    config.active_storage.variant_processor = :vips
     
-    # Use same database connection used in server/db.ts
-    config.database_url = ENV['DATABASE_URL']
+    # Custom configuration settings
+    config.evalia = config_for(:evalia)
     
-    # Set uploads directory to match the existing uploads folder
-    config.uploads_dir = Rails.root.join('../uploads')
+    # Use new asset pipeline
+    config.assets.enabled = true
+    config.assets.compile = true
     
-    # Make sure uploaded directories exist
-    FileUtils.mkdir_p(config.uploads_dir.join('images'))
+    # Set default locale to English
+    config.i18n.default_locale = :en
+    config.i18n.fallbacks = true
     
-    # Configure Active Storage to use existing uploads directory
-    config.active_storage.service = :local
-    
-    # Configure generators
+    # Add custom paths for generators
     config.generators do |g|
-      g.orm :active_record
-      g.template_engine :erb
-      g.test_framework :rspec, fixture: true
+      g.test_framework :rspec, 
+                       fixtures: true,
+                       view_specs: false,
+                       helper_specs: false,
+                       routing_specs: false,
+                       controller_specs: true,
+                       request_specs: true
       g.fixture_replacement :factory_bot, dir: "spec/factories"
-      g.assets false
-      g.helper false
     end
     
-    # Security settings
-    config.action_controller.default_protect_from_forgery = true
-    config.action_dispatch.default_headers = {
-      'X-Frame-Options' => 'SAMEORIGIN',
-      'X-XSS-Protection' => '1; mode=block',
-      'X-Content-Type-Options' => 'nosniff'
+    # Configure session for cookie store
+    config.session_store :cookie_store, key: '_evalia_session', expire_after: 12.hours
+    
+    # Set default queue adapter for Active Job
+    config.active_job.queue_adapter = :sidekiq
+    
+    # Configure Active Storage for uploads
+    config.active_storage.service = :local
+    
+    # Enable ORM error handling in forms
+    config.action_view.field_error_proc = Proc.new { |html_tag, instance| 
+      html_tag
     }
   end
 end

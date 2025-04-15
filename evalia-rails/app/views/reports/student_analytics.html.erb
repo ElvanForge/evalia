@@ -1,0 +1,286 @@
+<% content_for :page_title do %>
+  Student Analytics
+<% end %>
+
+<% content_for :breadcrumbs do %>
+  <a href="<%= reports_path %>" class="hover:text-gray-700">Reports</a>
+  <i data-lucide="chevron-right" class="h-4 w-4 mx-1"></i>
+  <span class="font-medium">Student Analytics</span>
+<% end %>
+
+<div class="mb-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-semibold">Student Analytics: <%= @student.full_name %></h1>
+    
+    <div class="flex space-x-3">
+      <%= link_to student_analytics_reports_path(student_id: @student.id, format: 'csv', course_id: params[:course_id]), class: "btn btn-outline" do %>
+        <i data-lucide="file-text" class="h-4 w-4 mr-2"></i>
+        Export CSV
+      <% end %>
+      
+      <%= link_to student_analytics_reports_path(student_id: @student.id, format: 'pdf', course_id: params[:course_id]), class: "btn btn-primary" do %>
+        <i data-lucide="file" class="h-4 w-4 mr-2"></i>
+        Export PDF
+      <% end %>
+    </div>
+  </div>
+  
+  <% if @student.student_number.present? %>
+    <p class="text-gray-500 mt-1">Student ID: <%= @student.student_number %></p>
+  <% end %>
+</div>
+
+<!-- Overview Card -->
+<div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+  <div class="bg-primary text-white p-6">
+    <div class="flex justify-between items-start">
+      <div>
+        <h2 class="text-xl font-bold mb-2">Performance Overview</h2>
+        <p class="opacity-90">Summary of <%= @student.full_name %>'s academic performance</p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="px-6 py-4 flex items-center justify-between bg-gradient-to-r from-primary/10 to-primary/5">
+    <div class="flex space-x-6">
+      <div>
+        <p class="text-sm text-gray-500 font-medium">Courses</p>
+        <p class="text-xl font-bold"><%= @student.courses.count %></p>
+      </div>
+      
+      <div>
+        <p class="text-sm text-gray-500 font-medium">Overall Average</p>
+        <% overall_avg = @student.average_grade %>
+        <p class="text-xl font-bold"><%= overall_avg.round %>%</p>
+      </div>
+      
+      <div>
+        <p class="text-sm text-gray-500 font-medium">Completion Rate</p>
+        <p class="text-xl font-bold"><%= @student.completion_rate %>%</p>
+      </div>
+      
+      <% if @course %>
+        <div>
+          <p class="text-sm text-gray-500 font-medium">Class Average</p>
+          <% class_avg = @student.average_grade(@course.id) %>
+          <% letter = @course.teacher.default_grade_scale.letter_for_percent(class_avg) %>
+          <p class="text-xl font-bold"><%= class_avg.round %>% (<%= letter %>)</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+  <!-- Course Performance -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-lg font-medium">Course Performance</h2>
+    </div>
+    
+    <div class="card-body">
+      <% if @student.courses.any? %>
+        <div class="space-y-6">
+          <% @student.courses.each do |course| %>
+            <% avg = @student.average_grade(course.id) %>
+            <% letter = course.teacher.default_grade_scale.letter_for_percent(avg) %>
+            <% completion = @student.completion_rate(course.id) %>
+            
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-medium"><%= course.name %></div>
+                <div class="text-sm">
+                  <span class="<%= grade_color(letter) %>"><%= avg.round %>% (<%= letter %>)</span>
+                </div>
+              </div>
+              
+              <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full <%= grade_color_bg(letter) %>" style="width: <%= avg %>%"></div>
+              </div>
+              
+              <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
+                <div>Completion: <%= completion %>%</div>
+                <% if @course && @course.id == course.id %>
+                  <div class="font-medium text-primary">Current Selection</div>
+                <% else %>
+                  <a href="<%= student_analytics_reports_path(student_id: @student.id, course_id: course.id) %>" class="text-primary hover:underline">View Details</a>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <p class="text-gray-500">No courses found for this student</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Grade Trend -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-lg font-medium">Grade Trend</h2>
+    </div>
+    
+    <div class="card-body">
+      <% if @course && @student.grades_by_assignment(@course.id).any? %>
+        <div class="space-y-1">
+          <% @student.grades_by_assignment(@course.id).each do |grade| %>
+            <div class="p-3 hover:bg-gray-50 rounded-md">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <div class="font-medium text-gray-900"><%= grade.assignment.name %></div>
+                  <div class="text-xs text-gray-500">
+                    <%= format_date(grade.assignment.due_date) if grade.assignment.due_date %>
+                  </div>
+                </div>
+                <div>
+                  <%= grade_badge(grade.letter_grade) %>
+                </div>
+              </div>
+              
+              <div class="mt-2 flex items-center text-xs">
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                  <div class="h-full rounded-full <%= grade_color_bg(grade.letter_grade) %>" style="width: <%= grade.score %>%"></div>
+                </div>
+                <span class="ml-2 min-w-[45px] text-right"><%= grade.score %>%</span>
+              </div>
+              
+              <% if grade.comments.present? %>
+                <div class="mt-2 text-xs text-gray-500 italic">
+                  "<%= truncate(grade.comments, length: 100) %>"
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% elsif !@course %>
+        <div class="text-center py-6">
+          <p class="text-gray-500">Select a course to view grade details</p>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <p class="text-gray-500">No grades found for selected course</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Assignment Completion -->
+<div class="card mt-6">
+  <div class="card-header">
+    <h2 class="text-lg font-medium">Assignment Completion</h2>
+  </div>
+  
+  <div class="card-body">
+    <% if @course %>
+      <% total_assignments = @course.assignments.count %>
+      <% completed_assignments = @student.assignment_completed_count(@course.id) %>
+      
+      <% if total_assignments > 0 %>
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-2">
+            <div class="text-sm font-medium">Overall Completion</div>
+            <div class="text-sm text-gray-500">
+              <%= completed_assignments %>/<%= total_assignments %> Assignments
+              (<%= (completed_assignments.to_f / total_assignments * 100).round %>%)
+            </div>
+          </div>
+          
+          <div class="h-4 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-primary" style="width: <%= (completed_assignments.to_f / total_assignments * 100).round %>%"></div>
+          </div>
+        </div>
+        
+        <div class="space-y-4">
+          <% @course.assignments.order(:due_date).each do |assignment| %>
+            <% grade = assignment.grade_for_student(@student.id) %>
+            
+            <div class="flex items-center">
+              <div class="w-6 h-6 flex-shrink-0 mr-4">
+                <% if grade %>
+                  <div class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white">
+                    <i data-lucide="check" class="h-4 w-4"></i>
+                  </div>
+                <% else %>
+                  <div class="w-6 h-6 rounded-full border-2 border-gray-300"></div>
+                <% end %>
+              </div>
+              
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-900 truncate"><%= assignment.name %></div>
+                <div class="text-xs text-gray-500">
+                  <% if assignment.due_date %>
+                    <% if assignment.due_date > Time.current %>
+                      <span class="text-blue-600">Due <%= time_ago_in_words(assignment.due_date) %> from now</span>
+                    <% else %>
+                      <span class="<%= grade ? 'text-gray-500' : 'text-red-500' %>">
+                        Due <%= time_ago_in_words(assignment.due_date) %> ago
+                      </span>
+                    <% end %>
+                  <% end %>
+                </div>
+              </div>
+              
+              <div class="ml-4 flex-shrink-0">
+                <% if grade %>
+                  <%= grade_badge(grade.letter_grade) %>
+                <% else %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                    Not Graded
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="text-center py-6">
+          <p class="text-gray-500">No assignments found for selected course</p>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="text-center py-6">
+        <p class="text-gray-500">Select a course to view assignment completion</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :helper_methods do %>
+  <% def grade_color(letter) %>
+    <% case letter %>
+    <% when 'A' %>
+      text-green-600
+    <% when 'B' %>
+      text-blue-600
+    <% when 'C' %>
+      text-yellow-600
+    <% when 'D' %>
+      text-orange-600
+    <% when 'F' %>
+      text-red-600
+    <% else %>
+      text-gray-600
+    <% end %>
+  <% end %>
+  
+  <% def grade_color_bg(letter) %>
+    <% case letter %>
+    <% when 'A' %>
+      bg-green-500
+    <% when 'B' %>
+      bg-blue-500
+    <% when 'C' %>
+      bg-yellow-500
+    <% when 'D' %>
+      bg-orange-500
+    <% when 'F' %>
+      bg-red-500
+    <% else %>
+      bg-gray-400
+    <% end %>
+  <% end %>
+<% end %>

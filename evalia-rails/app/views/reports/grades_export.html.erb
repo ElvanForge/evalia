@@ -1,0 +1,284 @@
+<% content_for :page_title do %>
+  Grades Export
+<% end %>
+
+<% content_for :breadcrumbs do %>
+  <a href="<%= reports_path %>" class="hover:text-gray-700">Reports</a>
+  <i data-lucide="chevron-right" class="h-4 w-4 mx-1"></i>
+  <span class="font-medium">Grades Export</span>
+<% end %>
+
+<div class="mb-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-semibold">Grades Export: <%= @course.name %></h1>
+    
+    <div class="flex space-x-3">
+      <%= link_to grades_export_reports_path(course_id: @course.id, format: 'csv'), class: "btn btn-outline" do %>
+        <i data-lucide="file-text" class="h-4 w-4 mr-2"></i>
+        Export CSV
+      <% end %>
+      
+      <%= link_to grades_export_reports_path(course_id: @course.id, format: 'pdf'), class: "btn btn-outline" do %>
+        <i data-lucide="file" class="h-4 w-4 mr-2"></i>
+        Export PDF
+      <% end %>
+      
+      <%= link_to grades_export_reports_path(course_id: @course.id, format: 'xml'), class: "btn btn-primary" do %>
+        <i data-lucide="code" class="h-4 w-4 mr-2"></i>
+        Export XML
+      <% end %>
+    </div>
+  </div>
+  
+  <% if @course.subject.present? || @course.grade_level.present? %>
+    <div class="flex items-center mt-1 text-sm text-gray-500">
+      <% if @course.subject.present? %>
+        <span class="mr-3"><%= @course.subject %></span>
+      <% end %>
+      
+      <% if @course.grade_level.present? %>
+        <span>Grade <%= @course.grade_level %></span>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Grades Table -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="text-lg font-medium">Grades Matrix</h2>
+  </div>
+  
+  <div class="card-body">
+    <% if @students.any? && @assignments.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-white">Student</th>
+              
+              <% @assignments.each do |assignment| %>
+                <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <div class="w-36 truncate" title="<%= assignment.name %>">
+                    <%= assignment.name %>
+                  </div>
+                  <div class="text-xs font-normal text-gray-400 normal-case">
+                    <%= format_date(assignment.due_date) if assignment.due_date %>
+                  </div>
+                </th>
+              <% end %>
+              
+              <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                Average
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @students.each do |student| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-4 whitespace-nowrap sticky left-0 bg-white">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                      <%= student.first_name.first.upcase %><%= student.last_name&.first&.upcase || '' %>
+                    </div>
+                    <div class="ml-3">
+                      <div class="text-sm font-medium text-gray-900">
+                        <%= student.full_name %>
+                      </div>
+                      <% if student.student_number.present? %>
+                        <div class="text-xs text-gray-500">
+                          ID: <%= student.student_number %>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </td>
+                
+                <% @assignments.each do |assignment| %>
+                  <% grade = assignment.grade_for_student(student.id) %>
+                  <td class="px-4 py-4 whitespace-nowrap text-center">
+                    <% if grade %>
+                      <div class="flex flex-col items-center">
+                        <%= grade_badge(grade.letter_grade) %>
+                        <div class="text-sm text-gray-900 mt-1">
+                          <%= grade.score.round(1) %>%
+                        </div>
+                        <% if assignment.max_score %>
+                          <div class="text-xs text-gray-500">
+                            <%= grade.points_earned %> / <%= assignment.max_score %>
+                          </div>
+                        <% end %>
+                      </div>
+                    <% else %>
+                      <span class="text-xs text-gray-400">Not graded</span>
+                    <% end %>
+                  </td>
+                <% end %>
+                
+                <td class="px-4 py-4 whitespace-nowrap text-center bg-gray-50">
+                  <% avg = student.average_grade(@course.id) %>
+                  <% letter = @course.teacher.default_grade_scale.letter_for_percent(avg) %>
+                  <div class="flex flex-col items-center">
+                    <%= grade_badge(letter) %>
+                    <div class="text-sm font-medium text-gray-900 mt-1">
+                      <%= avg.round(1) %>%
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+          
+          <!-- Assignment Averages Row -->
+          <tfoot>
+            <tr class="bg-gray-50">
+              <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-gray-50">
+                Class Average
+              </td>
+              
+              <% @assignments.each do |assignment| %>
+                <td class="px-4 py-3 whitespace-nowrap text-center">
+                  <div class="flex flex-col items-center">
+                    <% if assignment.average_letter %>
+                      <%= grade_badge(assignment.average_letter) %>
+                    <% end %>
+                    <div class="text-sm font-medium text-gray-900">
+                      <%= assignment.average_score.round(1) %>%
+                    </div>
+                  </div>
+                </td>
+              <% end %>
+              
+              <td class="px-4 py-3 whitespace-nowrap text-center bg-gray-100">
+                <% avg = @course.average_grade %>
+                <% letter = @course.teacher.default_grade_scale.letter_for_percent(avg) %>
+                <div class="flex flex-col items-center">
+                  <%= grade_badge(letter) %>
+                  <div class="text-sm font-medium text-gray-900">
+                    <%= avg.round(1) %>%
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <div class="mt-6 text-right">
+        <div class="text-sm text-gray-500">
+          Export the complete grades data to analyze in your preferred application
+        </div>
+      </div>
+    <% elsif @students.empty? %>
+      <div class="text-center py-6">
+        <p class="text-gray-500">No students enrolled in this class</p>
+      </div>
+    <% elsif @assignments.empty? %>
+      <div class="text-center py-6">
+        <p class="text-gray-500">No assignments created for this class</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Export Description -->
+<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex items-center mb-4">
+      <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+        <i data-lucide="file-text" class="h-5 w-5"></i>
+      </div>
+      <h3 class="ml-3 text-lg font-medium">CSV Export</h3>
+    </div>
+    
+    <p class="text-gray-600 mb-4">
+      Export grades to CSV format for easy viewing in spreadsheet applications like Microsoft Excel or Google Sheets.
+    </p>
+    
+    <ul class="text-sm text-gray-500 space-y-2 mb-4">
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Compatible with all spreadsheet applications</span>
+      </li>
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Easily sort, filter, and analyze data</span>
+      </li>
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Create custom charts and visualizations</span>
+      </li>
+    </ul>
+    
+    <%= link_to grades_export_reports_path(course_id: @course.id, format: 'csv'), class: "btn btn-outline w-full" do %>
+      <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+      Export CSV
+    <% end %>
+  </div>
+  
+  <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex items-center mb-4">
+      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+        <i data-lucide="file" class="h-5 w-5"></i>
+      </div>
+      <h3 class="ml-3 text-lg font-medium">PDF Export</h3>
+    </div>
+    
+    <p class="text-gray-600 mb-4">
+      Export grades to PDF format for professional-looking documents that can be easily printed or shared.
+    </p>
+    
+    <ul class="text-sm text-gray-500 space-y-2 mb-4">
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Professional report formatting</span>
+      </li>
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Ideal for printing or sharing with parents</span>
+      </li>
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Consistent appearance across devices</span>
+      </li>
+    </ul>
+    
+    <%= link_to grades_export_reports_path(course_id: @course.id, format: 'pdf'), class: "btn btn-outline w-full" do %>
+      <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+      Export PDF
+    <% end %>
+  </div>
+  
+  <div class="bg-white rounded-lg shadow-sm p-6">
+    <div class="flex items-center mb-4">
+      <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+        <i data-lucide="code" class="h-5 w-5"></i>
+      </div>
+      <h3 class="ml-3 text-lg font-medium">XML Export</h3>
+    </div>
+    
+    <p class="text-gray-600 mb-4">
+      Export grades to XML format for integration with other systems or advanced data processing.
+    </p>
+    
+    <ul class="text-sm text-gray-500 space-y-2 mb-4">
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Structured data format for system integration</span>
+      </li>
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Complete metadata for advanced analysis</span>
+      </li>
+      <li class="flex items-start">
+        <i data-lucide="check" class="h-4 w-4 text-green-500 mt-0.5 mr-2"></i>
+        <span>Compatible with data analysis tools</span>
+      </li>
+    </ul>
+    
+    <%= link_to grades_export_reports_path(course_id: @course.id, format: 'xml'), class: "btn btn-primary w-full" do %>
+      <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+      Export XML
+    <% end %>
+  </div>
+</div>

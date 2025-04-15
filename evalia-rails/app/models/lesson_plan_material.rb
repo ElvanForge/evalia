@@ -1,55 +1,120 @@
 class LessonPlanMaterial < ApplicationRecord
+  # Associations
   belongs_to :lesson_plan
   
+  # Active Storage for document attachments
   has_one_attached :file
   
   # Validations
-  validates :lesson_plan_id, presence: true
-  validates :file_path, presence: true, unless: -> { file.attached? }
-  validates :file_type, presence: true
+  validates :file_type, presence: true, inclusion: { in: %w[pdf docx doc ppt pptx txt] }
+  
+  # Callbacks
+  before_validation :set_file_type, on: :create
   
   # Scopes
   scope :pdfs, -> { where(file_type: 'pdf') }
-  scope :images, -> { where(file_type: 'image') }
-  scope :documents, -> { where(file_type: 'document') }
+  scope :docs, -> { where(file_type: ['doc', 'docx']) }
+  scope :presentations, -> { where(file_type: ['ppt', 'pptx']) }
   
-  # Methods
+  def file_name
+    file.attached? ? file.filename.to_s : 'No file attached'
+  end
+  
   def file_url
-    if file.attached?
-      Rails.application.routes.url_helpers.rails_blob_path(file, only_path: true)
+    file.attached? ? Rails.application.routes.url_helpers.rails_blob_path(file, only_path: true) : nil
+  end
+  
+  def file_size
+    return nil unless file.attached?
+    
+    size_in_bytes = file.blob.byte_size
+    
+    if size_in_bytes < 1024
+      "#{size_in_bytes} B"
+    elsif size_in_bytes < 1024 * 1024
+      "#{(size_in_bytes / 1024.0).round(1)} KB"
     else
-      file_path
+      "#{(size_in_bytes / (1024.0 * 1024.0)).round(1)} MB"
     end
   end
   
-  def filename
-    if file.attached?
-      file.filename.to_s
+  def icon_class
+    case file_type
+    when 'pdf'
+      'file-pdf'
+    when 'doc', 'docx'
+      'file-text'
+    when 'ppt', 'pptx'
+      'file-presentation'
+    when 'txt'
+      'file-text'
     else
-      File.basename(file_path)
+      'file'
     end
   end
   
-  def file_extension
-    File.extname(filename).delete('.').downcase
+  def extract_text
+    return nil unless file.attached?
+    
+    case file_type
+    when 'pdf'
+      extract_pdf_text
+    when 'docx'
+      extract_docx_text
+    when 'txt'
+      file.download.force_encoding('UTF-8')
+    else
+      nil
+    end
   end
   
-  def is_pdf?
-    file_type == 'pdf' || file_extension == 'pdf'
+  private
+  
+  def set_file_type
+    return unless file.attached?
+    
+    extension = file.filename.extension.downcase
+    
+    self.file_type = case extension
+                     when 'pdf' then 'pdf'
+                     when 'doc' then 'doc'
+                     when 'docx' then 'docx'
+                     when 'ppt' then 'ppt'
+                     when 'pptx' then 'pptx'
+                     when 'txt' then 'txt'
+                     else 'unknown'
+                     end
   end
   
-  def is_image?
-    file_type == 'image' || %w(jpg jpeg png gif svg).include?(file_extension)
+  def extract_pdf_text
+    require 'pdf-reader'
+    
+    result = ""
+    file_path = ActiveStorage::Blob.service.send(:path_for, file.key)
+    
+    begin
+      PDF::Reader.new(file_path).pages.each do |page|
+        result << page.text
+        result << "\n\n"
+      end
+    rescue => e
+      Rails.logger.error "Error extracting PDF text: #{e.message}"
+      return "Error extracting text: #{e.message}"
+    end
+    
+    result
   end
   
-  def is_document?
-    file_type == 'document' || %w(doc docx txt rtf).include?(file_extension)
-  end
-  
-  def text_content
-    # This would normally extract text from the file
-    # For PDFs, we'd use a gem like pdf-reader
-    # For now, we'll return a placeholder
-    "Text content extracted from #{filename}"
+  def extract_docx_text
+    require 'docx'
+    
+    begin
+      file_path = ActiveStorage::Blob.service.send(:path_for, file.key)
+      doc = Docx::Document.open(file_path)
+      doc.paragraphs.map(&:to_s).join("\n")
+    rescue => e
+      Rails.logger.error "Error extracting DOCX text: #{e.message}"
+      return "Error extracting text: #{e.message}"
+    end
   end
 end
