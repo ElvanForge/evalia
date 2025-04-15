@@ -24,8 +24,19 @@ const ImageWithFallbacks = ({
   const isDataUrl = imageUrl?.startsWith('data:');
   const isHttpUrl = imageUrl?.startsWith('http');
   
+  // Check if the blob URL appears to be saved in the database (common deployment issue)
+  const isStoredBlobUrl = imageUrl?.includes('/uploads/images/blob:');
+  
   // Generate strategies based on the image URL type
   const getStrategies = () => {
+    // Handle stored blob URLs (deployment issue) - these can't be loaded directly
+    if (isStoredBlobUrl) {
+      // We need to show a fallback since stored blob URLs are not valid on the server
+      // For such URLs, we want to immediately fail so we return an empty array
+      console.error('Found stored blob URL which cannot be loaded on server:', imageUrl);
+      return [];
+    }
+    
     // Blob URLs can be used directly in the browser but not on the server
     if (isBlobUrl) {
       return [
@@ -86,11 +97,18 @@ const ImageWithFallbacks = ({
     setLoadFailed(false);
     setLoadingStrategy(0);
     
+    // If there are no strategies (e.g., for stored blob URLs), mark as failed immediately
+    if (strategies.length === 0) {
+      console.error(`No loading strategies available for image: ${imageUrl}`);
+      setLoadFailed(true);
+      return;
+    }
+    
     // Apply the first strategy
     const url = strategies[0]();
     console.log(`Trying image loading strategy 1 for ${imageUrl}: ${url}`);
     setImageSrc(url);
-  }, [imageUrl, isLoading]);
+  }, [imageUrl, isLoading, strategies.length]);
   
   const handleError = () => {
     // Try next strategy if current one fails
@@ -124,15 +142,30 @@ const ImageWithFallbacks = ({
   }
   
   if (loadFailed) {
+    const isBlobProblem = isStoredBlobUrl || imageUrl?.includes('blob:');
+    
     return (
       <div className="w-full h-64 flex flex-col items-center justify-center bg-gray-100 rounded-md p-4">
         <FileImage className="w-12 h-12 text-red-600 mb-2" />
         <p className="text-red-600 font-medium mb-2">Failed to load image</p>
-        <p className="text-gray-500 text-xs text-center">
-          The image could not be loaded after multiple attempts.
-          <br />
-          Filename: {imageUrl}
-        </p>
+        
+        {isBlobProblem ? (
+          <div className="text-gray-500 text-xs text-center">
+            <p className="mb-2">
+              This image is using a temporary blob URL that cannot be loaded in a deployed environment.
+            </p>
+            <p>
+              <strong>Solution:</strong> Re-upload the image using a file upload instead of copy/paste or 
+              drag-and-drop when creating quiz questions.
+            </p>
+          </div>
+        ) : (
+          <p className="text-gray-500 text-xs text-center">
+            The image could not be loaded after multiple attempts.
+            <br />
+            Filename: {imageUrl}
+          </p>
+        )}
       </div>
     );
   }
