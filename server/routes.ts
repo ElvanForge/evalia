@@ -6,6 +6,7 @@ import Stripe from "stripe";
 import * as openAIService from "./openai-service";
 import { handleImageRequest, serveImageFile } from './image-handler';
 import { getImageAsBase64, listAvailableImages } from './scripts/debug-images';
+import { handleImageDebugFindRequest, handleImageDebugListRequest } from './scripts/image-debug-routes';
 
 // Helper function to convert numerical score to letter grade
 function getLetterGrade(score: number): string {
@@ -3224,6 +3225,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   // Image handling endpoints
+  
+  // Image debug API endpoints
+  app.get('/api/image-debug/find', handleImageDebugFindRequest);
+  app.get('/api/image-debug/list', handleImageDebugListRequest);
   
   // Direct API endpoint to get image as base64
   app.get('/api/images/base64/:filename', async (req, res) => {

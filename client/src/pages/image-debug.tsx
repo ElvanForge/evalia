@@ -1,214 +1,236 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ImageWithFallback } from '@/components/ui/image-with-fallback';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import Layout from '@/components/layout';
+import { useState, useEffect } from "react";
+import Layout from "../components/layout";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2, ExternalLink, FileImage, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function ImageDebugPage() {
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  // Fetch quiz questions with images
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Get all quizzes
-        const quizzesRes = await apiRequest('GET', '/api/quizzes');
-        const quizzes = await quizzesRes.json();
-        
-        // Get questions for the first quiz
-        if (quizzes.length > 0) {
-          const questionsRes = await apiRequest('GET', `/api/quizzes/${quizzes[0].id}/questions`);
-          const questions = await questionsRes.json();
-          
-          // Filter questions with images
-          const questionsWithImages = questions.filter((q: any) => q.imageUrl);
-          setQuizQuestions(questionsWithImages);
-          
-          // Extract image URLs
-          const urls = questionsWithImages.map((q: any) => q.imageUrl);
-          setImageUrls(urls);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch quiz data",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
+  const [searchPath, setSearchPath] = useState("");
+  const [searchResults, setSearchResults] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const { data: imageList, isLoading: isLoadingImages } = useQuery({
+    queryKey: ["/api/image-debug/list"],
+    queryFn: async () => {
+      const response = await fetch("/api/image-debug/list");
+      if (!response.ok) {
+        throw new Error("Error fetching image list");
       }
-    };
-    
-    fetchData();
-  }, [toast]);
-  
-  // Function to process an image URL (similar to what happens in quiz-runner)
-  const processImageUrl = (url: string): string => {
-    // Strip any existing query parameters
-    const baseUrl = url.split('?')[0];
-    
-    // Add timestamp for cache busting
-    return `${baseUrl}?v=${Date.now()}&debug=true`;
-  };
-  
-  // Function to get the direct upload path version
-  const getDirectUploadPath = (url: string): string => {
-    let filename = '';
-    
-    // Extract filename based on various patterns
-    if (url.includes('/uploads/images/')) {
-      const parts = url.split('/uploads/images/');
-      filename = parts[1]?.split('?')[0] || '';
-    } else if (url.includes('/api/images/')) {
-      const parts = url.split('/api/images/');
-      filename = parts[1]?.split('?')[0] || '';
-    } else if (url.includes('/') || url.includes('\\')) {
-      const parts = url.split(/[\/\\]/);
-      filename = parts[parts.length - 1].split('?')[0];
-    } else {
-      filename = url.split('?')[0];
+      return response.json();
     }
+  });
+  
+  const findImage = async () => {
+    if (!searchPath) return;
     
-    return `/uploads/images/${filename}?v=${Date.now()}&t=${Math.random().toString(36).substring(2, 8)}`;
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/image-debug/find?path=${encodeURIComponent(searchPath)}`);
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (error) {
+      console.error("Error searching for image:", error);
+      setSearchResults({ success: false, error: String(error) });
+    } finally {
+      setIsSearching(false);
+    }
   };
-
+  
+  const testImageInQuiz = async (imagePath: string) => {
+    setSearchPath(imagePath);
+    await findImage();
+  };
+  
   return (
-    <Layout title="Image Debug Tool" requireAuth={false}>
-      <div className="container mx-auto py-8 space-y-6">
-        <h1 className="text-3xl font-bold mb-6">Image Debug Tool</h1>
+    <Layout title="Image Debug Tools">
+      <div className="container mx-auto mt-8">
+        <h1 className="text-3xl font-bold mb-6 bg-[#0ba2b0] text-white p-4 rounded-lg">
+          Image Debugging Tools
+        </h1>
         
-        {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-          </div>
-        ) : (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle>Quiz Images</CardTitle>
-                <CardDescription>
-                  Examining {quizQuestions.length} questions with images
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {quizQuestions.length === 0 ? (
-                  <div className="text-center p-8 text-muted-foreground">
-                    No quiz questions with images found
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    {quizQuestions.map((question, index) => (
-                      <div key={question.id} className="border p-4 rounded-lg">
-                        <div className="font-medium mb-2">Question {index + 1}: {question.question}</div>
-                        <div className="text-sm text-muted-foreground mb-4">
-                          <div>Original URL: {question.imageUrl}</div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Original image */}
-                          <div className="space-y-2 border rounded-md p-4">
-                            <div className="font-medium">Original Image</div>
-                            <div className="bg-muted/30 p-2 rounded min-h-[200px] flex items-center justify-center">
-                              <ImageWithFallback
-                                src={question.imageUrl}
-                                alt={`Original format`}
-                                className="max-h-[200px] max-w-full object-contain rounded"
-                              />
-                            </div>
-                            <div className="text-xs text-muted-foreground break-all">
-                              URL: {question.imageUrl}
-                            </div>
-                          </div>
-                          
-                          {/* Processed image - direct upload path */}
-                          <div className="space-y-2 border rounded-md p-4">
-                            <div className="font-medium">Direct Upload Path</div>
-                            <div className="bg-muted/30 p-2 rounded min-h-[200px] flex items-center justify-center">
-                              <ImageWithFallback
-                                src={getDirectUploadPath(question.imageUrl)}
-                                alt={`Direct upload path`}
-                                className="max-h-[200px] max-w-full object-contain rounded"
-                              />
-                            </div>
-                            <div className="text-xs text-muted-foreground break-all">
-                              URL: {getDirectUploadPath(question.imageUrl)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Test Specific Image</CardTitle>
-                <CardDescription>
-                  Enter a specific image URL to test
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="testImage">Image URL</Label>
-                    <Input 
-                      id="testImage" 
-                      placeholder="Enter image URL or filename"
-                      value={imageUrls[0] || ''}
-                      onChange={(e) => setImageUrls([e.target.value])}
-                    />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Find Image</CardTitle>
+              <CardDescription>
+                Test how an image URL/path is resolved by the image-finding API (used by quizzes)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2 mb-4">
+                <Input 
+                  value={searchPath}
+                  onChange={(e) => setSearchPath(e.target.value)}
+                  placeholder="Enter image path or URL"
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={findImage}
+                  disabled={isSearching || !searchPath}
+                >
+                  {isSearching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Find"}
+                </Button>
+              </div>
+              
+              {searchResults && (
+                <div className="mt-4 border rounded-lg p-4">
+                  <div className="flex items-center mb-2">
+                    <div className="mr-2">
+                      {searchResults.success ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <AlertCircle className="h-5 w-5 text-red-500" />
+                      )}
+                    </div>
+                    <h3 className="text-lg font-semibold">
+                      {searchResults.success ? "Image Found" : "Image Not Found"}
+                    </h3>
                   </div>
                   
-                  {imageUrls[0] && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                      {/* Original format */}
-                      <div className="space-y-2 border rounded-md p-4">
-                        <div className="font-medium">Original Format</div>
-                        <div className="bg-muted/30 p-2 rounded min-h-[200px] flex items-center justify-center">
-                          <ImageWithFallback
-                            src={imageUrls[0]}
-                            alt="Original format"
-                            className="max-h-[200px] max-w-full object-contain rounded"
-                          />
+                  {searchResults.success && (
+                    <div>
+                      <p className="mb-2">
+                        <strong>Method:</strong> {searchResults.method}
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        <div className="border rounded p-2">
+                          <p className="text-sm font-medium mb-1">URL:</p>
+                          <code className="text-xs bg-gray-100 p-1 rounded block overflow-x-auto">
+                            {searchResults.url}
+                          </code>
                         </div>
-                        <div className="text-xs text-muted-foreground break-all">
-                          URL: {imageUrls[0]}
-                        </div>
-                      </div>
-                      
-                      {/* Direct upload path */}
-                      <div className="space-y-2 border rounded-md p-4">
-                        <div className="font-medium">Direct Upload Path</div>
-                        <div className="bg-muted/30 p-2 rounded min-h-[200px] flex items-center justify-center">
-                          <ImageWithFallback
-                            src={getDirectUploadPath(imageUrls[0])}
-                            alt="Direct upload path"
-                            className="max-h-[200px] max-w-full object-contain rounded"
-                          />
-                        </div>
-                        <div className="text-xs text-muted-foreground break-all">
-                          URL: {getDirectUploadPath(imageUrls[0])}
+                        
+                        <div className="border rounded-lg overflow-hidden">
+                          <div className="bg-gray-100 p-2 text-sm font-medium">
+                            Preview:
+                          </div>
+                          <div className="p-4 flex justify-center">
+                            <img 
+                              src={searchResults.url} 
+                              alt="Found image" 
+                              className="max-h-48 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.src = `/uploads/images/${searchPath.split('/').pop()}?v=${Date.now()}`;
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
+                  
+                  {!searchResults.success && (
+                    <div>
+                      <p className="text-red-500 mb-2">{searchResults.error}</p>
+                      <div className="bg-gray-100 p-2 rounded">
+                        <p className="text-sm">
+                          <strong>Searched Path:</strong> {searchResults.searchedPath}
+                        </p>
+                        <p className="text-sm">
+                          <strong>Filename:</strong> {searchResults.fileName}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Available Images</CardTitle>
+              <CardDescription>
+                List of all images in the uploads directory
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingImages ? (
+                <div className="flex justify-center items-center h-60">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <ScrollArea className="h-80">
+                  {imageList?.success ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Found {imageList.count} files in {imageList.directory}
+                      </p>
+                      
+                      <div className="grid grid-cols-1 gap-3">
+                        {imageList.files.map((file: any) => (
+                          <div 
+                            key={file.name} 
+                            className="border rounded-lg p-2 flex items-start gap-3"
+                          >
+                            <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
+                              {file.isDirectory ? (
+                                <FileImage className="h-6 w-6 text-gray-400" />
+                              ) : (
+                                <img 
+                                  src={file.url} 
+                                  alt={file.name}
+                                  className="w-10 h-10 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              )}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{file.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {file.size ? `${(file.size / 1024).toFixed(1)} KB` : "N/A"} • {new Date(file.modified).toLocaleString() || "Unknown date"}
+                              </p>
+                              
+                              <div className="flex gap-2 mt-1">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-7 text-xs"
+                                  onClick={() => testImageInQuiz(file.url)}
+                                >
+                                  Test in quiz
+                                  <ArrowRight className="ml-1 h-3 w-3" />
+                                </Button>
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 text-xs"
+                                  asChild
+                                >
+                                  <a href={file.url} target="_blank" rel="noopener noreferrer">
+                                    Open
+                                    <ExternalLink className="ml-1 h-3 w-3" />
+                                  </a>
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-60">
+                      <AlertCircle className="h-10 w-10 text-red-500 mb-2" />
+                      <p className="text-center text-muted-foreground">
+                        Error loading image list: {imageList?.error}
+                      </p>
+                    </div>
+                  )}
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );
