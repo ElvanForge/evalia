@@ -50,6 +50,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication with Passport.js
   const { requireAuth, requireRole } = setupAuth(app);
 
+  // Handle image requests for quiz questions
+  app.get('/api/quiz-image/:imageUrl', (req, res) => {
+    console.log("Quiz image request received for:", req.params.imageUrl);
+    const decodedUrl = decodeURIComponent(req.params.imageUrl);
+    
+    // Extract filename from path
+    const filename = decodedUrl.split('/').pop()?.split('?')[0];
+    
+    if (!filename) {
+      console.error("Invalid image URL:", decodedUrl);
+      return res.status(400).send('Invalid image URL');
+    }
+    
+    console.log(`Processing quiz image request: ${filename}`);
+    
+    // Try to find the image in various paths
+    const possiblePaths = [
+      './uploads/images/' + filename,
+      '/home/runner/workspace/uploads/images/' + filename,
+      '/home/runner/app/uploads/images/' + filename,
+      process.cwd() + '/uploads/images/' + filename,
+    ];
+    
+    // Try each path
+    for (const imgPath of possiblePaths) {
+      try {
+        if (fs.existsSync(imgPath)) {
+          console.log(`Found quiz image at: ${imgPath}`);
+          return res.sendFile(imgPath, { root: '/' });
+        }
+      } catch (err) {
+        console.error(`Error checking path ${imgPath}:`, err);
+      }
+    }
+    
+    console.error(`Quiz image not found: ${filename}`);
+    return res.status(404).send('Image not found');
+  });
+
   // Error handling middleware for Zod validation
   const validateRequest = (schema: any) => {
     return (req: Request, res: Response, next: express.NextFunction) => {
