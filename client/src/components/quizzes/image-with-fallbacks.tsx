@@ -1,137 +1,160 @@
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle, CheckCircle, Search } from 'lucide-react';
 
 interface ImageWithFallbacksProps {
   questionId: number;
   questionIndex: number;
-  imageUrl: string | null | undefined;
+  imageUrl: string;
   isLoading?: boolean;
 }
 
-export function ImageWithFallbacks({
-  questionId,
-  questionIndex,
-  imageUrl,
-  isLoading = false
+export default function ImageWithFallbacks({ 
+  questionId, 
+  questionIndex, 
+  imageUrl, 
+  isLoading = false 
 }: ImageWithFallbacksProps) {
-  const [currentSrc, setCurrentSrc] = useState<string>('');
-  const [isImageLoading, setIsImageLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [finalUrl, setFinalUrl] = useState<string>(imageUrl);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [attempts, setAttempts] = useState<string[]>([]);
 
   useEffect(() => {
+    setStatus('loading');
+    setAttempts([]);
+    
     if (!imageUrl) {
-      setError('No image URL provided');
-      setIsImageLoading(false);
+      setStatus('error');
       return;
     }
 
-    // Reset states when image URL changes
-    setIsImageLoading(true);
-    setError(null);
+    // Try to load the image with the debug API first
+    console.log(`Started preloading for next question: ${questionId}`);
+    setAttempts(prev => [...prev, `Original URL: ${imageUrl}`]);
     
-    // Start with the original URL
-    const initialUrl = addCacheBusting(imageUrl);
-    setCurrentSrc(initialUrl);
-    
-    // Try to get the most reliable URL using our debug API
-    const fetchBestUrl = async () => {
-      try {
-        // Extract the filename for the API request
-        const filename = imageUrl.split(/[\/\\]/).pop()?.split('?')[0];
-        
-        if (filename) {
-          const response = await fetch(`/api/image-debug/find?path=${encodeURIComponent(filename)}`);
+    // Use our debug API to find the image
+    fetch(`/api/image-debug/find?path=${encodeURIComponent(imageUrl.split('?')[0])}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.url) {
+          console.log(`Debug API found better URL for question ${questionId}: ${data.url}`);
+          setFinalUrl(data.url);
+          setDebugInfo(data);
+          setAttempts(prev => [...prev, `Debug API found: ${data.url} (${data.method})`]);
+          setStatus('success');
+        } else {
+          console.error('Image not found via debug API');
+          setAttempts(prev => [...prev, `Debug API failed: ${data.error || 'Unknown error'}`]);
           
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.url) {
-              console.log(`Debug API found better URL for question ${questionId}: ${data.url}`);
-              setCurrentSrc(data.url);
-            }
-          }
+          // Fallback to the original URL with a cache buster
+          const cacheBustedUrl = `${imageUrl.split('?')[0]}?v=${Date.now()}`;
+          setFinalUrl(cacheBustedUrl);
+          setAttempts(prev => [...prev, `Fallback to cache-busted URL: ${cacheBustedUrl}`]);
+          
+          // Status will be updated by the onLoad/onError handlers
         }
-      } catch (err) {
-        console.error(`Error finding best image URL for question ${questionId}:`, err);
-        // Keep using the initial URL, don't change state
-      }
-    };
-    
-    fetchBestUrl();
+      })
+      .catch(err => {
+        console.error('Error checking image debug API:', err);
+        setAttempts(prev => [...prev, `Debug API error: ${err.message}`]);
+        
+        // Try the direct URL as a fallback
+        const cacheBustedUrl = `${imageUrl.split('?')[0]}?v=${Date.now()}`;
+        setFinalUrl(cacheBustedUrl);
+        setAttempts(prev => [...prev, `Fallback to cache-busted URL after API error: ${cacheBustedUrl}`]);
+      });
+      
+    // Signal that we successfully tried to preload
+    console.log(`Successfully preloaded next question image via standard method: ${questionId}`);
   }, [imageUrl, questionId]);
 
-  // Helper to add cache busting
-  const addCacheBusting = (url: string): string => {
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}v=${Date.now()}`;
+  const handleImageLoad = () => {
+    setStatus('success');
+    setAttempts(prev => [...prev, `Successfully loaded image: ${finalUrl}`]);
   };
 
-  // Handle image load error with multiple fallback strategies
-  const handleImageError = async (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const img = e.currentTarget;
-    console.error(`Failed to load image for question ${questionId}: ${currentSrc}`);
+  const handleImageError = () => {
+    setStatus('error');
+    setAttempts(prev => [...prev, `Failed to load image: ${finalUrl}`]);
     
-    // If we have an image URL, try various fallbacks
-    if (imageUrl) {
-      // FALLBACK 1: Try without cache busting parameters
-      if (imageUrl.includes('?')) {
-        const baseUrl = imageUrl.split('?')[0];
-        console.log(`Trying fallback URL without cache params: ${baseUrl}`);
-        setCurrentSrc(baseUrl);
-        return; // Give this a chance to load
-      }
-      
-      // FALLBACK 2: Try extracting just the filename and use direct path
-      const filename = imageUrl.split('/').pop();
-      if (filename) {
-        // Try the direct path
-        const directPath = `/uploads/images/${filename}`;
-        console.log(`Trying direct filename path: ${directPath}`);
-        setCurrentSrc(directPath);
-        return; // Give this a chance to load
-      }
-      
-      // FALLBACK 3: Try the API endpoint as a last resort
-      try {
-        const response = await fetch(`/api/image-debug/find?path=${encodeURIComponent(imageUrl)}`);
-        const data = await response.json();
-        
-        if (data.success && data.url) {
-          console.log(`Found image via debug API: ${data.url}`);
-          setCurrentSrc(data.url);
-        } else {
-          console.error('All fallbacks failed, image cannot be displayed');
-          setError('Image could not be loaded');
-          setIsImageLoading(false);
-        }
-      } catch (err) {
-        console.error('Error in fallback API call:', err);
-        setError('Image could not be loaded');
-        setIsImageLoading(false);
-      }
+    // Try one more fallback - just the filename
+    const filename = imageUrl.split('/').pop()?.split('?')[0];
+    if (filename) {
+      const lastChanceUrl = `/uploads/images/${filename}?v=${Date.now()}`;
+      setFinalUrl(lastChanceUrl);
+      setAttempts(prev => [...prev, `Last chance fallback: ${lastChanceUrl}`]);
     }
   };
 
   return (
-    <div className="relative">
-      {isImageLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/10 rounded-md z-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="flex flex-col items-center w-full">
+      {/* Loading state */}
+      {(status === 'loading' || isLoading) && (
+        <Skeleton className="h-[60vh] w-[95%] rounded-lg" />
+      )}
+      
+      {/* Image with fallback handlers */}
+      <img
+        key={`question-image-${questionId}-${questionIndex}-${finalUrl}`}
+        src={finalUrl}
+        alt={`Question ${questionIndex + 1}`}
+        className={`rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10 ${
+          status === 'loading' || isLoading ? 'hidden' : 'block'
+        }`}
+        onLoad={handleImageLoad}
+        onError={handleImageError}
+      />
+      
+      {/* Error state */}
+      {status === 'error' && (
+        <div className="flex flex-col items-center justify-center bg-red-50 border border-red-200 rounded-lg p-4 mt-4 max-w-md">
+          <AlertCircle className="h-12 w-12 text-red-500 mb-2" />
+          <h3 className="text-lg font-semibold text-red-700">Image Failed to Load</h3>
+          <p className="text-red-600 text-sm text-center">
+            Could not load image for question {questionIndex + 1}
+          </p>
+          <div className="mt-2 w-full">
+            <p className="text-xs text-red-600 font-mono">Original URL: {imageUrl}</p>
+            <p className="text-xs text-red-600 font-mono">Final URL: {finalUrl}</p>
+          </div>
         </div>
       )}
       
-      {error ? (
-        <div className="flex items-center justify-center h-[60vh] w-full bg-muted/20 rounded-md">
-          <p className="text-sm text-muted-foreground">{error}</p>
+      {/* Debug info - only shown on debug pages */}
+      {window.location.pathname.includes('debug') && (
+        <div className="mt-4 w-full max-w-2xl border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <div className="flex items-center mb-2">
+            <Search className="h-4 w-4 mr-2 text-gray-500" />
+            <h3 className="text-sm font-semibold">Image Debug Information</h3>
+            {status === 'success' && <CheckCircle className="h-4 w-4 ml-2 text-green-500" />}
+            {status === 'error' && <AlertCircle className="h-4 w-4 ml-2 text-red-500" />}
+          </div>
+          <div className="space-y-1 text-xs font-mono max-h-[200px] overflow-y-auto">
+            {attempts.map((attempt, i) => (
+              <div key={i} className="p-1 border-b border-gray-100">
+                {attempt}
+              </div>
+            ))}
+            {debugInfo && (
+              <>
+                <div className="p-1 border-b border-gray-100 text-emerald-700">
+                  Debug API method: {debugInfo.method}
+                </div>
+                {debugInfo.debug && (
+                  <div className="p-1 border-b border-gray-100 text-emerald-700">
+                    Path checked: {debugInfo.debug.checkedPath} (exists: {String(debugInfo.debug.exists)})
+                  </div>
+                )}
+                {debugInfo.allMatches && (
+                  <div className="p-1 border-b border-gray-100 text-emerald-700">
+                    All matches: {debugInfo.allMatches.join(', ')}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      ) : (
-        <img
-          key={`question-image-${questionId}-${questionIndex}-${currentSrc}`}
-          src={currentSrc}
-          alt={`Question ${questionIndex + 1}`}
-          className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10"
-          onLoad={() => setIsImageLoading(false)}
-          onError={handleImageError}
-        />
       )}
     </div>
   );

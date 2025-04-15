@@ -3237,13 +3237,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`[DEBUG] Searching for image file: ${imagePath}`);
       
+      // List all directories and files in the current path
+      try {
+        console.log('[DEBUG] Current working directory:', process.cwd());
+        console.log('[DEBUG] Listing /uploads directory:');
+        if (fs.existsSync('./uploads')) {
+          console.log('  ./uploads exists');
+          const uploadsContents = fs.readdirSync('./uploads');
+          console.log('  Contents:', uploadsContents);
+          
+          if (uploadsContents.includes('images')) {
+            console.log('  ./uploads/images exists');
+            const imagesContents = fs.readdirSync('./uploads/images');
+            console.log('  First 5 images:', imagesContents.slice(0, 5));
+          } else {
+            console.log('  ./uploads/images does NOT exist');
+          }
+        } else {
+          console.log('  ./uploads does NOT exist');
+        }
+      } catch (err) {
+        console.error('[DEBUG] Error listing directories:', err);
+      }
+      
       // Check if it's a direct valid path first
-      if (fs.existsSync(`./uploads/images/${imagePath}`)) {
+      const fullPath = `./uploads/images/${imagePath}`;
+      console.log(`[DEBUG] Checking direct path: ${fullPath}`);
+      if (fs.existsSync(fullPath)) {
+        console.log(`[DEBUG] File exists at: ${fullPath}`);
         return res.json({ 
           success: true, 
           url: `/uploads/images/${imagePath}?v=${Date.now()}`,
-          method: "direct_path" 
+          method: "direct_path",
+          debug: { checkedPath: fullPath, exists: true }
         });
+      } else {
+        console.log(`[DEBUG] File does NOT exist at: ${fullPath}`);
       }
       
       // Extract the filename from the URL
@@ -3252,13 +3281,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Try direct path first
       const directPath = `./uploads/images/${extractedName}`;
+      console.log(`[DEBUG] Checking extracted name path: ${directPath}`);
       if (fs.existsSync(directPath)) {
         console.log(`[DEBUG] Found image at direct path: ${directPath}`);
         return res.json({ 
           success: true, 
           url: `/uploads/images/${extractedName}?v=${Date.now()}`,
-          method: "direct_path" 
+          method: "direct_path",
+          debug: { checkedPath: directPath, exists: true }
         });
+      } else {
+        console.log(`[DEBUG] File does NOT exist at: ${directPath}`);
       }
       
       // Try case-insensitive search
