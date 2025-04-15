@@ -1,52 +1,172 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Evalia - Grade Tracking System</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= stylesheet_link_tag "tailwind", "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
-
-  <body class="bg-background">
-    <div class="flex h-screen overflow-hidden">
-      <!-- Sidebar -->
-      <aside class="w-64 bg-white shadow-lg flex-shrink-0 z-10 overflow-y-auto">
-        <%= render "shared/sidebar" %>
-      </aside>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= content_for?(:page_title) ? yield(:page_title) + " | Evalia" : "Evalia - Student Grade Tracker" %></title>
+  
+  <!-- Rails assets -->
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application", media: "all", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons (loaded via CDN for simplicity) -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  
+  <style>
+    /* Global custom styles */
+    body {
+      background-color: #ede8dd;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    
+    /* Custom class styles */
+    .bg-primary {
+      background-color: #0ba2b0;
+    }
+    
+    .text-primary {
+      color: #0ba2b0;
+    }
+    
+    .btn-primary {
+      background-color: #0ba2b0;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-primary:hover {
+      background-color: #088996;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    
+    .card-header {
+      background-color: #0ba2b0;
+      color: white;
+      padding: 0.75rem 1rem;
+    }
+    
+    .card-body {
+      padding: 1rem;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #0ba2b0;
+      box-shadow: 0 0 0 2px rgba(11, 162, 176, 0.2);
+    }
+    
+    .progress {
+      height: 0.5rem;
+      background-color: #e5e7eb;
+      border-radius: 0.25rem;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+    }
+    
+    .dropdown-menu {
+      background-color: white;
+      border-radius: 0.375rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      min-width: 10rem;
+    }
+    
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: #374151;
+    }
+    
+    .dropdown-item:hover {
+      background-color: #f3f4f6;
+    }
+    
+    /* Tab styles */
+    .active-tab {
+      color: #0ba2b0;
+      border-color: #0ba2b0;
+    }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen flex">
+    <% unless @hide_sidebar %>
+      <%= render 'shared/sidebar' %>
+    <% end %>
+    
+    <div class="flex-1 flex flex-col">
+      <% unless @hide_sidebar %>
+        <%= render 'shared/topbar' %>
+      <% end %>
       
-      <!-- Main content -->
-      <main class="flex-1 flex flex-col overflow-hidden">
-        <!-- Header -->
-        <header class="bg-primary text-white p-4 shadow-md flex-shrink-0 z-10">
-          <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Evalia</h1>
-            <div class="flex items-center space-x-4">
-              <%= render "shared/user_menu" %>
-            </div>
-          </div>
-        </header>
-        
-        <!-- Flash messages -->
-        <% if notice %>
-          <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4" role="alert">
-            <%= notice %>
+      <main class="flex-grow p-6">
+        <% if flash[:notice] %>
+          <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6" role="alert">
+            <p><%= flash[:notice] %></p>
           </div>
         <% end %>
         
-        <% if alert %>
-          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-            <%= alert %>
+        <% if flash[:alert] %>
+          <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+            <p><%= flash[:alert] %></p>
           </div>
         <% end %>
         
-        <!-- Main content scrollable area -->
-        <div class="flex-1 overflow-auto p-6">
-          <%= yield %>
-        </div>
+        <%= yield %>
       </main>
+      
+      <footer class="bg-white py-4 px-6 border-t border-gray-200">
+        <div class="text-center text-sm text-gray-500">
+          <p>&copy; <%= Date.today.year %> Evalia - Student Grade Tracker</p>
+        </div>
+      </footer>
     </div>
-  </body>
+  </div>
+  
+  <script>
+    // Initialize Lucide icons
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+    });
+  </script>
+</body>
 </html>

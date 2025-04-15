@@ -1,41 +1,51 @@
 class DashboardController < ApplicationController
-  before_action :authenticate_teacher!
+  before_action :require_login
   
   def index
-    @classes = current_teacher.courses.includes(:students)
-    @upcoming_assignments = Assignment.where(course: current_teacher.courses)
-                                      .where('due_date >= ?', Date.today)
-                                      .order(due_date: :asc)
-                                      .limit(5)
-    @recent_grades = Grade.joins(assignment: :course)
-                          .where(assignment: { course: { teacher_id: current_teacher.id } })
+    # Basic stats for the dashboard
+    @courses = Course.where(teacher_id: current_user.id).order(name: :asc)
+    @students = Student.where(teacher_id: current_user.id).order(:first_name, :last_name)
+    @assignments = Assignment.joins(:course).where(courses: { teacher_id: current_user.id }).order(created_at: :desc)
+    @quizzes = Quiz.where(teacher_id: current_user.id).order(created_at: :desc)
+    
+    # Counts
+    @course_count = @courses.count
+    @student_count = @students.count
+    @assignment_count = @assignments.count
+    @quiz_count = @quizzes.count
+    
+    # Recent activity - get the 5 most recent grades
+    @recent_grades = Grade.joins(:assignment)
+                          .joins("JOIN courses ON assignments.class_id = courses.id")
+                          .where(courses: { teacher_id: current_user.id })
                           .order(created_at: :desc)
-                          .includes(assignment: :course, student: {})
                           .limit(5)
-    @student_alerts = get_student_alerts
-  end
-  
-  private
-  
-  def get_student_alerts
-    # Students with low grades (below 70%)
-    low_grade_threshold = 70
-    low_performing_students = Grade.joins(assignment: :course)
-                                  .where(assignment: { course: { teacher_id: current_teacher.id } })
-                                  .where('score < ?', low_grade_threshold)
-                                  .group(:student_id)
-                                  .includes(:student)
-                                  .limit(5)
-                                  
-    # Format alerts
-    low_performing_students.map do |grade|
-      {
-        id: grade.student.id,
-        name: "#{grade.student.first_name} #{grade.student.last_name}",
-        alert_type: 'grade',
-        message: "Low grade performance (below #{low_grade_threshold}%)",
-        created_at: grade.created_at
-      }
-    end
+                          .includes(:student, :assignment)
+    
+    # Student alerts - students with at-risk grades
+    @at_risk_students = @students.select(&:at_risk?)
+    
+    # Missing assignments
+    @missing_assignments_count = Assignment.joins(:course)
+                                            .where(courses: { teacher_id: current_user.id })
+                                            .where('due_date < ?', Date.today)
+                                            .joins("LEFT JOIN grades ON grades.assignment_id = assignments.id")
+                                            .where(grades: { id: nil })
+                                            .count
+    
+    # Get assignment stats for quick grade entry
+    @recent_assignments = @assignments.limit(5)
+    
+    # Get upcoming assignments
+    @upcoming_assignments = @assignments.where('due_date > ?', Date.today)
+                                       .order(due_date: :asc)
+                                       .limit(3)
+    
+    # Get grade distribution
+    @grade_distribution = Grade.joins(:assignment)
+                              .joins("JOIN courses ON assignments.class_id = courses.id")
+                              .where(courses: { teacher_id: current_user.id })
+                              .group(:letter_grade)
+                              .count
   end
 end

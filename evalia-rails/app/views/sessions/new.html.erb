@@ -1,0 +1,104 @@
+<% content_for :page_title do %>
+  Login
+<% end %>
+
+<% @hide_sidebar = true %>
+
+<div class="min-h-screen flex items-center justify-center bg-background">
+  <div class="max-w-6xl w-full mx-auto flex rounded-lg shadow-lg overflow-hidden bg-white">
+    <!-- Form Side -->
+    <div class="w-full md:w-1/2 p-8">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-primary mb-2">Evalia</h1>
+        <p class="text-gray-600">Student Grade Tracker & Analytics</p>
+      </div>
+      
+      <%= form_with url: login_path, method: :post, class: "space-y-6" do |f| %>
+        <div>
+          <label for="username" class="form-label">Username</label>
+          <%= f.text_field :username, class: "form-control", required: true, autofocus: true %>
+        </div>
+        
+        <div>
+          <label for="password" class="form-label">Password</label>
+          <%= f.password_field :password, class: "form-control", required: true %>
+        </div>
+        
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <%= f.check_box :remember_me, class: "h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" %>
+            <label for="remember_me" class="ml-2 block text-sm text-gray-700">Remember me</label>
+          </div>
+          
+          <div class="text-sm">
+            <a href="#" class="text-primary hover:underline">Forgot password?</a>
+          </div>
+        </div>
+        
+        <div>
+          <%= f.submit "Sign in", class: "btn btn-primary w-full" %>
+        </div>
+      <% end %>
+      
+      <div class="mt-6 text-center text-sm">
+        <p class="text-gray-600">
+          Don't have an account? Contact your school administrator.
+        </p>
+        
+        <div class="mt-4 text-xs text-gray-500">
+          <p>Default admin account:</p>
+          <p>Username: <strong>admin</strong>, Password: <strong>evalia123</strong></p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hero Side -->
+    <div class="hidden md:block md:w-1/2 bg-primary-dark">
+      <div class="p-12 text-white">
+        <h2 class="text-2xl font-bold mb-6">Welcome to Evalia</h2>
+        
+        <div class="space-y-6">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-lg font-medium">Track Student Progress</h3>
+              <p class="mt-1 text-sm text-white/80">Monitor student achievements and identify areas for improvement.</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-lg font-medium">Manage Classes Efficiently</h3>
+              <p class="mt-1 text-sm text-white/80">Organize courses, assignments, and quizzes in one place.</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-lg font-medium">Generate Insightful Reports</h3>
+              <p class="mt-1 text-sm text-white/80">Create detailed analytics and export data in multiple formats.</p>
+            </div>
+          </div>
+          
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <i data-lucide="check-circle" class="h-6 w-6 text-white"></i>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-lg font-medium">Create AI-powered Lesson Plans</h3>
+              <p class="mt-1 text-sm text-white/80">Develop comprehensive lesson plans with AI assistance.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

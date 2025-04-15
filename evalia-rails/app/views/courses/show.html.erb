@@ -1,0 +1,504 @@
+<% content_for :page_title do %>
+  <%= @course.name %>
+<% end %>
+
+<div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-3 sm:space-y-0">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900"><%= @course.name %></h1>
+    <div class="flex items-center text-sm text-gray-500 mt-1">
+      <% if @course.subject.present? %>
+        <span class="mr-3">
+          <i data-lucide="book" class="w-4 h-4 inline-block mr-1"></i>
+          <%= @course.subject %>
+        </span>
+      <% end %>
+      
+      <% if @course.grade_level.present? %>
+        <span class="mr-3">
+          <i data-lucide="bar-chart-2" class="w-4 h-4 inline-block mr-1"></i>
+          Grade <%= @course.grade_level %>
+        </span>
+      <% end %>
+      
+      <% if @course.period.present? %>
+        <span>
+          <i data-lucide="clock" class="w-4 h-4 inline-block mr-1"></i>
+          Period <%= @course.period %>
+        </span>
+      <% end %>
+    </div>
+  </div>
+  
+  <div class="flex space-x-2">
+    <a href="<%= edit_course_path(@course) %>" class="btn bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-sm py-2 px-4">
+      <i data-lucide="edit" class="w-4 h-4 mr-1"></i> Edit
+    </a>
+    
+    <a href="<%= courses_path %>" class="btn bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-sm py-2 px-4">
+      <i data-lucide="corner-up-left" class="w-4 h-4 mr-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<% if @course.description.present? %>
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <p class="text-gray-700"><%= @course.description %></p>
+  </div>
+<% end %>
+
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+  <!-- Overview Stats Card -->
+  <div class="col-span-1">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="text-lg font-medium">Class Overview</h2>
+      </div>
+      <div class="card-body">
+        <div class="divide-y divide-gray-200">
+          <div class="flex justify-between py-3">
+            <span class="text-gray-500">Students</span>
+            <span class="font-medium"><%= @student_count %></span>
+          </div>
+          
+          <div class="flex justify-between py-3">
+            <span class="text-gray-500">Assignments</span>
+            <span class="font-medium"><%= @assignment_count %></span>
+          </div>
+          
+          <div class="flex justify-between py-3">
+            <span class="text-gray-500">Quizzes</span>
+            <span class="font-medium"><%= @quiz_count %></span>
+          </div>
+          
+          <div class="flex justify-between py-3">
+            <span class="text-gray-500">Average Grade</span>
+            <% avg_grade = Grade.joins(:assignment).where(assignments: { class_id: @course.id }).average(:score).to_f.round(1) rescue 0 %>
+            <span class="font-medium"><%= avg_grade %>%</span>
+          </div>
+        </div>
+        
+        <div class="mt-4">
+          <h3 class="text-sm font-medium text-gray-900 mb-2">Grade Distribution</h3>
+          
+          <% if @grade_distribution.any? %>
+            <% 
+              # Define the order for letter grades
+              grade_order = ['A', 'B', 'C', 'D', 'F']
+              
+              # Define colors for each grade
+              colors = {
+                'A' => 'bg-green-500',
+                'B' => 'bg-blue-500',
+                'C' => 'bg-yellow-500',
+                'D' => 'bg-orange-500',
+                'F' => 'bg-red-500'
+              }
+              
+              # Calculate total for percentages
+              total = @grade_distribution.values.sum
+              
+              # Sort by the defined order
+              sorted_distribution = grade_order.map do |grade|
+                [grade, @grade_distribution[grade] || 0]
+              end
+            %>
+            
+            <div class="space-y-2">
+              <% sorted_distribution.each do |grade, count| %>
+                <% next if count == 0 %>
+                <% percentage = total > 0 ? (count.to_f / total * 100).round : 0 %>
+                <div>
+                  <div class="flex items-center justify-between mb-1">
+                    <div class="text-xs font-medium text-gray-700"><%= grade %></div>
+                    <div class="text-xs text-gray-500"><%= count %> (<%= percentage %>%)</div>
+                  </div>
+                  <div class="progress">
+                    <div class="progress-bar <%= colors[grade] %>" style="width: <%= percentage %>%"></div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-sm text-gray-500">No grades recorded yet.</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Students Card -->
+  <div class="col-span-1">
+    <div class="card">
+      <div class="card-header flex justify-between items-center">
+        <h2 class="text-lg font-medium">Students</h2>
+        
+        <a href="<%= course_students_path(@course) %>" class="text-sm text-white hover:underline">
+          View All
+        </a>
+      </div>
+      <div class="card-body">
+        <% if @students.any? %>
+          <div class="flow-root">
+            <ul class="divide-y divide-gray-200">
+              <% @students.limit(5).each do |student| %>
+                <li class="py-3">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                        <%= student.first_name.first.upcase %><%= student.last_name&.first&.upcase || '' %>
+                      </div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        <%= student.full_name %>
+                      </p>
+                      <% if student.student_number.present? %>
+                        <p class="text-sm text-gray-500">
+                          ID: <%= student.student_number %>
+                        </p>
+                      <% end %>
+                    </div>
+                    <div>
+                      <a href="<%= student_path(student) %>" class="inline-flex items-center text-xs font-medium text-primary hover:underline">
+                        View
+                      </a>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+          
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <a href="<%= course_students_path(@course) %>" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium bg-primary text-white rounded hover:bg-primary-dark">
+              View All Students
+            </a>
+            
+            <button type="button" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200" data-toggle="modal" data-target="add-student-modal">
+              <i data-lucide="user-plus" class="w-3 h-3 mr-1"></i> Add Student
+            </button>
+          </div>
+        <% else %>
+          <div class="text-center py-4">
+            <div class="text-gray-400 mb-3">
+              <i data-lucide="users" class="h-8 w-8 mx-auto"></i>
+            </div>
+            <h3 class="text-sm font-medium text-gray-900 mb-1">No students enrolled</h3>
+            <p class="text-xs text-gray-500 mb-3">Enroll students to start tracking grades</p>
+            
+            <button type="button" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium bg-primary text-white rounded hover:bg-primary-dark" data-toggle="modal" data-target="add-student-modal">
+              <i data-lucide="user-plus" class="w-3 h-3 mr-1"></i> Add Student
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Assignments Card -->
+  <div class="col-span-1">
+    <div class="card">
+      <div class="card-header flex justify-between items-center">
+        <h2 class="text-lg font-medium">Assignments</h2>
+        
+        <a href="<%= new_course_assignment_path(@course) %>" class="text-sm text-white hover:underline">
+          <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Add
+        </a>
+      </div>
+      <div class="card-body">
+        <% if @assignments.any? %>
+          <div class="flow-root">
+            <ul class="divide-y divide-gray-200">
+              <% @assignments.limit(5).each do |assignment| %>
+                <li class="py-3">
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                        <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                      </div>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        <%= assignment.name %>
+                      </p>
+                      <div class="flex items-center text-xs text-gray-500">
+                        <% if assignment.due_date.present? %>
+                          <span class="mr-2">
+                            <i data-lucide="calendar" class="inline w-3 h-3 mr-1"></i>
+                            <%= assignment.due_date.strftime("%b %d, %Y") %>
+                          </span>
+                        <% end %>
+                        <span>
+                          <i data-lucide="check-circle" class="inline w-3 h-3 mr-1"></i>
+                          <%= assignment.completion_rate %>% completed
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <a href="<%= assignment_path(assignment) %>" class="inline-flex items-center text-xs font-medium text-primary hover:underline">
+                        View
+                      </a>
+                    </div>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+          
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <a href="<%= course_assignments_path(@course) %>" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium bg-primary text-white rounded hover:bg-primary-dark">
+              View All Assignments
+            </a>
+            
+            <a href="<%= new_course_assignment_path(@course) %>" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+              <i data-lucide="plus" class="w-3 h-3 mr-1"></i> New Assignment
+            </a>
+          </div>
+        <% else %>
+          <div class="text-center py-4">
+            <div class="text-gray-400 mb-3">
+              <i data-lucide="clipboard-list" class="h-8 w-8 mx-auto"></i>
+            </div>
+            <h3 class="text-sm font-medium text-gray-900 mb-1">No assignments</h3>
+            <p class="text-xs text-gray-500 mb-3">Create assignments to start grading students</p>
+            
+            <a href="<%= new_course_assignment_path(@course) %>" class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium bg-primary text-white rounded hover:bg-primary-dark">
+              <i data-lucide="plus" class="w-3 h-3 mr-1"></i> New Assignment
+            </a>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs for additional content -->
+<div class="mt-6">
+  <div class="border-b border-gray-200">
+    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <a href="#students-tab" class="active-tab border-primary text-primary whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab-toggle>
+        Students
+      </a>
+      <a href="#assignments-tab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab-toggle>
+        Assignments
+      </a>
+      <a href="#quizzes-tab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab-toggle>
+        Quizzes
+      </a>
+      <a href="#grades-tab" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab-toggle>
+        Grade Book
+      </a>
+    </nav>
+  </div>
+  
+  <!-- Tab contents -->
+  <div class="tab-content">
+    <!-- Students Tab -->
+    <div id="students-tab" class="tab-pane active py-4">
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="flex justify-between items-center p-4 border-b border-gray-200">
+          <h3 class="text-lg font-medium text-gray-900">Students Enrolled</h3>
+          
+          <button type="button" class="btn btn-primary py-1 px-3 text-sm" data-toggle="modal" data-target="add-student-modal">
+            <i data-lucide="user-plus" class="w-4 h-4 mr-1"></i> Add Student
+          </button>
+        </div>
+        
+        <% if @students.any? %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Average
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Grade
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% @students.each do |student| %>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                          <%= student.first_name.first.upcase %><%= student.last_name&.first&.upcase || '' %>
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">
+                            <%= student.full_name %>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="text-sm text-gray-500">
+                        <%= student.student_number.present? ? student.student_number : '-' %>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <% avg = student.grades.joins(:assignment).where(assignments: { class_id: @course.id }).average(:score)&.round(1) %>
+                      <div class="text-sm text-gray-900">
+                        <%= avg ? "#{avg}%" : '-' %>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <% if avg %>
+                        <% letter = case avg
+                                     when 90..100 then 'A'
+                                     when 80...90 then 'B'
+                                     when 70...80 then 'C'
+                                     when 60...70 then 'D'
+                                     else 'F'
+                                     end 
+                          
+                           bg_color = case letter
+                                     when 'A' then 'bg-green-100 text-green-800'
+                                     when 'B' then 'bg-blue-100 text-blue-800'
+                                     when 'C' then 'bg-yellow-100 text-yellow-800'
+                                     when 'D' then 'bg-orange-100 text-orange-800'
+                                     when 'F' then 'bg-red-100 text-red-800'
+                                     end
+                        %>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= bg_color %>">
+                          <%= letter %>
+                        </span>
+                      <% else %>
+                        <span class="text-sm text-gray-500">-</span>
+                      <% end %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <a href="<%= student_path(student) %>" class="text-primary hover:underline mr-2">View</a>
+                      <%= link_to 'Remove', course_remove_student_path(@course, student), method: :delete, data: { confirm: "Are you sure you want to remove #{student.full_name} from this class?" }, class: "text-red-600 hover:underline" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <div class="text-gray-400 mb-3">
+              <i data-lucide="users" class="h-12 w-12 mx-auto"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">No students enrolled</h3>
+            <p class="text-gray-500 mb-4">Enroll students to start tracking grades</p>
+            
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="add-student-modal">
+              <i data-lucide="user-plus" class="w-4 h-4 mr-1"></i> Add Student
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Other tabs would go here -->
+    <div id="assignments-tab" class="tab-pane hidden py-4">
+      <!-- Assignment content -->
+    </div>
+    
+    <div id="quizzes-tab" class="tab-pane hidden py-4">
+      <!-- Quizzes content -->
+    </div>
+    
+    <div id="grades-tab" class="tab-pane hidden py-4">
+      <!-- Grade book content -->
+    </div>
+  </div>
+</div>
+
+<!-- Add Student Modal -->
+<div id="add-student-modal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <!-- Background overlay -->
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+    
+    <!-- Modal panel -->
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="sm:flex sm:items-start">
+          <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              Enroll Student
+            </h3>
+            
+            <div class="mt-4">
+              <%= form_with url: enroll_student_course_path(@course), method: :post, class: "space-y-4" do |f| %>
+                <div>
+                  <label for="student_id" class="form-label">Select Student</label>
+                  <select name="student_id" id="student_id" class="form-control">
+                    <option value="">Select a student</option>
+                    <% Student.where(teacher_id: current_user.id).where.not(id: @course.student_ids).order(:first_name, :last_name).each do |student| %>
+                      <option value="<%= student.id %>"><%= student.full_name %> <%= student.student_number.present? ? "(#{student.student_number})" : '' %></option>
+                    <% end %>
+                  </select>
+                </div>
+                
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                  <%= f.submit "Enroll Student", class: "btn btn-primary w-full sm:w-auto sm:text-sm" %>
+                  <button type="button" class="mt-3 w-full sm:mt-0 sm:mr-3 sm:w-auto sm:text-sm btn bg-white text-gray-700 border-gray-300 hover:bg-gray-50" data-modal-close>
+                    Cancel
+                  </button>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('[data-tab-toggle]');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Get the target tab
+        const target = this.getAttribute('href');
+        
+        // Remove active class from all tabs and panes
+        tabs.forEach(t => t.classList.remove('active-tab', 'border-primary', 'text-primary'));
+        tabs.forEach(t => t.classList.add('border-transparent', 'text-gray-500'));
+        tabPanes.forEach(p => p.classList.add('hidden'));
+        
+        // Add active class to current tab and pane
+        this.classList.add('active-tab', 'border-primary', 'text-primary');
+        this.classList.remove('border-transparent', 'text-gray-500');
+        document.querySelector(target).classList.remove('hidden');
+      });
+    });
+    
+    // Modal functionality
+    const modalToggles = document.querySelectorAll('[data-toggle="modal"]');
+    const modalCloses = document.querySelectorAll('[data-modal-close]');
+    
+    modalToggles.forEach(toggle => {
+      toggle.addEventListener('click', function() {
+        const modalId = this.getAttribute('data-target');
+        document.getElementById(modalId).classList.remove('hidden');
+      });
+    });
+    
+    modalCloses.forEach(close => {
+      close.addEventListener('click', function() {
+        this.closest('.fixed').classList.add('hidden');
+      });
+    });
+  });
+</script>
