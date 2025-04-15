@@ -27,24 +27,32 @@ export function BulkGradeEntry({
   const [grades, setGrades] = useState<Record<number, string>>(() => {
     // Initialize with existing grades if available
     const initialGrades: Record<number, string> = {};
-    students.forEach(student => {
-      const existingGrade = existingGrades.find(g => g.studentId === student.id);
-      if (existingGrade) {
-        initialGrades[student.id] = existingGrade.score.toString();
-      } else {
-        initialGrades[student.id] = '';
-      }
-    });
+    
+    // Safety check to ensure students exists
+    if (students && students.length > 0) {
+      students.forEach(student => {
+        if (student && student.id) {
+          const existingGrade = existingGrades.find(g => g && g.studentId === student.id);
+          if (existingGrade && existingGrade.score !== undefined && existingGrade.score !== null) {
+            initialGrades[student.id] = existingGrade.score.toString();
+          } else {
+            initialGrades[student.id] = '';
+          }
+        }
+      });
+    }
+    
     return initialGrades;
   });
 
   const handleScoreChange = (studentId: number, value: string) => {
     // Only allow numeric input and empty string
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
-      const numValue = parseFloat(value);
+      // Safe parsing with validation
+      const numValue = value === '' ? 0 : parseFloat(value);
       
-      // Check if value exceeds max score
-      if (value !== '' && numValue > maxScore) {
+      // Check if value exceeds max score and is a valid number
+      if (value !== '' && !isNaN(numValue) && numValue > maxScore) {
         toast({
           title: "Invalid score",
           description: `Score cannot exceed the maximum of ${maxScore}`,
@@ -99,14 +107,21 @@ export function BulkGradeEntry({
       const studentId = parseInt(studentIdStr);
       
       // Skip empty scores
-      if (!scoreStr.trim()) return;
+      if (!scoreStr || !scoreStr.trim()) return;
       
       const score = parseFloat(scoreStr);
       const existingGrade = existingGrades.find(g => g.studentId === studentId);
       
+      // Safety check for NaN
+      if (isNaN(score)) return;
+      
       if (existingGrade) {
         // Update existing grade if the score changed
-        if (parseFloat(existingGrade.score.toString()) !== score) {
+        const existingScore = typeof existingGrade.score === 'string' 
+          ? parseFloat(existingGrade.score) 
+          : Number(existingGrade.score);
+          
+        if (existingScore !== score) {
           promises.push(updateGradeMutation.mutateAsync({ id: existingGrade.id, score }));
         }
       } else {
@@ -147,7 +162,7 @@ export function BulkGradeEntry({
   
   // Calculate completion stats
   const totalStudents = students.length;
-  const gradedStudents = Object.values(grades).filter(score => score.trim() !== '').length;
+  const gradedStudents = Object.values(grades).filter(score => score && score.trim && score.trim() !== '').length;
   const completionPercentage = totalStudents > 0 ? Math.round((gradedStudents / totalStudents) * 100) : 0;
 
   return (
@@ -169,51 +184,58 @@ export function BulkGradeEntry({
       </div>
       
       <div className="space-y-4 max-h-[400px] overflow-y-auto p-1">
-        {students.map(student => {
-          const existingGrade = existingGrades.find(g => g.studentId === student.id);
-          return (
-            <div 
-              key={student.id} 
-              className={`p-3 border rounded-md ${existingGrade ? 'border-primary/30 bg-primary/5' : ''}`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-full ${existingGrade ? 'bg-primary/20' : 'bg-primary/10'}`}>
-                    <span className="text-sm font-semibold text-primary">
-                      {student.firstName.charAt(0)}
-                      {student.lastName?.charAt(0) || ''}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium">
-                      {student.lastName ? 
-                        `${student.lastName}, ${student.firstName}` : 
-                        student.firstName}
-                    </p>
-                    {student.studentNumber && (
-                      <p className="text-xs text-muted-foreground">
-                        ID: {student.studentNumber}
+        {students && students.length > 0 ? (
+          students.map(student => {
+            const existingGrade = existingGrades.find(g => g.studentId === student.id);
+            return (
+              <div 
+                key={student.id} 
+                className={`p-3 border rounded-md ${existingGrade ? 'border-primary/30 bg-primary/5' : ''}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-full ${existingGrade ? 'bg-primary/20' : 'bg-primary/10'}`}>
+                      <span className="text-sm font-semibold text-primary">
+                        {student.firstName?.charAt(0) || '?'}
+                        {student.lastName?.charAt(0) || ''}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {student.lastName ? 
+                          `${student.lastName}, ${student.firstName}` : 
+                          student.firstName || 'Unnamed Student'}
                       </p>
-                    )}
+                      {student.studentNumber && (
+                        <p className="text-xs text-muted-foreground">
+                          ID: {student.studentNumber}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="w-24">
-                  <Label htmlFor={`score-${student.id}`} className="sr-only">Score</Label>
-                  <Input
-                    id={`score-${student.id}`}
-                    type="text"
-                    value={grades[student.id] || ''}
-                    onChange={(e) => handleScoreChange(student.id, e.target.value)}
-                    placeholder={`/${maxScore}`}
-                    className="text-right"
-                    aria-label={`Score for ${student.firstName}`}
-                  />
+                  
+                  <div className="w-24">
+                    <Label htmlFor={`score-${student.id}`} className="sr-only">Score</Label>
+                    <Input
+                      id={`score-${student.id}`}
+                      type="text"
+                      value={grades[student.id] || ''}
+                      onChange={(e) => handleScoreChange(student.id, e.target.value)}
+                      placeholder={`/${maxScore}`}
+                      className="text-right"
+                      aria-label={`Score for ${student.firstName || 'student'}`}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="p-6 text-center text-muted-foreground">
+            <p>No students found for this class.</p>
+            <p className="text-sm mt-2">Try selecting a different class.</p>
+          </div>
+        )}
       </div>
       
       <div className="flex justify-end">
