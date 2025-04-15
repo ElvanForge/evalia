@@ -12,14 +12,47 @@ import { QuizCelebration } from '@/components/quiz-celebration';
  * @param url - Original image URL from database
  * @returns Direct URL to the image
  */
-// Simple direct URL function - we'll use the exact URL from the database
-function getQuizImageUrl(url: string | null | undefined): string {
+// Enhanced function to get reliable image URLs for quiz questions
+// Uses multiple fallback strategies and the debug API
+async function fetchReliableImageUrl(url: string | null | undefined): Promise<string> {
   if (!url) return '';
   
   console.log('Processing image URL:', url);
   
-  // Return URL exactly as stored in database
-  return url;
+  try {
+    // Try our debug API first to get a reliable URL
+    const filename = url.split(/[\/\\]/).pop()?.split('?')[0];
+    
+    if (filename) {
+      const debugResponse = await fetch(`/api/image-debug/find?path=${encodeURIComponent(filename)}`);
+      if (debugResponse.ok) {
+        const data = await debugResponse.json();
+        if (data.success) {
+          console.log(`Debug API found image for ${filename}: ${data.url}`);
+          return data.url;
+        }
+      }
+    }
+    
+    // Fallback: Add cache-busting to the original URL
+    console.log('Using original URL with cache busting:', url);
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${Date.now()}`;
+  } catch (err) {
+    console.error('Error finding reliable image URL:', err);
+    // Last resort: Return the original URL
+    return url;
+  }
+}
+
+// Synchronous version that returns the original URL immediately
+// and can be used while the async function resolves
+function getQuizImageUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  
+  // Return the URL with cache busting
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${Date.now()}`;
 }
 
 // Interface for our internal answer tracking
