@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { InsertQuizQuestion, QuizQuestion, insertQuizQuestionSchema } from "@shared/schema";
 import { blobToDataUrl, makeSafeImageUrl, optimizeImageUrl, isSafeImageUrl } from "@/lib/image-utils";
-import { ImageWithFallbacks } from "@/components/quizzes/image-with-fallbacks";
+import ImageWithFallbacks from "@/components/quizzes/image-with-fallbacks";
 
 interface QuestionFormDialogProps {
   open: boolean;
