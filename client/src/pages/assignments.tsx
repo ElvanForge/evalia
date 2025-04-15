@@ -523,11 +523,25 @@ export default function Assignments() {
                             </p>
                           </div>
                           
+                          {/* Debug information */}
+                          <div className="bg-muted/20 p-2 mb-4 text-xs rounded overflow-auto">
+                            <pre>
+                              Students Loading: {isStudentsLoading ? 'yes' : 'no'}<br/>
+                              Grades Loading: {isGradesLoading ? 'yes' : 'no'}<br/>
+                              Student Count: {students?.length || 0}<br/>
+                              Assignment ID: {selectedAssignment?.id}<br/>
+                              Max Score: {selectedAssignment?.maxScore}<br/>
+                              {students && students.length > 0 && 
+                                `First Student: ${JSON.stringify(students[0], null, 2)}`
+                              }
+                            </pre>
+                          </div>
+                          
                           {isStudentsLoading || isGradesLoading ? (
                             <div className="flex justify-center py-8">
                               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                             </div>
-                          ) : students && students.length > 0 ? (
+                          ) : students && Array.isArray(students) && students.length > 0 ? (
                             <BulkGradeEntry 
                               students={students}
                               existingGrades={existingGrades || []}
