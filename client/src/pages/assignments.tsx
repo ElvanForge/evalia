@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PlusCircle, Pencil, Trash2, ClipboardCheck, AlertCircle } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, ClipboardCheck, AlertCircle, Loader2 } from "lucide-react";
 import { AssignmentForm } from "@/components/forms/assignment-form";
 import { GradeForm } from "@/components/forms/grade-form";
 import SectionHeader from "@/components/section-header";
@@ -56,6 +56,21 @@ export default function Assignments() {
   const { data: assignments, isLoading: isAssignmentsLoading } = useQuery<Assignment[]>({
     queryKey: [selectedClassId === "all" ? "/api/assignments" : `/api/assignments?classId=${selectedClassId}`],
     enabled: !isClassesLoading,
+  });
+  
+  // For grading dialog - fetch all classes first when dialog opens
+  const [gradingClassId, setGradingClassId] = useState<number | null>(null);
+  
+  // Fetch students for the selected class (for grading)
+  const { data: students, isLoading: isStudentsLoading } = useQuery<Student[]>({
+    queryKey: [gradingClassId ? `/api/classes/${gradingClassId}/students` : ''],
+    enabled: !!gradingClassId && isGradeDialogOpen,
+  });
+  
+  // Fetch existing grades for this assignment
+  const { data: existingGrades, isLoading: isGradesLoading } = useQuery({
+    queryKey: [selectedAssignment ? `/api/assignments/${selectedAssignment.id}/grades` : ''],
+    enabled: !!selectedAssignment && isGradeDialogOpen,
   });
 
   // Delete assignment mutation
@@ -133,9 +148,18 @@ export default function Assignments() {
     },
   ];
 
+  // Reset state when the grade dialog closes
+  const handleGradeDialogClose = () => {
+    setSelectedStudent(null);
+    setGradingClassId(null);
+    setIsGradeDialogOpen(false);
+  };
+  
   // Handle opening the grade dialog
   const handleGradeClick = (assignment: Assignment) => {
     setSelectedAssignment(assignment);
+    // Initialize with the assignment's class
+    setGradingClassId(assignment.classId);
     setIsGradeDialogOpen(true);
   };
   
@@ -267,6 +291,209 @@ export default function Assignments() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        
+        {/* Grade Entry Dialog */}
+        <Dialog open={isGradeDialogOpen} onOpenChange={handleGradeDialogClose}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <ClipboardCheck className="mr-2 h-5 w-5 text-primary" />
+                Enter Grades for {selectedAssignment?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Add or update grades for this assignment
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedAssignment && (
+              <div>
+                {/* Class Selection UI */}
+                <div className="mb-6">
+                  <Label htmlFor="class-select" className="text-sm font-medium mb-2 block">
+                    Select Class
+                  </Label>
+                  <Select 
+                    value={gradingClassId?.toString() || ''} 
+                    onValueChange={(value) => setGradingClassId(parseInt(value))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a class..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classes?.map((class_) => (
+                        <SelectItem key={class_.id} value={class_.id.toString()}>
+                          {class_.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {gradingClassId && (
+                  <Tabs defaultValue="students" className="w-full">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="students" onClick={() => setCurrentTab("students")}>
+                        Individual Student
+                      </TabsTrigger>
+                      <TabsTrigger value="bulk" onClick={() => setCurrentTab("bulk")}>
+                        Bulk Entry
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="students" className="space-y-4">
+                      {currentTab === "students" && (
+                        <>
+                          {isStudentsLoading ? (
+                            <div className="flex justify-center py-8">
+                              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : students && students.length > 0 ? (
+                            selectedStudent ? (
+                              // Show the grade form once a student is selected
+                              <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-4">
+                                    <div className="bg-primary/10 p-2 rounded-full">
+                                      <span className="text-lg font-semibold text-primary">
+                                        {selectedStudent.firstName.charAt(0)}
+                                        {selectedStudent.lastName?.charAt(0) || ''}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <h3 className="text-lg font-medium">
+                                        {selectedStudent.lastName ? `${selectedStudent.lastName}, ${selectedStudent.firstName}` : selectedStudent.firstName}
+                                      </h3>
+                                      {selectedStudent.studentNumber && (
+                                        <p className="text-sm text-muted-foreground">
+                                          Student ID: {selectedStudent.studentNumber}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => setSelectedStudent(null)}
+                                  >
+                                    Change Student
+                                  </Button>
+                                </div>
+                                
+                                <GradeForm 
+                                  assignmentId={selectedAssignment.id}
+                                  studentId={selectedStudent.id}
+                                  onSuccess={() => {
+                                    // Invalidate the grades query to refresh the data
+                                    queryClient.invalidateQueries({
+                                      queryKey: [`/api/assignments/${selectedAssignment.id}/grades`]
+                                    });
+                                    setSelectedStudent(null);
+                                    toast({
+                                      title: "Grade saved",
+                                      description: "The grade has been successfully saved.",
+                                    });
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              // Student selection view with students filtered by existing grades
+                              <div className="space-y-4">
+                                <div className="bg-muted/50 p-4 rounded-md flex items-center">
+                                  <AlertCircle className="h-5 w-5 text-primary mr-2" />
+                                  <p className="text-sm">
+                                    Select a student to enter or edit their grade for this assignment. 
+                                    {existingGrades && existingGrades.length > 0 && 
+                                      " Students who already have grades are marked."}
+                                  </p>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                                  {students.map(student => {
+                                    // Check if student already has a grade for this assignment
+                                    const hasExistingGrade = existingGrades?.some(
+                                      grade => grade.studentId === student.id
+                                    );
+                                    
+                                    return (
+                                      <Button
+                                        key={student.id}
+                                        variant="outline"
+                                        className={`justify-start h-auto py-3 px-4 ${
+                                          hasExistingGrade ? "border-primary/30 bg-primary/5" : ""
+                                        }`}
+                                        onClick={() => setSelectedStudent(student)}
+                                      >
+                                        <div className="flex items-center w-full">
+                                          <div className={`p-2 rounded-full mr-3 ${
+                                            hasExistingGrade ? "bg-primary/20" : "bg-primary/10"
+                                          }`}>
+                                            <span className="text-sm font-semibold text-primary">
+                                              {student.firstName.charAt(0)}
+                                              {student.lastName?.charAt(0) || ''}
+                                            </span>
+                                          </div>
+                                          <div className="text-left flex-grow">
+                                            <p className="font-medium">
+                                              {student.lastName ? 
+                                                `${student.lastName}, ${student.firstName}` : 
+                                                student.firstName}
+                                            </p>
+                                            {student.studentNumber && (
+                                              <p className="text-xs text-muted-foreground">
+                                                ID: {student.studentNumber}
+                                              </p>
+                                            )}
+                                          </div>
+                                          {hasExistingGrade && (
+                                            <div className="flex items-center ml-2 px-2 py-1 rounded-full bg-primary/10 text-xs text-primary">
+                                              Graded
+                                            </div>
+                                          )}
+                                        </div>
+                                      </Button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )
+                          ) : (
+                            <div className="text-center py-8">
+                              <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+                              <h3 className="text-lg font-medium mb-2">No students found</h3>
+                              <p className="text-muted-foreground">
+                                There are no students enrolled in this class yet.
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="bulk" className="space-y-4">
+                      {currentTab === "bulk" && (
+                        <div className="space-y-4">
+                          <div className="bg-muted/50 p-4 rounded-md flex items-center">
+                            <AlertCircle className="h-5 w-5 text-amber-600 mr-2" />
+                            <p className="text-sm">
+                              Enter grades for multiple students at once. Click save when you're done to save all grades.
+                            </p>
+                          </div>
+                          
+                          {/* Bulk grading interface would go here */}
+                          <div className="pt-4">
+                            <p className="text-center text-muted-foreground">
+                              Bulk grade entry coming soon
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
