@@ -3,8 +3,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Image, X, Loader2, Plus } from "lucide-react";
-import { getImageProps } from "@/lib/image-utils";
-import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import {
   Dialog,
   DialogContent,
@@ -77,11 +75,14 @@ export function QuestionFormDialog({
     }
   }, [open, quizId]);
   
-  // Set the image preview when the question changes
+  // Simple, direct image preview from question
   useEffect(() => {
     if (questionToEdit?.imageUrl) {
       console.log("Setting image preview from questionToEdit.imageUrl:", questionToEdit.imageUrl);
-      setImagePreview(questionToEdit.imageUrl);
+      const imagePath = questionToEdit.imageUrl.split('/').pop()?.split('?')[0]; // Extract just the filename
+      const fullUrl = `/uploads/images/${imagePath}`;
+      console.log("Using direct image path:", fullUrl);
+      setImagePreview(fullUrl);
     } else {
       console.log("No image URL in questionToEdit, clearing preview");
       setImagePreview(null);
@@ -510,17 +511,17 @@ export function QuestionFormDialog({
     }
   };
 
+  // Simplified image change handler with less complexity
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        setImagePreview(dataUrl);
-        // We don't set imageUrl field here yet because we need to upload the file first
-        // The actual URL will be set after successful upload in the onSubmit handler
-      };
-      reader.readAsDataURL(file);
+      // Create a simple object URL instead of data URL to reduce processing
+      const objectUrl = URL.createObjectURL(file);
+      console.log("Created object URL for preview:", objectUrl);
+      setImagePreview(objectUrl);
+      
+      // We'll handle the actual upload in onSubmit
+      console.log("Image selected:", file.name);
     }
   };
 
@@ -635,9 +636,7 @@ export function QuestionFormDialog({
                       {imagePreview ? (
                         <div className="relative w-full rounded-md overflow-hidden border border-border">
                           <img
-                            src={imagePreview && imagePreview.startsWith('data:') 
-                              ? imagePreview // Keep data URLs as is
-                              : `/uploads/images/${imagePreview.split('/').pop()?.split('?')[0]}`}
+                            src={imagePreview}
                             alt="Question preview"
                             className="w-full h-auto max-h-[200px] object-contain"
                           />
