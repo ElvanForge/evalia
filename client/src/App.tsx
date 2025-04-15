@@ -27,6 +27,7 @@ import Subscribe from "@/pages/subscribe";
 import BetaApplication from "@/pages/beta-application";
 import ImageTest from "@/pages/image-test";
 import ImageDebug from "@/pages/image-debug";
+import DebugPage from "@/pages/debug-page";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 // Import our new assignment pages
@@ -79,6 +80,7 @@ function Router() {
       <Route path="/lesson-plans/:id" component={LessonPlanDetail} />
       <Route path="/lesson-plans/:id/edit" component={EditLessonPlan} />
       <Route path="/lesson-plans/:id/export" component={ExportLessonPlan} />
+      <Route path="/debug" component={DebugPage} />
       <Route component={NotFound} />
     </Switch>
   );

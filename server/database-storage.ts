@@ -528,6 +528,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schema.quizQuestions.id, id));
     return result.rowCount > 0;
   }
+  
+  async getQuizQuestionsByImageUrl(): Promise<QuizQuestion[]> {
+    return db
+      .select()
+      .from(schema.quizQuestions)
+      .where(sql`${schema.quizQuestions.imageUrl} IS NOT NULL`)
+      .execute();
+  }
+  
+  async updateQuizQuestionImageUrl(id: number, imageUrl: string | null): Promise<QuizQuestion | undefined> {
+    const result = await db
+      .update(schema.quizQuestions)
+      .set({ imageUrl })
+      .where(eq(schema.quizQuestions.id, id))
+      .returning();
+      
+    return result[0];
+  }
 
   // Quiz Option operations
   async getQuizOption(id: number): Promise<QuizOption | undefined> {

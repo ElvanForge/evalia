@@ -26,6 +26,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { InsertQuizQuestion, QuizQuestion, insertQuizQuestionSchema } from "@shared/schema";
+import { blobToDataUrl, makeSafeImageUrl, optimizeImageUrl, isSafeImageUrl } from "@/lib/image-utils";
+import { ImageWithFallbacks } from "@/components/quizzes/image-with-fallbacks";
 
 interface QuestionFormDialogProps {
   open: boolean;
@@ -155,6 +157,20 @@ export function QuestionFormDialog({
 
     try {
       console.log("Form data:", data);
+
+      // First check if we're working with a blob URL
+      if (imageUrl && imageUrl.startsWith('blob:')) {
+        console.log("Converting blob URL to data URL:", imageUrl);
+        try {
+          // Convert the blob URL to a data URL
+          imageUrl = await blobToDataUrl(imageUrl);
+          console.log("Successfully converted blob URL to data URL");
+        } catch (err) {
+          console.error("Failed to convert blob URL to data URL:", err);
+          // If conversion fails, set to null
+          imageUrl = null;
+        }
+      }
 
       // Handle image upload if needed before creating the question
       // If an image file was uploaded or selected (data URL in preview), we need to handle it
@@ -331,6 +347,18 @@ export function QuestionFormDialog({
       
       console.log("Using quiz ID for new question:", numericQuizId);
       
+      // Process the image URL to ensure it's safe for storage
+      if (imageUrl) {
+        try {
+          // Convert any blob URLs to data URLs and ensure URL is safe for storage
+          imageUrl = await makeSafeImageUrl(imageUrl);
+          console.log("Image URL processed for safe storage:", imageUrl ? "URL processed successfully" : "URL processing failed");
+        } catch (err) {
+          console.error("Failed to process image URL for safe storage:", err);
+          imageUrl = null;
+        }
+      }
+
       // Prepare the question data - exclude questionOptions as they'll be handled separately
       const questionData: InsertQuizQuestion = {
         quizId: numericQuizId,
@@ -633,10 +661,11 @@ export function QuestionFormDialog({
                     <div className="space-y-2">
                       {imagePreview ? (
                         <div className="relative w-full rounded-md overflow-hidden border border-border">
-                          <img
+                          <ImageWithFallbacks
                             src={imagePreview}
                             alt="Question preview"
                             className="w-full h-auto max-h-[200px] object-contain"
+                            fallbackClassName="w-full h-[200px]"
                           />
                           <Button
                             type="button"

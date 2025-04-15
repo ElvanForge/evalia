@@ -45,6 +45,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { setupAuth } from "./auth";
+import { cleanupAllImages, cleanupBlobUrls } from './scripts/image-cleanup';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication with Passport.js
@@ -3468,6 +3469,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Image handling endpoints
   
+  // Image cleanup endpoint
+  app.post('/api/image-cleanup', requireAuth, requireRole(['admin', 'manager']), async (req, res) => {
+    try {
+      // Determine the cleanup type from the request
+      const { cleanupType } = req.body;
+      
+      if (cleanupType === 'blob') {
+        // Only clean up blob URLs
+        const removedCount = await cleanupBlobUrls();
+        return res.status(200).json({
+          success: true,
+          message: `Successfully removed ${removedCount} blob URLs from the database`,
+          removedCount
+        });
+      } else {
+        // Clean up all problematic image URLs
+        const result = await cleanupAllImages();
+        return res.status(200).json({
+          success: true,
+          message: `Successfully fixed ${result.fixed} and removed ${result.removed} problematic image URLs`,
+          result
+        });
+      }
+    } catch (error) {
+      console.error('Error in image cleanup endpoint:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred during image cleanup',
+        error: String(error)
+      });
+    }
+  });
+  
+  // Special debug endpoint for image cleanup testing
+  app.post('/api/debug/image-cleanup', async (req, res) => {
+    try {
+      // Determine the cleanup type from the request
+      const { cleanupType } = req.body;
+      
+      console.log("Running image cleanup in debug mode:", cleanupType);
+      
+      if (cleanupType === 'blob') {
+        // Only clean up blob URLs
+        const removedCount = await cleanupBlobUrls();
+        return res.status(200).json({
+          success: true,
+          message: `Successfully removed ${removedCount} blob URLs from the database`,
+          removedCount
+        });
+      } else {
+        // Clean up all problematic image URLs
+        const result = await cleanupAllImages();
+        return res.status(200).json({
+          success: true,
+          message: `Successfully fixed ${result.fixed} and removed ${result.removed} problematic image URLs`,
+          result
+        });
+      }
+    } catch (error) {
+      console.error('Error in debug image cleanup endpoint:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An error occurred during image cleanup',
+        error: String(error)
+      });
+    }
+  });
+
   // Image debug API endpoints
   app.get('/api/image-debug/find', async (req, res) => {
     try {
@@ -3583,6 +3652,201 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // =====================
+  // IMAGE DIAGNOSTICS API
+  // =====================
+
+  // API endpoint for fetching image statistics
+  app.get("/api/debug/image-stats", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      // Count all questions with images
+      const questions = await dbStorage.getQuizQuestionsByImageUrl();
+
+      const stats = {
+        total: questions.length,
+        blob: 0,
+        data: 0,
+        path: 0,
+        problematic: 0
+      };
+
+      // Categorize the images
+      for (const question of questions) {
+        const url = question.imageUrl;
+        if (!url) continue;
+
+        if (url.startsWith('data:')) {
+          stats.data++;
+        } else if (url.startsWith('/')) {
+          stats.path++;
+        } else if (url.startsWith('blob:')) {
+          stats.blob++;
+          stats.problematic++; // Blob URLs are problematic
+        } else {
+          stats.problematic++;
+        }
+      }
+
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching image stats:", error);
+      res.status(500).json({ error: "Failed to fetch image statistics" });
+    }
+  });
+
+  // API endpoint for fetching question images
+  app.get("/api/debug/question-images", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      // Get all questions with images
+      const questions = await dbStorage.getQuizQuestionsByImageUrl();
+
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching question images:", error);
+      res.status(500).json({ error: "Failed to fetch question images" });
+    }
+  });
+
+  // Track progress of image scanning
+  let scanProgress = {
+    percentage: 0,
+    complete: false,
+    fixed: 0
+  };
+
+  // API endpoint for scanning and optionally cleaning up images
+  app.post("/api/debug/scan-images", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { clean = false } = req.body;
+
+    // Reset progress
+    scanProgress = {
+      percentage: 0,
+      complete: false,
+      fixed: 0
+    };
+
+    // Start the scan process asynchronously
+    (async () => {
+      try {
+        // Get all questions with images
+        const questions = await dbStorage.getQuizQuestionsByImageUrl();
+
+        let fixCount = 0;
+        for (let i = 0; i < questions.length; i++) {
+          const question = questions[i];
+          scanProgress.percentage = Math.round((i / questions.length) * 100);
+          
+          if (!question.imageUrl) continue;
+
+          let needsUpdate = false;
+          let newImageUrl = question.imageUrl;
+
+          // Check if the URL is problematic
+          if (question.imageUrl.startsWith('blob:')) {
+            console.log(`Found blob URL in question ${question.id}`);
+            
+            if (clean) {
+              // Clear blob URLs as they cannot be converted server-side
+              newImageUrl = null;
+              needsUpdate = true;
+              fixCount++;
+            }
+          } 
+          // Fix paths that don't start with / 
+          else if (!question.imageUrl.startsWith('/') && 
+                  !question.imageUrl.startsWith('data:') && 
+                  !question.imageUrl.startsWith('http')) {
+            console.log(`Found relative path URL in question ${question.id}`);
+            
+            if (clean) {
+              // Add leading slash
+              newImageUrl = '/' + question.imageUrl;
+              
+              // If it still doesn't have /uploads in path, add it
+              if (!newImageUrl.includes('/uploads/')) {
+                if (newImageUrl.includes('uploads/')) {
+                  // Fix path that has 'uploads/' but not at the beginning
+                  const parts = newImageUrl.split('uploads/');
+                  newImageUrl = '/uploads/' + parts[parts.length - 1];
+                } else {
+                  // Add /uploads/images/ if it's just a filename
+                  if (!newImageUrl.includes('/')) {
+                    newImageUrl = '/uploads/images/' + newImageUrl;
+                  }
+                }
+              }
+              
+              needsUpdate = true;
+              fixCount++;
+            }
+          }
+
+          // Update the question if needed
+          if (clean && needsUpdate) {
+            await dbStorage.updateQuizQuestionImageUrl(question.id, newImageUrl);
+            console.log(`Updated question ${question.id} with new image URL: ${newImageUrl}`);
+          }
+
+          // Small delay to not overwhelm the DB
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        scanProgress.fixed = fixCount;
+        scanProgress.percentage = 100;
+        scanProgress.complete = true;
+        console.log(`Scan complete. ${clean ? `Fixed ${fixCount} problematic images` : 'Scan only mode'}`);
+      } catch (error) {
+        console.error("Error scanning images:", error);
+        scanProgress.complete = true;
+      }
+    })();
+
+    // Respond immediately that the process has started
+    res.json({ message: "Scan started" });
+  });
+
+  // API endpoint for tracking scan progress with Server-Sent Events
+  app.get("/api/debug/scan-progress", (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Set headers for SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    
+    // Send initial progress
+    res.write(`data: ${JSON.stringify(scanProgress)}\n\n`);
+    
+    // Set up interval to send progress updates
+    const interval = setInterval(() => {
+      res.write(`data: ${JSON.stringify(scanProgress)}\n\n`);
+      
+      if (scanProgress.complete) {
+        clearInterval(interval);
+        res.end();
+      }
+    }, 1000);
+    
+    // Clean up on close
+    req.on('close', () => {
+      clearInterval(interval);
+    });
+  });
+
   app.get('/api/image-debug/list', async (req, res) => {
     try {
       const directoryPath = './uploads/images';
