@@ -1,0 +1,72 @@
+source "https://rubygems.org"
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
+ruby "3.2.2"
+
+# Rails core
+gem "rails", "~> 7.0.8"
+gem "puma", "~> 5.0"
+gem "pg", "~> 1.1"
+
+# Asset pipeline and frontend
+gem "sprockets-rails"
+gem "importmap-rails"
+gem "turbo-rails"
+gem "stimulus-rails"
+gem "tailwindcss-rails"
+gem "jbuilder"
+
+# Authentication and authorization
+gem "devise"
+gem "pundit"
+
+# File handling
+gem "image_processing", "~> 1.2"
+gem "active_storage-postgresql"
+
+# Data visualization and processing
+gem "chartkick"
+gem "groupdate"
+
+# Document generation
+gem "wicked_pdf"
+gem "wkhtmltopdf-binary"
+gem "caxlsx"
+gem "caxlsx_rails"
+gem "docx"
+
+# Pagination
+gem "pagy"
+
+# Background processing
+gem "sidekiq"
+
+# API integration
+gem "stripe"
+gem "ruby-openai"
+
+# Development and testing
+group :development, :test do
+  gem "debug", platforms: %i[ mri mingw x64_mingw ]
+  gem "rspec-rails", "~> 6.0.0"
+  gem "factory_bot_rails"
+  gem "faker"
+end
+
+group :development do
+  gem "web-console"
+  gem "annotate"
+  gem "bullet"
+end
+
+group :test do
+  gem "capybara"
+  gem "selenium-webdriver"
+  gem "webdrivers"
+end
+
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
+gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+
+# Reduces boot times through caching; required in config/boot.rb
+gem "bootsnap", require: false
