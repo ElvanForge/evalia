@@ -1,0 +1,985 @@
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-f21e656a1270f7a2f84c2e91d26ded3b.html#__shared_params__[version]=acacia&apiKey=pk_test_51R7qeUGfHwGnKNqPb6QpmGfEEtE8pXsdQ97vt6BwmGrkLAqTjsFnd7q0rVBMuNlfbU0NT4jCDMzCzPKkPYB6p7pC00OsKtVtYe&apiVersion=2025-01-27.acacia&stripeJsId=b6622edf-d079-40a6-8404-716a0fbbb98b&firstStripeInstanceCreatedLatency=4&controllerCount=1&isCheckout=false&stripeJsLoadTime=1744729853553&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=NA&mids[sid]=NA&referrer=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&controllerId=__privateStripeController7861” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:1607:7
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/6bc6cad2-ac4d-434e-bee7-f0159360cf45?v=1744729427314: /uploads/images/blob:https://evaliabeta.replit.app/6bc6cad2-ac4d-434e-bee7-f0159360cf45?v=1744729427314 index-emu--pQ2.js:499:116747
+Started preloading for next question: 44 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/6bc6cad2-ac4d-434e-bee7-f0159360cf45?v=1744729427314: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F6bc6cad2-ac4d-434e-bee7-f0159360cf45%3Fv%3D1744729427314?t=1744729856862 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 44 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/6bc6cad2-ac4d-434e-bee7-f0159360cf45?v=1744729427314: /uploads/images/blob:https://evaliabeta.replit.app/6bc6cad2-ac4d-434e-bee7-f0159360cf45?v=1744729427314 index-emu--pQ2.js:499:116877
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&title=Evalia%20-%20Teacher%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:1607:7
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/6bc6cad2-ac4d-434e-bee7-f0159360cf45?v=1744729427314 index-emu--pQ2.js:499:116959
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&title=Evalia%20-%20Teacher%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:1607:7
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://m.stripe.com/6. (Reason: CORS request did not succeed). Status code: (null).
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+QuestionFormDialog: opened with quiz ID: 3 index-emu--pQ2.js:487:981
+Setting image preview from questionToEdit.imageUrl: /uploads/images/blob:https://evaliabeta.replit.app/6bc6cad2-ac4d-434e-bee7-f0159360cf45?v=1744729427314 index-emu--pQ2.js:487:1186
+Fetching options for question 43 in quiz 3 index-emu--pQ2.js:487:1851
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Received options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:487:2008
+Setting 2 options from API index-emu--pQ2.js:487:2132
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='” autoconsent.js:954:14
+Image removed, form values: 
+Object { quizId: 3, question: "What are the past words?", type: "speaking", imageUrl: null, questionOptions: (2) […], imageFile: undefined }
+index-emu--pQ2.js:487:8573
+Direct file selected: 
+FileList [ File ]
+index-emu--pQ2.js:491:109
+Created object URL for preview: blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0 index-emu--pQ2.js:487:8373
+Image selected: c5226f1cc3f711300a0907dd7df95096.jpg index-emu--pQ2.js:487:8427
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src https://m.stripe.network” autoconsent.js:954:14
+Form data: 
+Object { quizId: 3, question: "What are the past words?", type: "speaking", imageUrl: null, questionOptions: (2) […] }
+index-emu--pQ2.js:487:2498
+Using existing image URL: blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0 index-emu--pQ2.js:487:4691
+Normalized existing image URL: blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:487:4814
+Using quiz ID for new question: 3 index-emu--pQ2.js:487:5396
+Existing options from API: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:487:5937
+Deleting 2 existing options for question 43 index-emu--pQ2.js:487:5993
+Existing options map: 
+Map { 294 → {…}, 295 → {…} }
+index-emu--pQ2.js:487:6103
+Deleting option 294: Correct index-emu--pQ2.js:487:6160
+Successfully deleted option 294 index-emu--pQ2.js:487:6333
+Deleting option 295: Incorrect index-emu--pQ2.js:487:6160
+Successfully deleted option 295 index-emu--pQ2.js:487:6333
+Creating options: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:487:6720
+Creating option for question 43 using endpoint: /api/quiz-questions/43/options index-emu--pQ2.js:487:6916
+Option data: 
+Object { questionId: 43, text: "Correct", isCorrect: true }
+index-emu--pQ2.js:487:7049
+Successfully created option: Correct index-emu--pQ2.js:487:7193
+Creating option for question 43 using endpoint: /api/quiz-questions/43/options index-emu--pQ2.js:487:6916
+Option data: 
+Object { questionId: 43, text: "Incorrect", isCorrect: false }
+index-emu--pQ2.js:487:7049
+Successfully created option: Incorrect index-emu--pQ2.js:487:7193
+Invalidating cache for question options: 43 index-emu--pQ2.js:487:7971
+Edit question dialog onOpenChange called with: false index-emu--pQ2.js:491:16798
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116747
+Started preloading for next question: 44 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F510110a0-7ef5-477f-81c3-2fee941ae3d0%3Fv%3D1744729869793?t=1744729880681 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 44 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116959
+Recording answer for question 43, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 1 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116747
+Started preloading for next question: 12 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F8dab2850-6c4c-45ac-9587-49e75e622ecb%3Fv%3D1744678462588?t=1744729888873 index-emu--pQ2.js:499:116877
+Answer selection blocked: already processing an answer index-emu--pQ2.js:499:120907
+Standard preload failed, trying base64 method for question: 12 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116959
+Recording answer for question 44, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 2 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116747
+Started preloading for next question: 40 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F180a7f0c-e48d-48b9-8dc3-39b38d253deb%3Fv%3D1744676620556?t=1744729892285 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 40 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116959
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116747
+Started preloading for next question: 44 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F510110a0-7ef5-477f-81c3-2fee941ae3d0%3Fv%3D1744729869793?t=1744729903794 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 44 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116959
+Recording answer for question 43, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 1 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116747
+Started preloading for next question: 12 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F8dab2850-6c4c-45ac-9587-49e75e622ecb%3Fv%3D1744678462588?t=1744729909719 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 12 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116959
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116747
+Started preloading for next question: 44 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F510110a0-7ef5-477f-81c3-2fee941ae3d0%3Fv%3D1744729869793?t=1744731806852 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 44 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:499:116959
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+QuestionFormDialog: opened with quiz ID: 3 index-emu--pQ2.js:487:981
+Setting image preview from questionToEdit.imageUrl: /uploads/images/blob:https://evaliabeta.replit.app/510110a0-7ef5-477f-81c3-2fee941ae3d0?v=1744729869793 index-emu--pQ2.js:487:1186
+Fetching options for question 43 in quiz 3 index-emu--pQ2.js:487:1851
+Received options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:487:2008
+Setting 2 options from API index-emu--pQ2.js:487:2132
+Image removed, form values: 
+Object { quizId: 3, question: "What are the past words?", type: "speaking", imageUrl: null, questionOptions: (2) […], imageFile: undefined }
+index-emu--pQ2.js:487:8573
+Direct file selected: 
+FileList [ File ]
+index-emu--pQ2.js:491:109
+Created object URL for preview: blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81 index-emu--pQ2.js:487:8373
+Image selected: 2MjFnC.jpg index-emu--pQ2.js:487:8427
+Form data: 
+Object { quizId: 3, question: "What are the past words?", type: "speaking", imageUrl: null, questionOptions: (2) […] }
+index-emu--pQ2.js:487:2498
+Using existing image URL: blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81 index-emu--pQ2.js:487:4691
+Normalized existing image URL: blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-emu--pQ2.js:487:4814
+Using quiz ID for new question: 3 index-emu--pQ2.js:487:5396
+Existing options from API: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:487:5937
+Deleting 2 existing options for question 43 index-emu--pQ2.js:487:5993
+Existing options map: 
+Map { 296 → {…}, 297 → {…} }
+index-emu--pQ2.js:487:6103
+Deleting option 296: Correct index-emu--pQ2.js:487:6160
+Successfully deleted option 296 index-emu--pQ2.js:487:6333
+Deleting option 297: Incorrect index-emu--pQ2.js:487:6160
+Successfully deleted option 297 index-emu--pQ2.js:487:6333
+Creating options: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:487:6720
+Creating option for question 43 using endpoint: /api/quiz-questions/43/options index-emu--pQ2.js:487:6916
+Option data: 
+Object { questionId: 43, text: "Correct", isCorrect: true }
+index-emu--pQ2.js:487:7049
+Successfully created option: Correct index-emu--pQ2.js:487:7193
+Creating option for question 43 using endpoint: /api/quiz-questions/43/options index-emu--pQ2.js:487:6916
+Option data: 
+Object { questionId: 43, text: "Incorrect", isCorrect: false }
+index-emu--pQ2.js:487:7049
+Successfully created option: Incorrect index-emu--pQ2.js:487:7193
+Invalidating cache for question options: 43 index-emu--pQ2.js:487:7971
+Edit question dialog onOpenChange called with: false index-emu--pQ2.js:491:16798
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-emu--pQ2.js:491:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-emu--pQ2.js:491:12805
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977: /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-emu--pQ2.js:499:116747
+Started preloading for next question: 44 index-emu--pQ2.js:499:119331
+Standard preload failed, trying base64 method for question: 44 index-emu--pQ2.js:499:118743
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2Fe3a033f4-2f0a-4a72-bce3-49827978da81%3Fv%3D1744731824977?t=1744731835858 index-emu--pQ2.js:499:116877
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977: /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-emu--pQ2.js:499:116959
+Recording answer for question 43, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 1 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116747
+Started preloading for next question: 12 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F8dab2850-6c4c-45ac-9587-49e75e622ecb%3Fv%3D1744678462588?t=1744731841668 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 12 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116959
+Recording answer for question 44, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 2 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116747
+Started preloading for next question: 40 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F180a7f0c-e48d-48b9-8dc3-39b38d253deb%3Fv%3D1744676620556?t=1744731845020 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 40 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116959
+Recording answer for question 12, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 3 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925: /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925 index-emu--pQ2.js:499:116747
+Started preloading for next question: 39 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F204db47f-3396-4a4e-95aa-d3c2400a3bca%3Fv%3D1744676555925?t=1744731848223 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 39 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925: /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925 index-emu--pQ2.js:499:116959
+Recording answer for question 40, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 4 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181: /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181 index-emu--pQ2.js:499:116747
+Started preloading for next question: 38 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2Fe1edd9d7-cbd3-458d-bb65-3f09ca579b7c%3Fv%3D1744676647181?t=1744731851404 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 38 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181: /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c?v=1744676647181 index-emu--pQ2.js:499:116959
+Recording answer for question 39, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 5 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800: /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800 index-emu--pQ2.js:499:116747
+Started preloading for next question: 37 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2Feab6de6e-14da-4e30-9fa4-03428395e7d6%3Fv%3D1744676694800?t=1744731854629 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 37 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800: /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/eab6de6e-14da-4e30-9fa4-03428395e7d6?v=1744676694800 index-emu--pQ2.js:499:116959
+Recording answer for question 38, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 6 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987: /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987 index-emu--pQ2.js:499:116747
+Started preloading for next question: 36 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F82bac6f6-e18c-44fe-9ee4-c849468d4e1b%3Fv%3D1744676666987?t=1744731857969 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 36 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987: /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/82bac6f6-e18c-44fe-9ee4-c849468d4e1b?v=1744676666987 index-emu--pQ2.js:499:116959
+Recording answer for question 37, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 7 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398: /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398 index-emu--pQ2.js:499:116747
+Started preloading for next question: 46 index-emu--pQ2.js:499:119331
+Standard preload failed, trying base64 method for question: 46 index-emu--pQ2.js:499:118743
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F525c878d-518c-4325-9004-c5c3b5b585a4%3Fv%3D1744676716398?t=1744731861735 index-emu--pQ2.js:499:116877
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398: /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/525c878d-518c-4325-9004-c5c3b5b585a4?v=1744676716398 index-emu--pQ2.js:499:116959
+Recording answer for question 36, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 8 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843: /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843 index-emu--pQ2.js:499:116747
+Started preloading for next question: 41 index-emu--pQ2.js:499:119331
+Standard preload failed, trying base64 method for question: 41 index-emu--pQ2.js:499:118743
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F4aeb9b80-04a0-48a8-a317-201761731551%3Fv%3D1744676735843?t=1744731865322 index-emu--pQ2.js:499:116877
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843: /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/4aeb9b80-04a0-48a8-a317-201761731551?v=1744676735843 index-emu--pQ2.js:499:116959
+Recording answer for question 46, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 9 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610: /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610 index-emu--pQ2.js:499:116747
+Started preloading for next question: 45 index-emu--pQ2.js:499:119331
+Standard preload failed, trying base64 method for question: 45 index-emu--pQ2.js:499:118743
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F28bdd390-296c-4488-9280-f574b669d180%3Fv%3D1744676768610?t=1744731869117 index-emu--pQ2.js:499:116877
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610: /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/28bdd390-296c-4488-9280-f574b669d180?v=1744676768610 index-emu--pQ2.js:499:116959
+Recording answer for question 41, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 10 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599: /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599 index-emu--pQ2.js:499:116747
+Started preloading for next question: 47 index-emu--pQ2.js:499:119331
+Standard preload failed, trying base64 method for question: 47 index-emu--pQ2.js:499:118743
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F93bac95a-48f7-400e-a854-9d8516fb45a6%3Fv%3D1744676785599?t=1744731872712 index-emu--pQ2.js:499:116877
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599: /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/93bac95a-48f7-400e-a854-9d8516fb45a6?v=1744676785599 index-emu--pQ2.js:499:116959
+Recording answer for question 45, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 11 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803: /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803 index-emu--pQ2.js:499:116747
+Started preloading for next question: 35 index-emu--pQ2.js:499:119331
+Standard preload failed, trying base64 method for question: 35 index-emu--pQ2.js:499:118743
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2Fbf6837e5-0820-42f2-a606-9fc518043c30%3Fv%3D1744676810803?t=1744731876550 index-emu--pQ2.js:499:116877
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803: /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/bf6837e5-0820-42f2-a606-9fc518043c30?v=1744676810803 index-emu--pQ2.js:499:116959
+Recording answer for question 47, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 12 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874: /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874 index-emu--pQ2.js:499:116747
+Started preloading for next question: 42 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874: /api/quiz-image/%2Fuploads%2Fimages%2Fimage-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png%3Fv%3D1744589856874?t=1744731879805 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 42 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874: /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/image-1744589856651-MTc0NDU4-1744589856651-6v9wqmkm.png?v=1744589856874 index-emu--pQ2.js:499:116959
+Recording answer for question 35, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 13 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684: /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684 index-emu--pQ2.js:499:116747
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F7682896a-47c6-47e8-8cdf-5debf65972c8%3Fv%3D1744678159684?t=1744731883372 index-emu--pQ2.js:499:116877
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684: /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/7682896a-47c6-47e8-8cdf-5debf65972c8?v=1744678159684 index-emu--pQ2.js:499:116959
+Recording answer for question 42, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 14 index-emu--pQ2.js:499:121396
+Finalizing quiz and calculating score... index-emu--pQ2.js:499:122356
+Quiz completion stats:
+      - Total raw answers: 13
+      - Deduplicated answers: 13 
+      - Unique correct answers: 0
+      - Total questions: 14
+      - Current score tracker: 0 index-emu--pQ2.js:499:122570
+Reporting final score: 0/14 index-emu--pQ2.js:504:300
+Quiz completed with score: 0/14 index-emu--pQ2.js:504:10793
+Not recording final result: Preview mode active index-emu--pQ2.js:504:11599
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. 3 index-emu--pQ2.js:407:500
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977: /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-emu--pQ2.js:499:116747
+Started preloading for next question: 44 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2Fe3a033f4-2f0a-4a72-bce3-49827978da81%3Fv%3D1744731824977?t=1744732658116 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 44 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977: /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-emu--pQ2.js:499:116959
+Recording answer for question 43, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 1 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116747
+Started preloading for next question: 12 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F8dab2850-6c4c-45ac-9587-49e75e622ecb%3Fv%3D1744678462588?t=1744732666684 index-emu--pQ2.js:499:116877
+Answer selection blocked: already processing an answer index-emu--pQ2.js:499:120907
+Standard preload failed, trying base64 method for question: 12 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-emu--pQ2.js:499:116959
+Recording answer for question 44, correct: false index-emu--pQ2.js:499:121236
+Not saving to server: in preview mode index-emu--pQ2.js:499:121663
+Total answers recorded: 2 index-emu--pQ2.js:499:121396
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:120144
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556, proceeding anyway index-emu--pQ2.js:499:120544
+Trying image loading strategy 1 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116747
+Started preloading for next question: 40 index-emu--pQ2.js:499:119331
+Trying image loading strategy 2 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /api/quiz-image/%2Fuploads%2Fimages%2Fblob%3Ahttps%3A%2F%2Fevaliabeta.replit.app%2F180a7f0c-e48d-48b9-8dc3-39b38d253deb%3Fv%3D1744676620556?t=1744732669833 index-emu--pQ2.js:499:116877
+Standard preload failed, trying base64 method for question: 40 index-emu--pQ2.js:499:118743
+Trying image loading strategy 3 for /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116877
+All image loading strategies failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-emu--pQ2.js:499:116959
+    g https://evaliabeta.replit.app/assets/index-emu--pQ2.js:499
+    tQ https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    rQ https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    iQ https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    pT https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    q3 https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    yb https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    fP https://evaliabeta.replit.app/assets/index-emu--pQ2.js:40
+    p3 https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    yb https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37
+    BN https://evaliabeta.replit.app/assets/index-emu--pQ2.js:37

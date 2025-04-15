@@ -192,6 +192,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
+    // Special handling for blob URLs that might be stored in the database
+    if (filename.includes('blob:')) {
+      // Extract the actual blob identifier
+      const blobIdentifier = filename.split('blob:')[1];
+      console.log(`Detected stored blob URL, extracted identifier: ${blobIdentifier}`);
+      
+      // Try to find a matching image by looking through the image directory
+      try {
+        const uploadsDir = './uploads/images';
+        
+        if (fs.existsSync(uploadsDir)) {
+          const files = fs.readdirSync(uploadsDir);
+          
+          // Look for any image files that might be a match
+          // First, try to use timestamp pattern which is common in uploaded files
+          const timestampPattern = /image-(\d+)/;
+          const timeMatches = blobIdentifier.match(timestampPattern);
+          
+          if (timeMatches && timeMatches[1]) {
+            const timeStamp = timeMatches[1];
+            console.log(`Looking for images matching timestamp: ${timeStamp}`);
+            
+            // Find files that match this timestamp
+            const matchingFiles = files.filter(file => file.includes(timeStamp));
+            
+            if (matchingFiles.length > 0) {
+              console.log(`Found matching files by timestamp: ${matchingFiles[0]}`);
+              // Serve the first match
+              return serveImageFile(path.join(uploadsDir, matchingFiles[0]), res);
+            }
+          }
+          
+          // If timestamp matching failed, try a last resort method by looking at recent files
+          const recentFiles = files
+            .map(file => ({
+              name: file,
+              stats: fs.statSync(path.join(uploadsDir, file))
+            }))
+            .filter(file => file.stats.isFile())
+            .sort((a, b) => b.stats.mtimeMs - a.stats.mtimeMs); // Sort newest first
+          
+          // Take the most recent file that is an image
+          const recentImages = recentFiles.filter(file => 
+            ['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(
+              path.extname(file.name).toLowerCase()
+            )
+          );
+          
+          if (recentImages.length > 0) {
+            console.log(`No exact match found, using most recent image: ${recentImages[0].name}`);
+            return serveImageFile(path.join(uploadsDir, recentImages[0].name), res);
+          }
+        }
+      } catch (err) {
+        console.error("Error finding replacement for blob URL:", err);
+      }
+    }
+    
     // If all else fails, try the image handler
     console.log(`Trying image handler for: ${filename}`);
     try {
