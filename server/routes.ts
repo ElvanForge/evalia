@@ -3151,26 +3151,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to serve image files with proper headers
   function serveImageFile(filePath: string, res: Response) {
     try {
+      const stats = fs.statSync(filePath);
       const contentType = getMimeType(filePath);
-      res.set('Content-Type', contentType);
       
-      // Set strong cache control headers with cache busting
-      // This ensures the image is cached properly but will be revalidated
-      // when the URL changes (which we do with the cache busting parameters)
-      res.set('Cache-Control', 'no-cache, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
+      // Clear any existing headers to prevent conflicts
+      res.removeHeader('Cache-Control');
+      res.removeHeader('Pragma');
+      res.removeHeader('Expires');
+      res.removeHeader('Content-Type');
       
-      // Set CORS headers for cross-origin access
-      res.set('Access-Control-Allow-Origin', '*');
-      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+      // Set comprehensive CORS headers to solve cross-origin issues
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Range, Cache-Control, Origin, Accept');
       
+      // The following headers are critical for displaying images in various contexts
+      // including cross-origin iframes and embedded content
+      res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.header('Cross-Origin-Embedder-Policy', 'credentialless');
+      res.header('Timing-Allow-Origin', '*');
+      
+      // Prevent caching to ensure fresh images after deployment
+      // This is especially important for debugging image loading issues
+      res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.header('Pragma', 'no-cache');
+      res.header('Expires', '0');
+      
+      // Set proper content type and length
+      res.header('Content-Type', contentType);
+      res.header('Content-Length', stats.size.toString());
+      
+      // Add a debug header to help identify image source in network requests
+      res.header('X-Image-Source', path.basename(filePath));
+      
+      console.log(`Serving image ${path.basename(filePath)} with content-type: ${contentType}`);
+      
+      // Stream the file to avoid loading large images fully into memory
       return fs.createReadStream(filePath).pipe(res);
     } catch (error) {
       console.error(`Error serving image file ${filePath}:`, error);
       res.status(404).json({ 
         error: "Image not found",
-        message: "The requested image could not be loaded"
+        message: "The requested image could not be loaded",
+        path: filePath,
+        details: String(error)
       });
     }
   }
