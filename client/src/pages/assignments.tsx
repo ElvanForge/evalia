@@ -524,14 +524,16 @@ export default function Assignments() {
                             </p>
                           </div>
                           
-                          {/* Debug information */}
-                          <div className="bg-muted/20 p-2 mb-4 text-xs rounded overflow-auto">
-                            <pre>
+                          {/* Debug information - Made more visible */}
+                          <div className="bg-amber-100 border border-amber-300 text-black p-3 mb-4 text-xs rounded overflow-auto">
+                            <h4 className="font-bold mb-1">Debug Information:</h4>
+                            <pre className="whitespace-pre-wrap">
                               Students Loading: {isStudentsLoading ? 'yes' : 'no'}<br/>
                               Grades Loading: {isGradesLoading ? 'yes' : 'no'}<br/>
                               Student Count: {students?.length || 0}<br/>
                               Assignment ID: {selectedAssignment?.id}<br/>
                               Max Score: {selectedAssignment?.maxScore}<br/>
+                              Current Tab: {currentTab}<br/>
                               {students && students.length > 0 && 
                                 `First Student: ${JSON.stringify(students[0], null, 2)}`
                               }
