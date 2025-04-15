@@ -679,10 +679,9 @@ export function QuizRunner({
           <div className="w-full flex items-center justify-center bg-muted/30 rounded-lg p-1 min-h-[65vh] relative" id={`question-container-${currentQuestion.id}`}>
             <div className="relative w-full flex justify-center">
               <ImageWithFallbacks 
-                questionId={currentQuestion.id}
-                questionIndex={currentQuestionIndex}
-                imageUrl={currentQuestion.imageUrl}
-                isLoading={isNextImageLoading}
+                src={currentQuestion.imageUrl}
+                alt={`Image for question ${currentQuestionIndex + 1}`}
+                className="max-h-[60vh] object-contain"
               />
             </div>
           </div>
