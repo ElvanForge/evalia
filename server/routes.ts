@@ -55,22 +55,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Quiz image request received for:", req.params.imageUrl);
     const decodedUrl = decodeURIComponent(req.params.imageUrl);
     
-    // Extract filename from path
-    const filename = decodedUrl.split('/').pop()?.split('?')[0];
+    // Extract filename from path, handling both path formats
+    let filename = decodedUrl;
+    if (decodedUrl.includes('/')) {
+      filename = decodedUrl.split('/').pop() || '';
+    }
+    
+    // Remove query params if present
+    filename = filename.split('?')[0];
     
     if (!filename) {
       console.error("Invalid image URL:", decodedUrl);
       return res.status(400).send('Invalid image URL');
     }
     
+    // Skip blob URLs - they can't be served from the server
+    if (filename.startsWith('blob:')) {
+      console.error("Cannot serve blob URL directly:", filename);
+      return res.status(400).send('Cannot serve blob URLs directly');
+    }
+    
     console.log(`Processing quiz image request: ${filename}`);
     
     // Try to find the image in various paths
     const possiblePaths = [
-      './uploads/images/' + filename,
-      '/home/runner/workspace/uploads/images/' + filename,
-      '/home/runner/app/uploads/images/' + filename,
-      process.cwd() + '/uploads/images/' + filename,
+      path.join('uploads/images', filename),
+      path.join('./uploads/images', filename),
+      path.join(process.cwd(), 'uploads/images', filename),
+      path.join('/home/runner/workspace/uploads/images', filename),
+      path.join('/home/runner/app/uploads/images', filename),
+      path.join('/home/runner/evaliabeta/uploads/images', filename),
     ];
     
     // Try each path
@@ -78,11 +92,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         if (fs.existsSync(imgPath)) {
           console.log(`Found quiz image at: ${imgPath}`);
-          return res.sendFile(imgPath, { root: '/' });
+          
+          // Get file stats
+          const stats = fs.statSync(imgPath);
+          
+          // Set CORS headers
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
+          res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+          
+          // Set content type based on file extension
+          const ext = path.extname(imgPath).toLowerCase();
+          const contentType = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+            '.svg': 'image/svg+xml'
+          }[ext] || 'application/octet-stream';
+          
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Content-Length', stats.size);
+          
+          // Read and send the file directly
+          return fs.createReadStream(imgPath).pipe(res);
         }
       } catch (err) {
         console.error(`Error checking path ${imgPath}:`, err);
       }
+    }
+    
+    // If all else fails, try the image handler
+    console.log(`Trying image handler for: ${filename}`);
+    try {
+      if (handleImageRequest(req, res, filename, true)) {
+        return; // Image handler took care of it
+      }
+    } catch (err) {
+      console.error("Image handler error:", err);
     }
     
     console.error(`Quiz image not found: ${filename}`);
