@@ -53,6 +53,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Handle image requests for quiz questions
   app.get('/api/quiz-image/:imageUrl', (req, res) => {
     console.log("Quiz image request received for:", req.params.imageUrl);
+    
+    // For preflight OPTIONS requests
+    if (req.method === 'OPTIONS') {
+      // Set comprehensive CORS headers for preflight
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Range, Cache-Control, Origin, Accept');
+      res.header('Access-Control-Max-Age', '86400'); // Cache preflight for 24 hours
+      return res.status(204).end();
+    }
+    
     const decodedUrl = decodeURIComponent(req.params.imageUrl);
     
     // Extract filename from path, handling both path formats
@@ -66,62 +77,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     if (!filename) {
       console.error("Invalid image URL:", decodedUrl);
-      return res.status(400).send('Invalid image URL');
+      return res.status(400).json({
+        error: 'Invalid image URL',
+        message: 'The provided image URL is empty or invalid'
+      });
     }
     
     // Skip blob URLs - they can't be served from the server
     if (filename.startsWith('blob:')) {
       console.error("Cannot serve blob URL directly:", filename);
-      return res.status(400).send('Cannot serve blob URLs directly');
+      return res.status(400).json({
+        error: 'Invalid image type',
+        message: 'Blob URLs cannot be served directly from the server. Please upload the image properly.'
+      });
     }
     
     console.log(`Processing quiz image request: ${filename}`);
     
-    // Try to find the image in various paths
+    // Try to find the image in various paths - order matters for performance
+    // First try the most common/expected locations, then fallbacks
     const possiblePaths = [
-      path.join('uploads/images', filename),
-      path.join('./uploads/images', filename),
-      path.join(process.cwd(), 'uploads/images', filename),
+      // First check the persistent storage locations
       path.join('/home/runner/workspace/uploads/images', filename),
       path.join('/home/runner/app/uploads/images', filename),
+      
+      // Then check relative paths
+      path.join('./uploads/images', filename),
+      path.join(process.cwd(), 'uploads/images', filename),
+      
+      // Finally try other possible paths
       path.join('/home/runner/evaliabeta/uploads/images', filename),
     ];
     
-    // Try each path
+    // Also check for case-insensitive matches if needed
+    let foundPath = null;
+    
+    // First try direct path matching for better performance
     for (const imgPath of possiblePaths) {
       try {
         if (fs.existsSync(imgPath)) {
-          console.log(`Found quiz image at: ${imgPath}`);
-          
-          // Get file stats
-          const stats = fs.statSync(imgPath);
-          
-          // Set CORS headers - these are crucial for deployment
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
-          res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-          res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
-          
-          // Set content type based on file extension
-          const ext = path.extname(imgPath).toLowerCase();
-          const contentType = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.webp': 'image/webp',
-            '.svg': 'image/svg+xml'
-          }[ext] || 'application/octet-stream';
-          
-          res.setHeader('Content-Type', contentType);
-          res.setHeader('Content-Length', stats.size);
-          
-          // Read and send the file directly
-          return fs.createReadStream(imgPath).pipe(res);
+          foundPath = imgPath;
+          break;
         }
       } catch (err) {
         console.error(`Error checking path ${imgPath}:`, err);
+      }
+    }
+    
+    // If no direct match found, try case-insensitive search in main upload directory
+    if (!foundPath) {
+      try {
+        const baseName = filename.toLowerCase();
+        const uploadsDir = './uploads/images';
+        
+        if (fs.existsSync(uploadsDir)) {
+          const files = fs.readdirSync(uploadsDir);
+          const matchingFile = files.find(file => file.toLowerCase() === baseName);
+          
+          if (matchingFile) {
+            foundPath = path.join(uploadsDir, matchingFile);
+            console.log(`Found case-insensitive match: ${matchingFile}`);
+          }
+        }
+      } catch (err) {
+        console.error("Error in case-insensitive search:", err);
+      }
+    }
+    
+    // If we found the image, serve it
+    if (foundPath) {
+      console.log(`Found quiz image at: ${foundPath}`);
+      
+      try {
+        // Get file stats
+        const stats = fs.statSync(foundPath);
+        
+        // Set CORS headers - these are crucial for deployment
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Range, Cache-Control');
+        res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+        
+        // Additional headers to help with Chrome/Firefox security policies
+        res.header('Cross-Origin-Embedder-Policy', 'credentialless');
+        res.header('Timing-Allow-Origin', '*');
+        
+        // Set caching headers - no cache to ensure fresh images after deployment
+        res.header('Cache-Control', 'no-cache, must-revalidate');
+        res.header('Pragma', 'no-cache');
+        res.header('Expires', '0');
+        
+        // Set content type based on file extension
+        const ext = path.extname(foundPath).toLowerCase();
+        const contentType = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.gif': 'image/gif',
+          '.webp': 'image/webp',
+          '.svg': 'image/svg+xml'
+        }[ext] || 'application/octet-stream';
+        
+        res.header('Content-Type', contentType);
+        res.header('Content-Length', stats.size.toString());
+        
+        // Read and send the file directly
+        return fs.createReadStream(foundPath).pipe(res);
+      } catch (err) {
+        console.error(`Error serving image ${foundPath}:`, err);
+        return res.status(500).json({
+          error: 'Server error',
+          message: 'Error reading image file'
+        });
       }
     }
     
@@ -136,7 +203,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     console.error(`Quiz image not found: ${filename}`);
-    return res.status(404).send('Image not found');
+    return res.status(404).json({
+      error: 'Image not found',
+      message: 'The requested image could not be found on the server',
+      filename: filename
+    });
   });
 
   // Error handling middleware for Zod validation
