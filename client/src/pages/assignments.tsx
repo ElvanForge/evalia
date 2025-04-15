@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Assignment, Class, Student, Grade } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { BulkGradeEntry } from "@/components/forms/bulk-grade-entry";
 import { 
   Dialog,
   DialogContent,
@@ -521,12 +522,36 @@ export default function Assignments() {
                             </p>
                           </div>
                           
-                          {/* Bulk grading interface would go here */}
-                          <div className="pt-4">
-                            <p className="text-center text-muted-foreground">
-                              Bulk grade entry coming soon
-                            </p>
-                          </div>
+                          {isStudentsLoading || isGradesLoading ? (
+                            <div className="flex justify-center py-8">
+                              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : students && students.length > 0 ? (
+                            <BulkGradeEntry 
+                              students={students}
+                              existingGrades={existingGrades || []}
+                              assignmentId={selectedAssignment.id}
+                              maxScore={Number(selectedAssignment.maxScore)}
+                              onSuccess={() => {
+                                // Invalidate the grades query to refresh the data
+                                queryClient.invalidateQueries({
+                                  queryKey: [`/api/assignments/${selectedAssignment.id}/grades`]
+                                });
+                                toast({
+                                  title: "Grades saved",
+                                  description: "All grades have been successfully saved.",
+                                });
+                              }}
+                            />
+                          ) : (
+                            <div className="text-center py-8">
+                              <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
+                              <h3 className="text-lg font-medium mb-2">No students found</h3>
+                              <p className="text-muted-foreground">
+                                There are no students enrolled in this class yet.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </TabsContent>
