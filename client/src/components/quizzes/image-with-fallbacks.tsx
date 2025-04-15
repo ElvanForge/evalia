@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Loader2, FileImage } from 'lucide-react';
 
 interface ImageWithFallbacksProps {
   questionId: number;
@@ -18,20 +19,65 @@ const ImageWithFallbacks = ({
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadingStrategy, setLoadingStrategy] = useState(0);
   
-  // Strategies for image loading
-  const strategies = [
-    // Strategy 1: Direct URL with cache busting
-    () => `/uploads/images/${imageUrl}?t=${Date.now()}`,
+  // Check if it's a blob URL that can be used directly
+  const isBlobUrl = imageUrl?.startsWith('blob:');
+  const isDataUrl = imageUrl?.startsWith('data:');
+  const isHttpUrl = imageUrl?.startsWith('http');
+  
+  // Generate strategies based on the image URL type
+  const getStrategies = () => {
+    // Blob URLs can be used directly in the browser but not on the server
+    if (isBlobUrl) {
+      return [
+        // Strategy 1: Use blob URL directly
+        () => imageUrl,
+      ];
+    }
     
-    // Strategy 2: Via API endpoint with cache busting
-    () => `/api/quiz-image/${encodeURIComponent(imageUrl)}?t=${Date.now()}`,
+    // Data URLs can be used directly
+    if (isDataUrl) {
+      return [
+        // Strategy 1: Use data URL directly
+        () => imageUrl,
+      ];
+    }
     
-    // Strategy 3: Absolute URL if the image is already a full URL
-    () => imageUrl.startsWith('http') ? imageUrl : '',
+    // HTTP/HTTPS URLs can be used directly
+    if (isHttpUrl) {
+      return [
+        // Strategy 1: Use external URL directly
+        () => imageUrl,
+        // Strategy 2: Try via proxy for CORS issues
+        () => `/api/quiz-image/${encodeURIComponent(imageUrl)}?t=${Date.now()}`,
+      ];
+    }
     
-    // Strategy 4: As a last resort, try without cache busting
-    () => `/uploads/images/${imageUrl}`
-  ];
+    // For relative paths or local files, try multiple strategies
+    return [
+      // Strategy 1: Direct URL with cache busting
+      () => {
+        // If the URL already includes a path like /uploads/images/, don't prepend it again
+        if (imageUrl?.includes('/uploads/images/')) {
+          return `${imageUrl.includes('?') ? imageUrl : `${imageUrl}?t=${Date.now()}`}`;
+        }
+        return `/uploads/images/${imageUrl}?t=${Date.now()}`;
+      },
+      
+      // Strategy 2: Via API endpoint with cache busting
+      () => `/api/quiz-image/${encodeURIComponent(imageUrl)}?t=${Date.now()}`,
+      
+      // Strategy 3: As a last resort, try without cache busting
+      () => {
+        if (imageUrl?.includes('/uploads/images/')) {
+          return imageUrl;
+        }
+        return `/uploads/images/${imageUrl}`;
+      }
+    ];
+  };
+  
+  // Compute strategies dynamically based on the URL type
+  const strategies = getStrategies();
   
   useEffect(() => {
     if (isLoading || !imageUrl) return;
@@ -40,7 +86,9 @@ const ImageWithFallbacks = ({
     setLoadFailed(false);
     setLoadingStrategy(0);
     
+    // Apply the first strategy
     const url = strategies[0]();
+    console.log(`Trying image loading strategy 1 for ${imageUrl}: ${url}`);
     setImageSrc(url);
   }, [imageUrl, isLoading]);
   
@@ -49,8 +97,10 @@ const ImageWithFallbacks = ({
     const nextStrategy = loadingStrategy + 1;
     
     if (nextStrategy < strategies.length) {
+      const url = strategies[nextStrategy]();
+      console.log(`Trying image loading strategy ${nextStrategy + 1} for ${imageUrl}: ${url}`);
       setLoadingStrategy(nextStrategy);
-      setImageSrc(strategies[nextStrategy]());
+      setImageSrc(url);
     } else {
       console.error('All image loading strategies failed for:', imageUrl);
       setLoadFailed(true);
@@ -60,7 +110,7 @@ const ImageWithFallbacks = ({
   if (isLoading) {
     return (
       <div className="w-full h-64 flex items-center justify-center bg-gray-100 rounded-md">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -76,6 +126,7 @@ const ImageWithFallbacks = ({
   if (loadFailed) {
     return (
       <div className="w-full h-64 flex flex-col items-center justify-center bg-gray-100 rounded-md p-4">
+        <FileImage className="w-12 h-12 text-red-600 mb-2" />
         <p className="text-red-600 font-medium mb-2">Failed to load image</p>
         <p className="text-gray-500 text-xs text-center">
           The image could not be loaded after multiple attempts.
