@@ -1,0 +1,486 @@
+Layout was forced before the page was fully loaded. If stylesheets are not yet loaded this may cause a flash of unstyled content. node.js:417:1
+Cookie “cookie-perms” will soon be rejected because it is foreign and does not have the “Partitioned“ attribute. controller-with-preconnect-f21e656a1270f7a2f84c2e91d26ded3b.html
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-f21e656a1270f7a2f84c2e91d26ded3b.html#__shared_params__[version]=acacia&apiKey=pk_test_51R7qeUGfHwGnKNqPb6QpmGfEEtE8pXsdQ97vt6BwmGrkLAqTjsFnd7q0rVBMuNlfbU0NT4jCDMzCzPKkPYB6p7pC00OsKtVtYe&apiVersion=2025-01-27.acacia&stripeJsId=e333078b-2cc5-449f-bb34-a4684fb00eab&firstStripeInstanceCreatedLatency=5&controllerCount=1&isCheckout=false&stripeJsLoadTime=1744734599087&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=NA&mids[sid]=NA&referrer=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&controllerId=__privateStripeController8421” because it is loaded in the third-party context and dynamic state partitioning is enabled. <anonymous code>:7:45
+Started preloading for next question: 44 index-DjDyDnR8.js:501:117400
+Standard preload failed, trying base64 method for question: 44 index-DjDyDnR8.js:501:116812
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/8dab2850-6c4c-45ac-9587-49e75e622ecb
+[HTTP/2 404  380ms]
+
+Cookie “cookie-perms” will soon be rejected because it is foreign and does not have the “Partitioned“ attribute. m-outer-3437aaddcdf6922d623e172c2d6f9278.html
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&title=Evalia%20-%20Teacher%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. <anonymous code>:7:45
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Fevaliabeta.replit.app%2Fquizzes%2F3%2Fpreview&title=Evalia%20-%20Teacher%20Dashboard&referrer=&muid=NA&sid=NA&version=6&preview=false&__shared_params__[version]=acacia” because it is loaded in the third-party context and dynamic state partitioning is enabled. autofill.js:1607:7
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://m.stripe.com/6. (Reason: CORS request did not succeed). Status code: (null).
+Recording answer for question 43, correct: false index-DjDyDnR8.js:501:119305
+Not saving to server: in preview mode index-DjDyDnR8.js:501:119732
+Total answers recorded: 1 index-DjDyDnR8.js:501:119465
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-DjDyDnR8.js:501:118213
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/8dab2850-6c4c-45ac-9587-49e75e622ecb
+[HTTP/2 404  375ms]
+
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588, proceeding anyway index-DjDyDnR8.js:501:118613
+Started preloading for next question: 12 index-DjDyDnR8.js:501:117400
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self' 'sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk='” autoconsent.js:954:14
+Standard preload failed, trying base64 method for question: 12 index-DjDyDnR8.js:501:116812
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/180a7f0c-e48d-48b9-8dc3-39b38d253deb
+[HTTP/2 404  387ms]
+
+Recording answer for question 44, correct: false index-DjDyDnR8.js:501:119305
+Not saving to server: in preview mode index-DjDyDnR8.js:501:119732
+Total answers recorded: 2 index-DjDyDnR8.js:501:119465
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline style (style-src-elem) from being applied because it violates the following directive: “style-src 'self'” autoconsent.js:954:14
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-DjDyDnR8.js:501:118213
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/180a7f0c-e48d-48b9-8dc3-39b38d253deb
+[HTTP/2 404  381ms]
+
+Content-Security-Policy: The page’s settings blocked an inline style (style-src-elem) from being applied because it violates the following directive: “style-src https://m.stripe.network” autoconsent.js:954:14
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556, proceeding anyway index-DjDyDnR8.js:501:118613
+Started preloading for next question: 40 index-DjDyDnR8.js:501:117400
+Standard preload failed, trying base64 method for question: 40 index-DjDyDnR8.js:501:116812
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/204db47f-3396-4a4e-95aa-d3c2400a3bca
+[HTTP/2 404  387ms]
+
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12805
+QuestionFormDialog: opened with quiz ID: 3 index-DjDyDnR8.js:489:79096
+Setting image preview from questionToEdit.imageUrl: /uploads/images/blob:https://evaliabeta.replit.app/e3a033f4-2f0a-4a72-bce3-49827978da81?v=1744731824977 index-DjDyDnR8.js:489:79301
+Fetching options for question 43 in quiz 3 index-DjDyDnR8.js:489:79966
+Received options for question 43: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:489:80123
+Setting 2 options from API index-DjDyDnR8.js:489:80247
+Image removed, form values: 
+Object { quizId: 3, question: "What are the past words?", type: "speaking", imageUrl: null, questionOptions: (2) […], imageFile: undefined }
+index-DjDyDnR8.js:489:87132
+Direct file selected: 
+FileList [ File ]
+index-DjDyDnR8.js:493:109
+Created object URL for preview: blob:https://evaliabeta.replit.app/074999a0-552f-46fb-9161-c0dbf45635eb index-DjDyDnR8.js:489:86932
+Image selected: 2MjFnC.jpg index-DjDyDnR8.js:489:86986
+Form data: 
+Object { quizId: 3, question: "What are the past words?", type: "speaking", imageUrl: null, questionOptions: (2) […] }
+index-DjDyDnR8.js:489:80616
+Using existing image URL: blob:https://evaliabeta.replit.app/074999a0-552f-46fb-9161-c0dbf45635eb index-DjDyDnR8.js:489:83038
+Normalized existing image URL: blob:https://evaliabeta.replit.app/074999a0-552f-46fb-9161-c0dbf45635eb?v=1744734727711 index-DjDyDnR8.js:489:83161
+Using quiz ID for new question: 3 index-DjDyDnR8.js:489:83746
+Security Error: Content at https://evaliabeta.replit.app/quizzes/3/preview may not load data from blob:https://evaliabeta.replit.app/074999a0-552f-46fb-9161-c0dbf45635eb?v=1744734727711.
+Error converting blob to data URL: TypeError: NetworkError when attempting to fetch resource.
+    Z7 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:489
+    J7 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:489
+    v https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:489
+    oe https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:412
+    iQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    aQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    oQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    xT https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Q3 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    wb https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    gP https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    x3 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    wb https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    WN https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    SQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Y3 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    bb https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Oh https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Oh https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    _Y https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    GF https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    HF https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    RY https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    Nv https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    QT https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    Xo https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:38
+    Wr https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    Wr https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    ts https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    jY https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:38
+    onClick https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:493
+    iQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    aQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    oQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    xT https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Q3 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    wb https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    gP https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    x3 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    wb https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    WN https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    SQ https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Y3 https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    bb https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Oh https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    Oh https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:37
+    createRoot https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:40
+    <anonymous> https://evaliabeta.replit.app/assets/index-DjDyDnR8.js:526
+index-DjDyDnR8.js:489:75470
+Image URL processed for safe storage: URL processed successfully index-DjDyDnR8.js:489:83815
+Existing options from API: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:489:84496
+Deleting 2 existing options for question 43 index-DjDyDnR8.js:489:84552
+Existing options map: 
+Map { 298 → {…}, 299 → {…} }
+index-DjDyDnR8.js:489:84662
+Deleting option 298: Correct index-DjDyDnR8.js:489:84719
+Successfully deleted option 298 index-DjDyDnR8.js:489:84892
+Deleting option 299: Incorrect index-DjDyDnR8.js:489:84719
+Successfully deleted option 299 index-DjDyDnR8.js:489:84892
+Creating options: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:489:85279
+Creating option for question 43 using endpoint: /api/quiz-questions/43/options index-DjDyDnR8.js:489:85475
+Option data: 
+Object { questionId: 43, text: "Correct", isCorrect: true }
+index-DjDyDnR8.js:489:85608
+Successfully created option: Correct index-DjDyDnR8.js:489:85752
+Creating option for question 43 using endpoint: /api/quiz-questions/43/options index-DjDyDnR8.js:489:85475
+Option data: 
+Object { questionId: 43, text: "Incorrect", isCorrect: false }
+index-DjDyDnR8.js:489:85608
+Successfully created option: Incorrect index-DjDyDnR8.js:489:85752
+Invalidating cache for question options: 43 index-DjDyDnR8.js:489:86530
+Edit question dialog onOpenChange called with: false index-DjDyDnR8.js:493:16798
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12805
+Options data from API: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12632
+Processing options for question 12: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 35: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 36: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 37: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 38: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 39: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 40: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 41: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 42: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 43: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 44: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 45: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 46: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processing options for question 47: 
+Array [ {…}, {…} ]
+index-DjDyDnR8.js:493:12719
+Processed options: 
+Object { 12: (2) […], 35: (2) […], 36: (2) […], 37: (2) […], 38: (2) […], 39: (2) […], 40: (2) […], 41: (2) […], 42: (2) […], 43: (2) […], … }
+index-DjDyDnR8.js:493:12805
+Started preloading for next question: 44 index-DjDyDnR8.js:501:117400
+Standard preload failed, trying base64 method for question: 44 index-DjDyDnR8.js:501:116812
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/8dab2850-6c4c-45ac-9587-49e75e622ecb
+[HTTP/2 404  417ms]
+
+Recording answer for question 43, correct: false index-DjDyDnR8.js:501:119305
+Not saving to server: in preview mode index-DjDyDnR8.js:501:119732
+Total answers recorded: 1 index-DjDyDnR8.js:501:119465
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588 index-DjDyDnR8.js:501:118213
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/8dab2850-6c4c-45ac-9587-49e75e622ecb
+[HTTP/2 404  392ms]
+
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/8dab2850-6c4c-45ac-9587-49e75e622ecb?v=1744678462588, proceeding anyway index-DjDyDnR8.js:501:118613
+Started preloading for next question: 12 index-DjDyDnR8.js:501:117400
+Standard preload failed, trying base64 method for question: 12 index-DjDyDnR8.js:501:116812
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/180a7f0c-e48d-48b9-8dc3-39b38d253deb
+[HTTP/2 404  366ms]
+
+Recording answer for question 44, correct: false index-DjDyDnR8.js:501:119305
+Not saving to server: in preview mode index-DjDyDnR8.js:501:119732
+Total answers recorded: 2 index-DjDyDnR8.js:501:119465
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556 index-DjDyDnR8.js:501:118213
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/180a7f0c-e48d-48b9-8dc3-39b38d253deb
+[HTTP/2 404  396ms]
+
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb?v=1744676620556, proceeding anyway index-DjDyDnR8.js:501:118613
+Started preloading for next question: 40 index-DjDyDnR8.js:501:117400
+Standard preload failed, trying base64 method for question: 40 index-DjDyDnR8.js:501:116812
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/204db47f-3396-4a4e-95aa-d3c2400a3bca
+[HTTP/2 404  392ms]
+
+Answer selection blocked: already processing an answer index-DjDyDnR8.js:501:118976
+Recording answer for question 12, correct: false index-DjDyDnR8.js:501:119305
+Not saving to server: in preview mode index-DjDyDnR8.js:501:119732
+Total answers recorded: 3 index-DjDyDnR8.js:501:119465
+Standard preload failed, trying base64 method for: /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925 index-DjDyDnR8.js:501:118213
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/204db47f-3396-4a4e-95aa-d3c2400a3bca
+[HTTP/2 404  367ms]
+
+All preload methods failed for: /uploads/images/blob:https://evaliabeta.replit.app/204db47f-3396-4a4e-95aa-d3c2400a3bca?v=1744676555925, proceeding anyway index-DjDyDnR8.js:501:118613
+Started preloading for next question: 39 index-DjDyDnR8.js:501:117400
+Standard preload failed, trying base64 method for question: 39 index-DjDyDnR8.js:501:116812
+XHRGET
+https://evaliabeta.replit.app/api/images/base64/e1edd9d7-cbd3-458d-bb65-3f09ca579b7c
+[HTTP/2 404  368ms]
+
