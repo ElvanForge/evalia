@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Assignment, Class } from "@shared/schema";
+import { Assignment, Class, Student } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Dialog,
@@ -13,8 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, ClipboardCheck, AlertCircle } from "lucide-react";
 import { AssignmentForm } from "@/components/forms/assignment-form";
+import { GradeForm } from "@/components/forms/grade-form";
 import SectionHeader from "@/components/section-header";
 import {
   AlertDialog,
@@ -33,14 +34,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Assignments() {
   const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isGradeDialogOpen, setIsGradeDialogOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string>("all");
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [currentTab, setCurrentTab] = useState<string>("students");
 
   // Fetch classes
   const { data: classes, isLoading: isClassesLoading } = useQuery<Class[]>({
@@ -128,12 +133,27 @@ export default function Assignments() {
     },
   ];
 
+  // Handle opening the grade dialog
+  const handleGradeClick = (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setIsGradeDialogOpen(true);
+  };
+  
   const actions = (assignment: Assignment) => (
     <div className="flex space-x-2 justify-end">
       <Button 
         variant="ghost" 
         size="icon" 
+        onClick={() => handleGradeClick(assignment)}
+        title="Enter Grades"
+      >
+        <ClipboardCheck className="h-4 w-4" />
+      </Button>
+      <Button 
+        variant="ghost" 
+        size="icon" 
         onClick={() => handleEditClick(assignment)}
+        title="Edit Assignment"
       >
         <Pencil className="h-4 w-4" />
       </Button>
@@ -141,6 +161,7 @@ export default function Assignments() {
         variant="ghost" 
         size="icon" 
         onClick={() => handleDeleteClick(assignment)}
+        title="Delete Assignment"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
