@@ -12,31 +12,14 @@ import { QuizCelebration } from '@/components/quiz-celebration';
  * @param url - Original image URL from database
  * @returns Direct URL to the image
  */
+// Simple direct URL function - we'll use the exact URL from the database
 function getQuizImageUrl(url: string | null | undefined): string {
   if (!url) return '';
   
-  // Data URLs should be returned as-is (they contain the image data inline)
-  if (url.startsWith('data:')) {
-    return url;
-  }
+  console.log('Processing image URL:', url);
   
-  // External URLs should be returned as-is
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url;
-  }
-  
-  // If it's an API path, return it directly
-  if (url.startsWith('/api/') || url.startsWith('/uploads/')) {
-    return url;
-  }
-  
-  // For other paths, assume it's an image name and construct the path to uploads
-  if (url.includes('image-') || url.includes('.jpg') || url.includes('.jpeg') || url.includes('.png') || url.includes('.gif')) {
-    return `/uploads/images/${url.split('/').pop()}`;
-  }
-  
-  // Default case - direct API path
-  return `/api/images/${url}`;
+  // Return URL exactly as stored in database
+  return url;
 }
 
 // Interface for our internal answer tracking
@@ -650,11 +633,42 @@ export function QuizRunner({
                 className="rounded-md object-contain max-h-[62vh] w-auto max-w-[98%] z-10"
                 onError={(e) => {
                   console.error(`Failed to load image for question ${currentQuestion.id}: ${currentQuestion.imageUrl}`);
-                  // Try without cache busting parameters as fallback
-                  if (currentQuestion.imageUrl && currentQuestion.imageUrl.includes('?')) {
-                    const baseUrl = currentQuestion.imageUrl.split('?')[0];
-                    console.log(`Trying fallback URL: ${baseUrl}`);
-                    e.currentTarget.src = baseUrl;
+                  
+                  // Try multiple fallback approaches to find the image
+                  if (currentQuestion.imageUrl) {
+                    // FALLBACK 1: Try without cache busting parameters
+                    if (currentQuestion.imageUrl.includes('?')) {
+                      const baseUrl = currentQuestion.imageUrl.split('?')[0];
+                      console.log(`Trying fallback URL without cache params: ${baseUrl}`);
+                      e.currentTarget.src = baseUrl;
+                      return; // Give this a chance to load
+                    }
+                    
+                    // FALLBACK 2: Try extracting just the filename and use direct path
+                    const filename = currentQuestion.imageUrl.split('/').pop();
+                    if (filename) {
+                      const directPath = `/uploads/images/${filename}`;
+                      console.log(`Trying direct filename path: ${directPath}`);
+                      e.currentTarget.src = directPath;
+                      return; // Give this a chance to load
+                    }
+                    
+                    // FALLBACK 3: Try the special API endpoint
+                    fetch(`/api/image-debug/find?path=${encodeURIComponent(currentQuestion.imageUrl)}`)
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success && data.url) {
+                          console.log(`Found image via debug API: ${data.url}`);
+                          e.currentTarget.src = data.url;
+                        } else {
+                          console.error('Image not found via debug API');
+                          e.currentTarget.style.display = 'none';
+                        }
+                      })
+                      .catch(err => {
+                        console.error('Error checking image debug API:', err);
+                        e.currentTarget.style.display = 'none';
+                      });
                   } else {
                     // Hide the broken image icon if all attempts fail
                     e.currentTarget.style.display = 'none';
