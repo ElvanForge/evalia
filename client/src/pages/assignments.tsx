@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Assignment, Class, Student, Grade } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { BulkGradeEntry } from "@/components/forms/bulk-grade-entry";
+import { SimpleBulkEntry } from "@/components/forms/simple-bulk-entry";
 import { 
   Dialog,
   DialogContent,
@@ -542,7 +543,8 @@ export default function Assignments() {
                               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                             </div>
                           ) : students && Array.isArray(students) && students.length > 0 ? (
-                            <BulkGradeEntry 
+                            // Using SimpleBulkEntry instead of BulkGradeEntry
+                            <SimpleBulkEntry 
                               students={students}
                               existingGrades={existingGrades || []}
                               assignmentId={selectedAssignment.id}
