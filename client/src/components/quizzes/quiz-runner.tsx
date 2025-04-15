@@ -132,7 +132,17 @@ export function QuizRunner({
             console.log(`Standard preload failed, trying base64 method for question: ${nextQuestion.id}`);
             
             // Extract filename for API request
-            const filename = nextQuestion.imageUrl?.split(/[\/\\]/).pop()?.split('?')[0];
+            let filename = nextQuestion.imageUrl?.split(/[\/\\]/).pop()?.split('?')[0];
+            
+            // Special handling for blob URLs that might be stored with the blob: prefix
+            if (nextQuestion.imageUrl?.includes('blob:')) {
+              // Try to extract the UUID
+              const uuidMatch = nextQuestion.imageUrl.match(/([a-f0-9-]{36})/i);
+              if (uuidMatch && uuidMatch[1]) {
+                console.log(`Extracted UUID ${uuidMatch[1]} from blob URL: ${nextQuestion.imageUrl}`);
+                filename = uuidMatch[1];
+              }
+            }
             
             if (filename) {
               try {
@@ -271,7 +281,17 @@ export function QuizRunner({
           console.log(`Standard preload failed, trying base64 method for: ${nextQuestion.imageUrl}`);
           
           // Extract filename for API request
-          const filename = nextQuestion.imageUrl?.split(/[\/\\]/).pop()?.split('?')[0];
+          let filename = nextQuestion.imageUrl?.split(/[\/\\]/).pop()?.split('?')[0];
+          
+          // Special handling for blob URLs that might be stored with the blob: prefix
+          if (nextQuestion.imageUrl?.includes('blob:')) {
+            // Try to extract the UUID
+            const uuidMatch = nextQuestion.imageUrl.match(/([a-f0-9-]{36})/i);
+            if (uuidMatch && uuidMatch[1]) {
+              console.log(`Extracted UUID ${uuidMatch[1]} from blob URL: ${nextQuestion.imageUrl}`);
+              filename = uuidMatch[1];
+            }
+          }
           
           if (filename) {
             try {
