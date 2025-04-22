@@ -3898,25 +3898,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Direct API endpoint to get image as base64
   app.get('/api/images/base64/:filename', async (req, res) => {
     try {
-      const filename = req.params.filename;
+      // Get filename from request - handle URL encoded chars
+      let filename = decodeURIComponent(req.params.filename);
+      
+      // Remove any path elements that might have been included
+      if (filename.includes('/')) {
+        filename = filename.split('/').pop() || filename;
+      }
+      
+      // Remove any query parameters
+      if (filename.includes('?')) {
+        filename = filename.split('?')[0];
+      }
+      
       console.log(`Base64 image request for: ${filename}`);
       
+      // Try to get the image with enhanced search
       const base64Data = await getImageAsBase64(filename);
       
       if (base64Data) {
+        console.log(`Successfully served ${filename} as base64`);
         res.status(200).json({ 
           success: true, 
           data: base64Data 
         });
       } else {
-        console.log(`Image not found: ${filename}`);
+        console.log(`Image not found, attempting fallback searches: ${filename}`);
         
-        // Return list of available images
+        // List all available images for logging and debugging
         const availableImages = await listAvailableImages();
+        
+        // Try to find a partial match in case of filename naming issues
+        let fallbackImage = null;
+        
+        // Extract any UUIDs that might be in the filename
+        const uuidMatch = filename.match(/([a-f0-9-]{36})/i);
+        if (uuidMatch && uuidMatch[1]) {
+          const uuid = uuidMatch[1];
+          console.log(`Extracted UUID: ${uuid}, searching for partial matches`);
+          
+          // Look for any available image that contains this UUID
+          const matchingImage = availableImages.find(img => 
+            img.toLowerCase().includes(uuid.toLowerCase())
+          );
+          
+          if (matchingImage) {
+            console.log(`Found matching image with UUID: ${matchingImage}`);
+            fallbackImage = await getImageAsBase64(matchingImage);
+          }
+        }
+        
+        // If we found a fallback image through our additional search
+        if (fallbackImage) {
+          console.log(`Serving fallback image match for: ${filename}`);
+          res.status(200).json({
+            success: true,
+            data: fallbackImage
+          });
+          return;
+        }
+        
+        // If no partial match, try looking for a similar filename by ignoring extensions
+        if (!fallbackImage && filename.includes('.')) {
+          const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+          console.log(`Trying to match without extension: ${filenameWithoutExt}`);
+          
+          const similarFilename = availableImages.find(img => 
+            img.toLowerCase().startsWith(filenameWithoutExt.toLowerCase())
+          );
+          
+          if (similarFilename) {
+            console.log(`Found similar filename: ${similarFilename}`);
+            fallbackImage = await getImageAsBase64(similarFilename);
+            
+            if (fallbackImage) {
+              console.log(`Serving similar filename match for: ${filename}`);
+              res.status(200).json({
+                success: true,
+                data: fallbackImage
+              });
+              return;
+            }
+          }
+        }
+        
+        // No matches at all
+        console.log(`Image not found after all attempts: ${filename}`);
+        console.log(`Available images: ${availableImages.join(', ')}`);
         
         res.status(404).json({ 
           success: false, 
-          message: `Image ${filename} not found`,
+          message: `Image ${filename} not found after all attempts`,
           availableImages: availableImages.slice(0, 20) // First 20 to avoid huge response
         });
       }
@@ -3943,6 +4015,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: 'Error listing images' 
+      });
+    }
+  });
+  
+  // Debug endpoint to get image paths and environment details
+  app.get('/api/debug/images/paths', async (req, res) => {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Collect basic environment info
+      const envInfo = {
+        cwd: process.cwd(),
+        nodeEnv: process.env.NODE_ENV || 'development',
+        hostname: process.env.HOSTNAME || 'unknown',
+        domain: process.env.REPL_SLUG || 'unknown'
+      };
+      
+      // Common paths to check
+      const checkPaths = [
+        './uploads',
+        './uploads/images',
+        '../uploads/images',
+        '/uploads/images',
+        '/home/runner/workspace/uploads/images',
+        '/home/runner/app/uploads/images',
+        process.cwd(),
+        path.join(process.cwd(), 'uploads'),
+        path.join(process.cwd(), 'uploads/images')
+      ];
+      
+      // Check each path and get stats
+      const pathChecks = checkPaths.map(p => {
+        try {
+          const exists = fs.existsSync(p);
+          const isDir = exists ? fs.statSync(p).isDirectory() : false;
+          
+          let fileList = [];
+          let count = 0;
+          
+          if (exists && isDir) {
+            fileList = fs.readdirSync(p);
+            count = fileList.length;
+            fileList = fileList.slice(0, 5); // Just a few samples
+          }
+          
+          return {
+            path: p,
+            exists,
+            isDirectory: isDir,
+            fileCount: count,
+            sampleFiles: fileList
+          };
+        } catch (e) {
+          return {
+            path: p,
+            exists: false,
+            error: e.message
+          };
+        }
+      });
+      
+      // Get available images
+      const availableImages = await listAvailableImages();
+      
+      // Send all debug info
+      res.status(200).json({
+        success: true,
+        environment: envInfo,
+        pathChecks,
+        availableImages: availableImages.slice(0, 20)
+      });
+    } catch (error) {
+      console.error('Error in path debug endpoint:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving path information',
+        error: error.message
       });
     }
   });
