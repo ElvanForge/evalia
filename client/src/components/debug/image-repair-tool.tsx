@@ -279,9 +279,9 @@ export default function ImageRepairTool() {
                   <div className="flex items-center justify-between mb-2">
                     <div className="font-medium">Question ID: {result.id}</div>
                     {result.success ? (
-                      <Badge className="bg-green-500 text-white">Fixed</Badge>
+                      <div className="px-2 py-1 rounded-full text-xs font-medium bg-green-500 text-white">Fixed</div>
                     ) : (
-                      <Badge variant="destructive">Failed</Badge>
+                      <div className="px-2 py-1 rounded-full text-xs font-medium bg-red-500 text-white">Failed</div>
                     )}
                   </div>
                   <div className="text-xs font-mono bg-muted p-2 rounded mb-2 truncate">
