@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import ImageWithFallbacks from "@/components/quizzes/image-with-fallbacks";
+import ImageRepairTool from "@/components/debug/image-repair-tool";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
 import { optimizeImageUrl, makeSafeImageUrl, isSafeImageUrl } from "@/lib/image-utils";
@@ -260,6 +261,12 @@ export default function DebugPage() {
           </TabsList>
 
           <TabsContent value="images">
+            {/* New Advanced Image Repair Tool - this will handle all our needs */}
+            <div className="mb-6">
+              <ImageRepairTool />
+            </div>
+            
+            {/* Legacy image tools kept for compatibility */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>

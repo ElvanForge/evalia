@@ -3671,7 +3671,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         blob: 0,
         data: 0,
         path: 0,
-        problematic: 0
+        problematic: 0,
+        problematicUrls: [] as string[]
       };
 
       // Categorize the images
@@ -3686,8 +3687,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (url.startsWith('blob:')) {
           stats.blob++;
           stats.problematic++; // Blob URLs are problematic
+          stats.problematicUrls.push(`Question ${question.id}: ${url}`);
         } else {
           stats.problematic++;
+          stats.problematicUrls.push(`Question ${question.id}: ${url}`);
         }
       }
 
@@ -3695,6 +3698,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching image stats:", error);
       res.status(500).json({ error: "Failed to fetch image statistics" });
+    }
+  });
+  
+  // API endpoint to fix problematic image URLs by converting to direct paths
+  app.post("/api/debug/fix-image-urls", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    try {
+      // Get questions with images
+      const questions = await dbStorage.getQuizQuestionsByImageUrl();
+      const fixResults = [];
+      let fixedCount = 0;
+      
+      // Handle each question
+      for (const question of questions) {
+        const url = question.imageUrl;
+        if (!url) continue;
+        
+        // Skip already fixed URLs
+        if (url.startsWith('data:') || url.startsWith('/uploads/')) {
+          continue;
+        }
+        
+        // Try to resolve blob URLs or other problematic URLs
+        try {
+          let fixedUrl = null;
+          let method = '';
+          
+          // Handle blob URLs
+          if (url.startsWith('blob:')) {
+            // Extract UUID from blob URL
+            const uuidMatch = url.match(/([a-f0-9-]{36})/i);
+            if (uuidMatch && uuidMatch[1]) {
+              const uuid = uuidMatch[1];
+              
+              // Look for matching files in uploads directory
+              const directoryPath = './uploads/images';
+              if (fs.existsSync(directoryPath)) {
+                const files = fs.readdirSync(directoryPath);
+                
+                // Look for files containing the UUID
+                const matchingFile = files.find(file => file.includes(uuid));
+                
+                if (matchingFile) {
+                  fixedUrl = `/uploads/images/${matchingFile}`;
+                  method = 'uuid_match';
+                } else {
+                  // Try to parse the UUID into parts to find timestamp-based files
+                  const uuidTimestamp = uuid.split('-')[0];
+                  
+                  // Look for files with timestamp or other identifiers
+                  const filesWithTimestamp = files.filter(file => 
+                    file.startsWith('image-')
+                  );
+                  
+                  if (filesWithTimestamp.length > 0) {
+                    // Get the most recently created file as a fallback
+                    const newestFile = filesWithTimestamp.sort().pop();
+                    if (newestFile) {
+                      fixedUrl = `/uploads/images/${newestFile}`;
+                      method = 'newest_match';
+                    }
+                  }
+                }
+              }
+            }
+          } else if (url.includes('/uploads/')) {
+            // If it's a relative path that includes "uploads", try to fix it
+            const pathParts = url.split('/uploads/');
+            if (pathParts.length > 1) {
+              const uploadedPart = pathParts[1];
+              fixedUrl = `/uploads/${uploadedPart}`;
+              method = 'path_fix';
+            }
+          }
+          
+          // If we found a fix, update the database
+          if (fixedUrl) {
+            const updatedQuestion = await dbStorage.updateQuizQuestionImageUrl(
+              question.id, 
+              fixedUrl
+            );
+            
+            fixResults.push({
+              id: question.id,
+              oldUrl: url,
+              newUrl: fixedUrl,
+              method,
+              success: !!updatedQuestion
+            });
+            
+            if (updatedQuestion) {
+              fixedCount++;
+            }
+          } else {
+            fixResults.push({
+              id: question.id,
+              oldUrl: url,
+              attempted: true,
+              success: false,
+              reason: 'No matching file found'
+            });
+          }
+        } catch (fixError) {
+          console.error(`Error fixing URL for question ${question.id}:`, fixError);
+          fixResults.push({
+            id: question.id,
+            oldUrl: url,
+            attempted: true,
+            success: false,
+            error: fixError instanceof Error ? fixError.message : String(fixError)
+          });
+        }
+      }
+      
+      res.json({
+        totalProcessed: questions.length,
+        fixedCount,
+        results: fixResults
+      });
+    } catch (error) {
+      console.error("Error fixing image URLs:", error);
+      res.status(500).json({ 
+        error: "Failed to fix image URLs",
+        details: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
