@@ -3750,6 +3750,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clearedCount++;
         }
       }
+
+      // Clear any image cache in the application
+      imageCache.clear();
+      console.log("Image cache cleared after removing all image references");
       
       return res.json({
         success: true,
