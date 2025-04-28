@@ -740,6 +740,24 @@ export class DBStorage implements IStorage {
   }
 
   // Quiz Question operations
+  async getQuizQuestionsByImageUrl(): Promise<QuizQuestion[]> {
+    return db
+      .select()
+      .from(schema.quizQuestions)
+      .where(sql`${schema.quizQuestions.imageUrl} IS NOT NULL`)
+      .execute();
+  }
+  
+  async updateQuizQuestionImageUrl(id: number, imageUrl: string | null): Promise<QuizQuestion | undefined> {
+    const [updatedQuestion] = await db
+      .update(schema.quizQuestions)
+      .set({ imageUrl })
+      .where(eq(schema.quizQuestions.id, id))
+      .returning();
+      
+    return updatedQuestion;
+  }
+  
   async getQuizQuestion(id: number): Promise<QuizQuestion | undefined> {
     const [question] = await db.select().from(schema.quizQuestions).where(eq(schema.quizQuestions.id, id));
     return question;
