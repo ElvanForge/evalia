@@ -2169,6 +2169,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Return a new object with processed URL to avoid modifying the original
     const processed = { ...question };
     
+    // First check if it's a blob URL - these need special handling
+    if (processed.imageUrl.includes('blob:')) {
+      console.log(`Detected blob URL in question ${question.id}: ${processed.imageUrl}`);
+      // Use our sanitizeImageUrl function to handle blob URLs
+      processed.imageUrl = sanitizeImageUrl(processed.imageUrl);
+      console.log(`Sanitized URL: ${processed.imageUrl}`);
+      return processed;
+    }
+    
     // First, normalize the path to handle different formats
     let normalizedPath = processed.imageUrl;
     
@@ -2305,6 +2314,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Not authorized to add questions to this quiz" });
       }
       
+      // Process blob URLs if present
+      if (req.body.imageUrl && req.body.imageUrl.includes('blob:')) {
+        console.log(`Processing blob URL in new question: ${req.body.imageUrl}`);
+        req.body.imageUrl = sanitizeImageUrl(req.body.imageUrl);
+        console.log(`Converted blob URL to: ${req.body.imageUrl}`);
+      }
+      
       const newQuestion = await dbStorage.createQuizQuestion({
         ...req.body,
         quizId
@@ -2336,6 +2352,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quiz = await dbStorage.getQuiz(question.quizId);
       if (!quiz || quiz.teacherId !== teacherId) {
         return res.status(403).json({ message: "Not authorized to update this question" });
+      }
+      
+      // Process any blob URLs before updating
+      if (req.body.imageUrl && req.body.imageUrl.includes('blob:')) {
+        console.log(`Processing blob URL in question update: ${req.body.imageUrl}`);
+        req.body.imageUrl = sanitizeImageUrl(req.body.imageUrl);
+        console.log(`Converted blob URL to: ${req.body.imageUrl}`);
       }
       
       // Check if we're updating the image and the question already has an image
