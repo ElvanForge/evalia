@@ -40,6 +40,12 @@ function ImageWithFallbacks({
   // Preload the image immediately on component mount to ensure it loads
   useEffect(() => {
     if (src) {
+      // If the source is already a base64 data URL, no need to preload
+      if (src.startsWith('data:')) {
+        setPreloadComplete(true);
+        return;
+      }
+      
       const preloadImage = async () => {
         // Always force reload when src changes to ensure we get the latest image
         // This is critical for quiz editing when uploading new images

@@ -263,8 +263,28 @@ export function QuestionFormDialog({
               const uploadResult = await uploadResponse.json();
               console.log("Image upload success! Result:", uploadResult);
 
-              // Process the upload result
-              if (uploadResult.imageUrl) {
+              // Check if the server returned base64 data directly
+              if (uploadResult.base64Data) {
+                // Use the base64 data directly for the preview
+                console.log('Using base64 data from server response');
+                setImagePreview(uploadResult.base64Data);
+                
+                // Also store the URL for database storage
+                if (uploadResult.imageUrl) {
+                  imageUrl = uploadResult.imageUrl;
+                  console.log(`Using server-provided imageUrl: ${imageUrl}`);
+                } 
+                else if (uploadResult.relativeUrl) {
+                  imageUrl = `/${uploadResult.relativeUrl}`;
+                  console.log(`Using normalized relativeUrl: ${imageUrl}`);
+                }
+                else if (uploadResult.filename) {
+                  imageUrl = `/uploads/images/${uploadResult.filename}`;
+                  console.log(`Constructed URL from filename: ${imageUrl}`);
+                }
+              } 
+              // Fall back to URL-based approach if no base64 data
+              else if (uploadResult.imageUrl) {
                 imageUrl = uploadResult.imageUrl;
                 console.log(`Using server-provided imageUrl: ${imageUrl}`);
               } 
@@ -277,7 +297,7 @@ export function QuestionFormDialog({
                 console.log(`Constructed URL from filename: ${imageUrl}`);
               }
 
-              // Normalize the URL
+              // Normalize the URL (needed for database storage)
               if (imageUrl) {
                 if (!imageUrl.startsWith('/')) {
                   imageUrl = '/' + imageUrl;

@@ -28,6 +28,7 @@ import BetaApplication from "@/pages/beta-application";
 import ImageTest from "@/pages/image-test";
 import ImageDebug from "@/pages/image-debug";
 import DebugPage from "@/pages/debug-page";
+import DebugImages from "@/pages/debug-images";
 import { AuthProvider } from "@/hooks/use-auth.tsx";
 
 // Import our new assignment pages
@@ -81,6 +82,7 @@ function Router() {
       <Route path="/lesson-plans/:id/edit" component={EditLessonPlan} />
       <Route path="/lesson-plans/:id/export" component={ExportLessonPlan} />
       <Route path="/debug" component={DebugPage} />
+      <Route path="/debug/images" component={DebugImages} />
       <Route component={NotFound} />
     </Switch>
   );
