@@ -1,311 +1,465 @@
-import { Request, Response } from 'express';
+import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import { storage } from './storage';
 
 /**
- * Function to serve an image file with proper cache headers
+ * Helper function to find all possible paths for an image
  */
-export function serveImageFile(filePath: string, res: Response) {
+export function resolveImagePath(imagePath: string): string | null {
   try {
-    const stats = fs.statSync(filePath);
-    const ext = path.extname(filePath).toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.gif': 'image/gif',
-      '.svg': 'image/svg+xml',
-      '.webp': 'image/webp',
-      '.pdf': 'application/pdf'
-    };
+    // Remove query params
+    const cleanPath = imagePath.split('?')[0];
     
-    let contentType = 'application/octet-stream';
-    if (mimeTypes[ext]) {
-      contentType = mimeTypes[ext];
+    // Try multiple path variations
+    const possiblePaths = [
+      cleanPath,
+      cleanPath.replace('/uploads', './uploads'),
+      cleanPath.replace('/uploads', 'uploads'),
+      cleanPath.startsWith('/') ? cleanPath.substring(1) : cleanPath,
+      `./uploads/images/${cleanPath.split('/').pop()}`,
+      `./uploads/${cleanPath.split('/').pop()}`
+    ];
+    
+    for (const path of possiblePaths) {
+      if (fs.existsSync(path)) {
+        return path;
+      }
     }
     
-    // Set comprehensive headers for better caching and CORS handling
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Length', stats.size);
-    
-    // Cache control - use cache busting query parameters for better control
-    const hasCacheBusting = res.req?.url?.includes('t=');
-    if (hasCacheBusting) {
-      // If cache busting parameter present, allow caching
-      res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
-      res.setHeader('ETag', `"${stats.size}-${stats.mtime.getTime()}"`);
-    } else {
-      // Without cache busting, force revalidation
-      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-    }
-    
-    // CORS headers - allow from all origins for image assets
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    
-    return fs.createReadStream(filePath).pipe(res);
+    return null;
   } catch (error) {
-    console.error('Error in serveImageFile:', error);
-    if (!res.headersSent) {
-      res.status(500).send('Error processing file');
-    }
+    console.error('Error resolving image path:', error);
     return null;
   }
 }
 
 /**
- * Function to find an image file with case-insensitive matching
- * Enhanced with more fallback paths and better debugging
+ * Get image as base64 data URL
  */
-export function findImageFile(filename: string, directory: string = './uploads/images'): string | null {
-  console.log(`[findImageFile] Searching for file: ${filename}`);
-  console.log(`[findImageFile] Default directory: ${directory}`);
-  
-  // Remove query parameters if any
-  const filenameWithoutQuery = filename.split('?')[0];
-  console.log(`[findImageFile] Filename without query: ${filenameWithoutQuery}`);
-  
-  const fallbackPaths = [
-    // Primary location - uploads/images directory
-    directory,
+export async function getImageAsBase64(filename: string): Promise<string | null> {
+  try {
+    // Try multiple possible locations
+    const possiblePaths = [
+      `./uploads/${filename}`,
+      `./uploads/images/${filename}`,
+      filename.startsWith('./') ? filename : `./${filename}`,
+      filename
+    ];
     
-    // Fallback locations - try alternative paths in case of deployment differences
-    path.join(process.cwd(), 'uploads/images'),
-    path.join(process.cwd(), '/uploads/images'),
-    path.join(process.cwd(), './uploads/images'),
-    path.join(process.cwd(), '../uploads/images'),
-    path.join(process.cwd(), '../../uploads/images'),
-    
-    // Absolute paths from root - for Replit deployed environments
-    '/home/runner/workspace/uploads/images',
-    '/home/runner/uploads/images',
-    '/uploads/images',
-    
-    // Additional deploy-specific paths for Replit
-    '/home/runner/evaliabeta/uploads/images',
-    `/home/runner/${process.env.REPL_SLUG}/uploads/images`,
-    '/mnt/data/uploads/images',
-    
-    // Try common absolute paths that might work in various environments
-    '/app/uploads/images',
-    '/var/task/uploads/images'
-  ];
-  
-  console.log(`[findImageFile] Will search in these paths:`, fallbackPaths);
-  
-  // Try all potential paths with exact filename
-  for (const dir of fallbackPaths) {
-    const exactPath = path.join(dir, filenameWithoutQuery);
-    console.log(`[findImageFile] Trying exact path: ${exactPath}`);
-    
-    try {
-      if (fs.existsSync(exactPath)) {
-        console.log(`[findImageFile] ✅ Found exact match at: ${exactPath}`);
-        return exactPath;
+    for (const filePath of possiblePaths) {
+      if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath);
+        const mimeType = getMimeType(filePath);
+        return `data:${mimeType};base64,${data.toString('base64')}`;
       }
-    } catch (error: any) {
-      console.log(`[findImageFile] Error checking ${exactPath}:`, error.message);
-      // Continue to next path
     }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting image as base64:', error);
+    return null;
   }
-  
-  // If exact match fails, try case-insensitive search in all paths
-  for (const dir of fallbackPaths) {
+}
+
+/**
+ * Helper to determine MIME type from file extension
+ */
+export function getMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg';
+    case '.png':
+      return 'image/png';
+    case '.gif':
+      return 'image/gif';
+    case '.svg':
+      return 'image/svg+xml';
+    case '.webp':
+      return 'image/webp';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+/**
+ * Helper function to serve an image file with appropriate headers
+ */
+export function serveImageFile(filePath: string, res: express.Response) {
+  try {
+    // Get file stats
+    const stats = fs.statSync(filePath);
+    
+    // Set CORS headers for deployment environments
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Range, Cache-Control');
+    res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+    
+    // Additional headers to help with Chrome/Firefox security policies
+    res.header('Cross-Origin-Embedder-Policy', 'credentialless');
+    res.header('Timing-Allow-Origin', '*');
+    
+    // Set caching headers - no cache to ensure fresh images after deployment
+    res.header('Cache-Control', 'no-cache, must-revalidate');
+    res.header('Pragma', 'no-cache');
+    res.header('Expires', '0');
+    
+    // Set content type based on file extension
+    const contentType = getMimeType(filePath);
+    
+    res.header('Content-Type', contentType);
+    res.header('Content-Length', stats.size.toString());
+    
+    // Read and send the file directly
+    return fs.createReadStream(filePath).pipe(res);
+  } catch (err) {
+    console.error(`Error serving image ${filePath}:`, err);
+    return res.status(500).json({
+      error: 'Server error',
+      message: 'Error reading image file'
+    });
+  }
+}
+
+/**
+ * List all available images in uploads directories
+ */
+export async function listAvailableImages(): Promise<string[]> {
+  try {
+    const images: string[] = [];
+    
+    // Check multiple possible directories
+    const directories = ['./uploads', './uploads/images'];
+    
+    for (const dir of directories) {
+      if (fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir);
+        
+        // Get only image files
+        const imageFiles = files.filter(file => {
+          const ext = path.extname(file).toLowerCase();
+          return ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'].includes(ext);
+        });
+        
+        images.push(...imageFiles);
+      }
+    }
+    
+    return images;
+  } catch (error) {
+    console.error('Error listing available images:', error);
+    return [];
+  }
+}
+
+/**
+ * Register all image-related routes
+ */
+export function registerImageRoutes(app: express.Express) {
+  // Direct API endpoint to get image as base64
+  app.get('/api/images/base64/:filename', async (req, res) => {
     try {
-      // Check if directory exists before trying to read it
-      if (!fs.existsSync(dir)) {
-        console.log(`[findImageFile] Directory doesn't exist: ${dir}`);
-        continue;
+      // Get filename from request - handle URL encoded chars
+      let filename = decodeURIComponent(req.params.filename);
+      
+      // Get the original URL if provided in query params
+      const originalUrl = req.query.originalUrl as string | undefined;
+      
+      console.log(`Base64 image request for: ${filename}`);
+      if (originalUrl) {
+        console.log(`Original URL provided: ${originalUrl}`);
       }
       
-      const files = fs.readdirSync(dir);
-      console.log(`[findImageFile] Found ${files.length} files in ${dir}`);
-      
-      // Show first few files for debugging
-      if (files.length > 0) {
-        console.log(`[findImageFile] Sample files:`, files.slice(0, 5));
-      }
-      
-      // Exact case-insensitive match
-      const exactMatch = files.find(file => 
-        file.toLowerCase() === filenameWithoutQuery.toLowerCase()
-      );
-      
-      if (exactMatch) {
-        const matchPath = path.join(dir, exactMatch);
-        console.log(`[findImageFile] ✅ Found case-insensitive match: ${matchPath}`);
-        return matchPath;
-      }
-      
-      // Try matching by base filename (ignoring extension)
-      const fileWithoutExt = path.basename(filenameWithoutQuery, path.extname(filenameWithoutQuery)).toLowerCase();
-      console.log(`[findImageFile] Looking for base filename: ${fileWithoutExt}`);
-      
-      // Find files with matching base name (different extension or case)
-      const matchingFiles = files.filter(file => {
-        const fileBaseName = path.basename(file, path.extname(file)).toLowerCase();
-        return fileBaseName === fileWithoutExt;
-      });
-      
-      if (matchingFiles.length >= 1) {
-        const matchPath = path.join(dir, matchingFiles[0]);
-        console.log(`[findImageFile] ✅ Found base filename match: ${matchPath}`);
-        return matchPath;
-      }
-      
-      // Try fuzzy matching as last resort - look for partial matches
-      // in case of timestamp-modified filenames
-      if (fileWithoutExt.includes('-')) {
-        // Split the filename by hyphens and use the first part for matching
-        const basePattern = fileWithoutExt.split('-')[0];
-        console.log(`[findImageFile] Trying fuzzy match with pattern: ${basePattern}`);
+      // First try - check if we can resolve the original URL directly
+      if (originalUrl && !originalUrl.startsWith('blob:')) {
+        console.log(`Attempting to resolve original URL directly: ${originalUrl}`);
         
-        const fuzzyMatches = files.filter(file => 
-          file.toLowerCase().includes(basePattern.toLowerCase())
-        );
-        
-        if (fuzzyMatches.length >= 1) {
-          const matchPath = path.join(dir, fuzzyMatches[0]);
-          console.log(`[findImageFile] ✅ Found fuzzy match: ${matchPath}`);
-          return matchPath;
+        const resolvedPath = resolveImagePath(originalUrl);
+        if (resolvedPath) {
+          console.log(`Successfully resolved original URL to path: ${resolvedPath}`);
+          const data = fs.readFileSync(resolvedPath);
+          const mime = getMimeType(resolvedPath);
+          const base64Data = `data:${mime};base64,${data.toString('base64')}`;
+          
+          console.log(`Successfully served image from resolved path`);
+          res.status(200).json({ 
+            success: true, 
+            data: base64Data,
+            source: 'resolved_path'
+          });
+          return;
+        } else {
+          console.log(`Could not resolve original URL to a valid path`);
         }
       }
-    } catch (err: any) {
-      console.error(`[findImageFile] Error searching in ${dir}:`, err);
-      // Continue to next directory
+      
+      // Remove any path elements that might have been included
+      if (filename.includes('/')) {
+        filename = filename.split('/').pop() || filename;
+      }
+      
+      // Remove any query parameters
+      if (filename.includes('?')) {
+        filename = filename.split('?')[0];
+      }
+      
+      // Second try - use the enhanced getImageAsBase64 function
+      const base64Data = await getImageAsBase64(filename);
+      
+      if (base64Data) {
+        console.log(`Successfully served ${filename} as base64`);
+        res.status(200).json({ 
+          success: true, 
+          data: base64Data,
+          source: 'direct_lookup'
+        });
+      } else {
+        console.log(`Image not found, attempting fallback searches: ${filename}`);
+        
+        // List all available images for logging and debugging
+        const availableImages = await listAvailableImages();
+        
+        // Try to find a partial match in case of filename naming issues
+        let fallbackImage = null;
+        
+        // Extract any UUIDs that might be in the filename
+        const uuidMatch = filename.match(/([a-f0-9-]{36})/i);
+        if (uuidMatch && uuidMatch[1]) {
+          const uuid = uuidMatch[1];
+          console.log(`Extracted UUID: ${uuid}, searching for partial matches`);
+          
+          // Look for any available image that contains this UUID
+          const matchingImage = availableImages.find(img => 
+            img.toLowerCase().includes(uuid.toLowerCase())
+          );
+          
+          if (matchingImage) {
+            console.log(`Found matching image with UUID: ${matchingImage}`);
+            fallbackImage = await getImageAsBase64(matchingImage);
+          }
+        }
+        
+        // If we found a fallback image through our additional search
+        if (fallbackImage) {
+          console.log(`Serving fallback image match for: ${filename}`);
+          res.status(200).json({
+            success: true,
+            data: fallbackImage,
+            source: 'uuid_match'
+          });
+          return;
+        }
+        
+        // If no UUID match but we have an original URL that contains a timestamp, try matching by timestamp
+        if (originalUrl && originalUrl.includes('-') && !fallbackImage) {
+          const timestampMatch = originalUrl.match(/(\d{13})/); // Look for 13-digit timestamps
+          if (timestampMatch && timestampMatch[1]) {
+            const timestamp = timestampMatch[1];
+            console.log(`Extracted timestamp: ${timestamp}, searching for matching files`);
+            
+            const timeMatchingImage = availableImages.find(img => 
+              img.includes(timestamp)
+            );
+            
+            if (timeMatchingImage) {
+              console.log(`Found image matching timestamp: ${timeMatchingImage}`);
+              fallbackImage = await getImageAsBase64(timeMatchingImage);
+              
+              if (fallbackImage) {
+                console.log(`Serving timestamp-matched image for: ${filename}`);
+                res.status(200).json({
+                  success: true,
+                  data: fallbackImage,
+                  source: 'timestamp_match'
+                });
+                return;
+              }
+            }
+          }
+        }
+        
+        // If no partial match, try looking for a similar filename by ignoring extensions
+        if (!fallbackImage && filename.includes('.')) {
+          const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+          console.log(`Trying to match without extension: ${filenameWithoutExt}`);
+          
+          const similarFilename = availableImages.find(img => 
+            img.toLowerCase().startsWith(filenameWithoutExt.toLowerCase())
+          );
+          
+          if (similarFilename) {
+            console.log(`Found similar filename: ${similarFilename}`);
+            fallbackImage = await getImageAsBase64(similarFilename);
+            
+            if (fallbackImage) {
+              console.log(`Serving similar filename match for: ${filename}`);
+              res.status(200).json({
+                success: true,
+                data: fallbackImage,
+                source: 'extension_match'
+              });
+              return;
+            }
+          }
+        }
+        
+        // Last resort - try the first available image that has a similar size/format
+        // Only do this for quiz questions where accuracy isn't critical
+        if (req.query.fallbackToAny === 'true' && availableImages.length > 0) {
+          console.log('Attempting to use any available image as last resort');
+          const lastResortImage = await getImageAsBase64(availableImages[0]);
+          if (lastResortImage) {
+            console.log(`Using alternative image as last resort: ${availableImages[0]}`);
+            res.status(200).json({
+              success: true,
+              data: lastResortImage,
+              source: 'last_resort_fallback'
+            });
+            return;
+          }
+        }
+        
+        // No matches at all
+        console.log(`Image not found after all attempts: ${filename}`);
+        console.log(`Available images: ${availableImages.join(', ')}`);
+        
+        res.status(404).json({ 
+          success: false, 
+          message: `Image ${filename} not found after all attempts`,
+          availableImages: availableImages.slice(0, 20) // First 20 to avoid huge response
+        });
+      }
+    } catch (error) {
+      console.error('Error retrieving base64 image:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error retrieving image' 
+      });
     }
-  }
+  });
   
-  console.log(`[findImageFile] ❌ No matches found for ${filename}`);
-  return null;
-}
-
-/**
- * Get a data URI for a placeholder image
- * Provides a fallback when the actual image can't be found
- */
-function getPlaceholderImage(filename: string, width: number = 300, height: number = 200): string {
-  // Create an SVG placeholder with the filename text
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-    <rect width="${width}" height="${height}" fill="#ede8dd"/>
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#0ba2b0" font-size="16px" font-family="Arial, sans-serif">Image not found: ${filename}</text>
-  </svg>`;
-  
-  // Convert SVG to base64
-  const base64 = Buffer.from(svg).toString('base64');
-  return `data:image/svg+xml;base64,${base64}`;
-}
-
-/**
- * Send a placeholder image as fallback
- */
-function sendPlaceholderImage(res: Response, filename: string) {
-  const placeholderDataUri = getPlaceholderImage(filename);
-  const base64Data = placeholderDataUri.split(',')[1];
-  const buffer = Buffer.from(base64Data, 'base64');
-  
-  res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Content-Length', buffer.length);
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  
-  return res.status(200).send(buffer);
-}
-
-/**
- * Main handler function for image requests
- * Enhanced with more logging and fallback options
- */
-export function handleImageRequest(req: Request, res: Response) {
-  console.log('============ IMAGE REQUEST HANDLER ============');
-  const filename = req.params.filename;
-  const host = req.get('host') || 'unknown';
-  const referer = req.get('referer') || 'unknown';
-  
-  console.log(`Image request details:
-    - Filename: ${filename}
-    - Host: ${host}
-    - Referer: ${referer}
-    - Query: ${JSON.stringify(req.query)}
-    - Original URL: ${req.originalUrl}
-  `);
-  
-  // Check if we should return a placeholder instead (useful for debugging)
-  if (req.query.placeholder === 'true') {
-    console.log('Placeholder requested, serving generated image');
-    return sendPlaceholderImage(res, filename);
-  }
-  
-  // Security check to prevent path traversal
-  if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-    console.error('Attempted path traversal attack with filename:', filename);
-    if (req.query.fallback === 'true') {
-      return sendPlaceholderImage(res, 'SECURITY-ERROR');
+  // List all available images
+  app.get('/api/images/list', async (req, res) => {
+    try {
+      const images = await listAvailableImages();
+      res.status(200).json({ 
+        success: true, 
+        images, 
+        count: images.length 
+      });
+    } catch (error) {
+      console.error('Error listing images:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Error listing images' 
+      });
     }
-    return res.status(400).send('Invalid filename');
-  }
+  });
   
-  // Set CORS headers for images immediately
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Range');
-  res.header('Cross-Origin-Resource-Policy', 'cross-origin');
-  
-  // Check if this is a preflight OPTIONS request
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
-  // Try to find the file using our enhanced helper function
-  const imagePath = findImageFile(filename);
-  
-  if (!imagePath) {
-    console.error(`Image not found: ${filename}`);
-    
-    // If fallback parameter is provided, serve a placeholder image instead of 404
-    if (req.query.fallback === 'true') {
-      console.log('Serving placeholder fallback image');
-      return sendPlaceholderImage(res, filename);
+  // Get all quiz questions with images (for preloading) - no auth for reliability
+  app.get('/api/quizzes/questions/with-images', async (req, res) => {
+    try {
+      // Get all questions that have an image URL
+      const questions = await storage.getQuizQuestionsByImageUrl();
+      
+      // Process image URLs for best compatibility
+      const processedQuestions = questions.map(q => {
+        // Make sure imageUrl is properly formatted for the client
+        if (q.imageUrl) {
+          if (!q.imageUrl.startsWith('/') && !q.imageUrl.startsWith('http') && !q.imageUrl.startsWith('data:')) {
+            q.imageUrl = `/uploads/images/${q.imageUrl}`;
+          }
+        }
+        return q;
+      });
+      
+      res.status(200).json({
+        questions: processedQuestions,
+        count: processedQuestions.length
+      });
+    } catch (error) {
+      console.error('Error fetching quiz questions with images:', error);
+      res.status(500).json({ 
+        message: 'Server error fetching quiz questions with images' 
+      });
     }
-    
-    // Otherwise return a 404
-    return res.status(404).send('Image not found');
-  }
+  });
   
-  console.log(`Found image at: ${imagePath}`);
-  
-  // Try to ensure file permissions for more consistent access
-  try {
-    fs.chmodSync(imagePath, 0o644);
-  } catch (err: any) {
-    console.warn('Could not change file permissions, continuing anyway');
-  }
-  
-  // Make sure file is readable before attempting to serve
-  try {
-    fs.accessSync(imagePath, fs.constants.R_OK);
-    console.log('Verified file is readable');
-  } catch (err: any) {
-    console.error('File exists but is not readable:', err.message);
-    
-    if (req.query.fallback === 'true') {
-      console.log('Serving placeholder fallback due to permission issue');
-      return sendPlaceholderImage(res, `${filename} (permission error)`);
+  // Debug endpoint to get image paths and environment details
+  app.get('/api/debug/images/paths', async (req, res) => {
+    try {
+      // Collect basic environment info
+      const envInfo = {
+        cwd: process.cwd(),
+        nodeEnv: process.env.NODE_ENV || 'development',
+        hostname: process.env.HOSTNAME || 'unknown',
+        domain: process.env.REPL_SLUG || 'unknown'
+      };
+      
+      // Common paths to check
+      const checkPaths = [
+        './uploads',
+        './uploads/images',
+        '../uploads/images',
+        '/uploads/images',
+        '/home/runner/workspace/uploads/images',
+        '/home/runner/app/uploads/images',
+        process.cwd(),
+        path.join(process.cwd(), 'uploads'),
+        path.join(process.cwd(), 'uploads/images')
+      ];
+      
+      // Check each path and get stats
+      const pathChecks = checkPaths.map(p => {
+        try {
+          const exists = fs.existsSync(p);
+          const isDir = exists ? fs.statSync(p).isDirectory() : false;
+          
+          let fileList = [];
+          let count = 0;
+          
+          if (exists && isDir) {
+            fileList = fs.readdirSync(p);
+            count = fileList.length;
+            fileList = fileList.slice(0, 5); // Just a few samples
+          }
+          
+          return {
+            path: p,
+            exists,
+            isDirectory: isDir,
+            fileCount: count,
+            sampleFiles: fileList
+          };
+        } catch (e) {
+          return {
+            path: p,
+            exists: false,
+            error: e.message
+          };
+        }
+      });
+      
+      // Get available images
+      const availableImages = await listAvailableImages();
+      
+      // Send all debug info
+      res.status(200).json({
+        success: true,
+        environment: envInfo,
+        pathChecks,
+        availableImages: availableImages.slice(0, 20)
+      });
+    } catch (error) {
+      console.error('Error in path debug endpoint:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error retrieving path information',
+        error: error.message
+      });
     }
-    
-    return res.status(403).send('Permission denied');
-  }
-  
-  // Serve the image with our enhanced file serving function
-  return serveImageFile(imagePath, res);
+  });
 }

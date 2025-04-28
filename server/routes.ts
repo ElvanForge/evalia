@@ -4,7 +4,7 @@ import { storage as dbStorage } from "./storage";
 import builder from "xmlbuilder";
 import Stripe from "stripe";
 import * as openAIService from "./openai-service";
-import { handleImageRequest, serveImageFile } from './image-handler';
+import { registerImageRoutes, serveImageFile } from './image-handler';
 import { getImageAsBase64, listAvailableImages } from './scripts/debug-images';
 import { handleImageDebugFindRequest, handleImageDebugListRequest } from './scripts/image-debug-routes';
 
@@ -251,14 +251,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     
-    // If all else fails, try the image handler
-    console.log(`Trying image handler for: ${filename}`);
+    // If all else fails, try to serve as base64
+    console.log(`Trying to serve as base64: ${filename}`);
     try {
-      if (handleImageRequest(req, res, filename, true)) {
-        return; // Image handler took care of it
-      }
+      // Redirect to base64 endpoint
+      res.redirect(`/api/images/base64/${encodeURIComponent(filename)}`);
+      return;
     } catch (err) {
-      console.error("Image handler error:", err);
+      console.error("Error redirecting to base64 endpoint:", err);
     }
     
     console.error(`Quiz image not found: ${filename}`);
@@ -4140,8 +4140,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (originalUrl && !originalUrl.startsWith('blob:')) {
         console.log(`Attempting to resolve original URL directly: ${originalUrl}`);
         
-        // Import the resolveImagePath function from debug-images.ts
-        const { resolveImagePath } = require('./scripts/debug-images');
+        // Define our own simple path resolver 
+        const resolveImagePath = (imagePath: string): string | null => {
+          try {
+            // Remove query params
+            const cleanPath = imagePath.split('?')[0];
+            
+            // Try multiple path variations
+            const possiblePaths = [
+              cleanPath,
+              cleanPath.replace('/uploads', './uploads'),
+              cleanPath.replace('/uploads', 'uploads'),
+              cleanPath.startsWith('/') ? cleanPath.substring(1) : cleanPath,
+              `./uploads/images/${cleanPath.split('/').pop()}`,
+              `./uploads/${cleanPath.split('/').pop()}`
+            ];
+            
+            for (const path of possiblePaths) {
+              if (fs.existsSync(path)) {
+                return path;
+              }
+            }
+            
+            return null;
+          } catch (error) {
+            console.error('Error resolving image path:', error);
+            return null;
+          }
+        };
         
         const resolvedPath = resolveImagePath(originalUrl);
         if (resolvedPath) {
