@@ -1,180 +1,149 @@
 /**
- * Utility for reliable image loading by forcing all images to convert to base64
+ * Force Base64 Images Utility
  * 
- * This ensures consistent behavior across all environments (dev/prod) and
- * avoids CORS and path resolution issues
+ * This utility helps with image loading issues by storing and managing
+ * base64 data for images. It provides a cache system to avoid repeated network
+ * requests and ensures images are displayed consistently.
  */
 
-// Cache of base64 images to avoid repeated server requests
-const base64Cache = new Map<string, string>();
+// Store base64 data for images
+type ImageCache = {
+  [key: string]: string;
+};
+
+// In-memory cache for base64 image data
+let imageCache: ImageCache = {};
 
 /**
- * Convert any image URL to a base64 data URL for reliable display
- * This function will use the server's base64 endpoint to convert images.
- * 
- * @param imageUrl The original image URL
- * @param fallbackToAny DEPRECATED - no longer used as we've removed placeholder images
- * @param forceReload Whether to bypass cache and force a fresh load
- * @returns A Promise that resolves to a base64 data URL or null if conversion failed
- */
-export async function forceBase64Image(
-  imageUrl: string, 
-  fallbackToAny = false, // parameter kept for backwards compatibility
-  forceReload = false
-): Promise<string | null> {
-  // Skip for already base64 images
-  if (imageUrl && imageUrl.startsWith('data:')) {
-    return imageUrl;
-  }
-  
-  // Skip for non-existent images
-  if (!imageUrl) {
-    console.warn('Attempted to load null or empty image URL');
-    return null;
-  }
-  
-  // Create a cache key that respects query parameters for versioning
-  let cacheKey = imageUrl;
-  
-  // For newly uploaded images, always bypass cache for the first hour
-  const isNewlyUploaded = imageUrl.includes(Date.now().toString().substring(0, 6));
-  
-  // Check cache first (unless forceReload is true or it's a newly uploaded image)
-  if (!forceReload && !isNewlyUploaded && base64Cache.has(cacheKey)) {
-    return base64Cache.get(cacheKey) || null;
-  }
-  
-  console.log(`Attempting to fetch as base64: ${imageUrl}`);
-  
-  try {
-    // Extract filename from path if needed
-    let filename = imageUrl;
-    if (imageUrl.includes('/')) {
-      filename = imageUrl.split('/').pop() || '';
-    }
-    
-    // Remove any query parameters but keep a version query if it exists
-    let versionQuery = '';
-    if (filename.includes('?')) {
-      const parts = filename.split('?');
-      filename = parts[0];
-      
-      // Extract version parameter if it exists
-      const queryParams = new URLSearchParams(parts[1]);
-      const version = queryParams.get('v');
-      if (version) {
-        versionQuery = `&v=${version}`;
-      }
-    }
-    
-    // Add cache busting if requested
-    const cacheBuster = forceReload ? `&t=${Date.now()}` : '';
-    
-    // Create URL with the original URL as a query parameter for better path resolution
-    const apiUrl = `/api/images/base64/${encodeURIComponent(filename)}?originalUrl=${encodeURIComponent(imageUrl)}&fallbackToAny=${fallbackToAny}${versionQuery}${cacheBuster}`;
-    
-    // Fetch the base64 version
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      console.error(`Base64 fetch failed with status: ${response.status}`);
-      return null;
-    }
-    
-    const result = await response.json();
-    
-    if (result.success && result.data) {
-      console.log(`Successfully loaded image via base64 API`);
-      // Cache the result for future use
-      base64Cache.set(cacheKey, result.data);
-      return result.data;
-    } else {
-      console.error('Base64 conversion failed:', result.message || 'Unknown error');
-      return null;
-    }
-  } catch (error) {
-    console.error('Error converting image to base64:', error);
-    return null;
-  }
-}
-
-/**
- * Preload a batch of images as base64
- * Useful for quiz questions to ensure images are available before displaying
- * 
- * @param imageUrls Array of image URLs to preload
- * @returns A Promise that resolves when all images are preloaded
- */
-export async function preloadImagesAsBase64(imageUrls: string[]): Promise<void> {
-  // Filter out null/empty/undefined URLs and already cached ones
-  const urlsToFetch = imageUrls.filter(url => 
-    url && 
-    !url.startsWith('data:') && 
-    !base64Cache.has(url)
-  );
-  
-  if (urlsToFetch.length === 0) {
-    return;
-  }
-  
-  console.log(`Preloading ${urlsToFetch.length} images as base64`);
-  
-  // Create promises for all images, but don't wait for completion
-  const promises = urlsToFetch.map(url => forceBase64Image(url));
-  
-  // Use Promise.allSettled to handle all promises regardless of success/failure
-  await Promise.allSettled(promises);
-  
-  console.log(`Preloaded ${urlsToFetch.length} images as base64`);
-}
-
-/**
- * Check if an image is already cached as base64
- */
-export function isImageCached(url: string): boolean {
-  return base64Cache.has(url);
-}
-
-/**
- * Get the number of cached images
- */
-export function getCachedImageCount(): number {
-  return base64Cache.size;
-}
-
-/**
- * Clear the base64 image cache
+ * Clear the entire image cache
  */
 export function clearImageCache(): void {
-  base64Cache.clear();
+  imageCache = {};
+  console.log('Image cache cleared');
 }
 
 /**
- * Clears the cache for a specific image URL pattern
- * Useful when updating images to ensure the cache doesn't serve old versions
+ * Get a base64 data URL for an image from cache or fetch it from the server
  * 
- * @param pattern A string or regex pattern to match against cache keys
+ * @param {string} imagePath - The path of the image to fetch
+ * @param {boolean} bypassCache - Whether to bypass the cache and force a new fetch
+ * @returns {Promise<string | null>} - A Promise that resolves to the base64 data URL or null if not found
  */
-export function clearCacheForPattern(pattern: string | RegExp): void {
-  const keysToRemove: string[] = [];
+export async function getBase64Image(imagePath: string, bypassCache = false): Promise<string | null> {
+  if (!imagePath) return null;
   
-  // Find all keys matching the pattern
-  base64Cache.forEach((_, key) => {
-    if (typeof pattern === 'string') {
-      if (key.includes(pattern)) {
-        keysToRemove.push(key);
-      }
-    } else if (pattern instanceof RegExp) {
-      if (pattern.test(key)) {
-        keysToRemove.push(key);
-      }
+  // If it's already a data URL, return it directly
+  if (imagePath.startsWith('data:')) {
+    return imagePath;
+  }
+  
+  // Clean up the path
+  const cleanPath = imagePath.split('?')[0];
+  
+  // Check the cache first unless we're bypassing it
+  if (!bypassCache && imageCache[cleanPath]) {
+    console.log(`Using cached base64 data for ${cleanPath}`);
+    return imageCache[cleanPath];
+  }
+  
+  try {
+    console.log(`Fetching base64 data for ${cleanPath}`);
+    // Extract the filename from the path
+    const filename = cleanPath.split('/').pop();
+    
+    if (!filename) {
+      console.error('Invalid image path:', cleanPath);
+      return null;
     }
-  });
+    
+    // Make the API request to get base64 data
+    const response = await fetch(`/api/images/base64/${encodeURIComponent(filename)}`);
+    
+    if (!response.ok) {
+      console.error(`Failed to fetch base64 data for ${filename}:`, response.statusText);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    if (data.data) {
+      // Store in cache for future use
+      imageCache[cleanPath] = data.data;
+      return data.data;
+    }
+    
+    console.error('No base64 data received for', filename);
+    return null;
+  } catch (error) {
+    console.error('Error fetching base64 image:', error);
+    return null;
+  }
+}
+
+/**
+ * Try multiple methods to load an image, with fallbacks
+ * 
+ * @param {string} imagePath - The path of the image to try loading
+ * @returns {Promise<string | null>} - A Promise that resolves to a usable image URL or null if all methods fail
+ */
+export async function getImageWithFallbacks(imagePath: string): Promise<string | null> {
+  if (!imagePath) return null;
   
-  // Remove the matched keys
-  keysToRemove.forEach(key => {
-    base64Cache.delete(key);
-  });
+  // Skip processing for data URLs
+  if (imagePath.startsWith('data:')) {
+    return imagePath;
+  }
   
-  console.log(`Cleared ${keysToRemove.length} cached images matching pattern`);
+  // Try to use the API debug finder first for path-based images
+  if (!imagePath.startsWith('blob:') && !imagePath.startsWith('data:')) {
+    try {
+      const response = await fetch(`/api/image-debug/find?path=${encodeURIComponent(imagePath)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.url) {
+          console.log(`Found image via debug API: ${data.url} (method: ${data.method})`);
+          return data.url;
+        }
+      }
+    } catch (error) {
+      console.error('Error using image debug finder:', error);
+    }
+  }
+  
+  // Try to get base64 data as a fallback
+  try {
+    const base64Data = await getBase64Image(imagePath);
+    if (base64Data) {
+      return base64Data;
+    }
+  } catch (error) {
+    console.error('Error getting base64 data:', error);
+  }
+  
+  // Return the original path as a last resort
+  return imagePath;
+}
+
+/**
+ * Add a base64 image to the cache directly
+ * 
+ * @param {string} path - The path to associate with this base64 data
+ * @param {string} base64Data - The base64 data URL
+ */
+export function addToImageCache(path: string, base64Data: string): void {
+  if (!path || !base64Data) return;
+  
+  const cleanPath = path.split('?')[0];
+  imageCache[cleanPath] = base64Data;
+}
+
+/**
+ * Get all entries from the image cache
+ * 
+ * @returns {ImageCache} - The current image cache
+ */
+export function getImageCache(): ImageCache {
+  return { ...imageCache };
 }

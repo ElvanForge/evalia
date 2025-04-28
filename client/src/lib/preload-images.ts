@@ -2,7 +2,7 @@
  * Utility to preload and cache all quiz images as base64 data
  * This ensures images will always be available even if paths are broken
  */
-import { forceBase64Image } from './force-base64-images';
+import { getBase64Image, addToImageCache } from './force-base64-images';
 
 // Simple in-memory cache 
 const imageCache = new Map<string, string>();
@@ -46,11 +46,16 @@ export async function preloadAllQuizImages(): Promise<void> {
         
         try {
           console.log(`Preloading image: ${imagePath}`);
-          const base64Data = await forceBase64Image(imagePath);
+          const base64Data = await getBase64Image(imagePath, true); // force reload
           
-          // Cache the result
-          imageCache.set(imagePath, base64Data);
-          console.log(`Successfully cached image: ${imagePath}`);
+          if (base64Data) {
+            // Cache in both our local cache and the shared cache
+            imageCache.set(imagePath, base64Data);
+            addToImageCache(imagePath, base64Data);
+            console.log(`Successfully cached image: ${imagePath}`);
+          } else {
+            console.warn(`Failed to load image: ${imagePath}`);
+          }
         } catch (error) {
           console.error(`Failed to preload image: ${imagePath}`, error);
         }

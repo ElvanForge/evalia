@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ReliableImage } from '@/components/reliable-image';
-import { forceBase64Image } from '@/lib/force-base64-images';
+import { getBase64Image, getImageWithFallbacks } from '@/lib/force-base64-images';
 
 interface ImageWithFallbacksProps {
   src: string | null;
@@ -49,7 +49,11 @@ function ImageWithFallbacks({
       const preloadImage = async () => {
         // Always force reload when src changes to ensure we get the latest image
         // This is critical for quiz editing when uploading new images
-        await forceBase64Image(src, allowFallbacks, true);
+        if (allowFallbacks) {
+          await getImageWithFallbacks(src);
+        } else {
+          await getBase64Image(src, true); // force reload
+        }
         setPreloadComplete(true);
       };
       

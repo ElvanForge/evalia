@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { forceBase64Image } from '@/lib/force-base64-images';
+import { getBase64Image, getImageWithFallbacks } from '@/lib/force-base64-images';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ReliableImageProps {
@@ -53,9 +53,17 @@ export function ReliableImage({
       try {
         // Force reload when retry is triggered
         const forceReload = retryCount > 0;
-        const base64Src = await forceBase64Image(src, withFallbacks, forceReload);
-        if (base64Src) {
-          setImageSrc(base64Src);
+        
+        // Use fallbacks if requested
+        let imageSrc;
+        if (withFallbacks) {
+          imageSrc = await getImageWithFallbacks(src);
+        } else {
+          imageSrc = await getBase64Image(src, forceReload);
+        }
+        
+        if (imageSrc) {
+          setImageSrc(imageSrc);
           setError(false);
         } else {
           setError(true);
