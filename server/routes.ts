@@ -5,6 +5,8 @@ import builder from "xmlbuilder";
 import Stripe from "stripe";
 import * as openAIService from "./openai-service";
 import { registerImageRoutes, serveImageFile } from './image-handler';
+import { imageCache } from './image-cache';
+import { handleImageUpload } from './enhanced-image-upload';
 import { getImageAsBase64, listAvailableImages } from './scripts/debug-images';
 import { handleImageDebugFindRequest, handleImageDebugListRequest } from './scripts/image-debug-routes';
 import { imageListHandler } from './scripts/image-list-handler';
