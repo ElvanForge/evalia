@@ -1,98 +1,127 @@
 /**
- * Helper function to force all images to be loaded as base64 from the server
- * This guarantees images will work in all environments, especially in production
+ * Utility for reliable image loading by forcing all images to convert to base64
+ * 
+ * This ensures consistent behavior across all environments (dev/prod) and
+ * avoids CORS and path resolution issues
  */
+
+// Cache of base64 images to avoid repeated server requests
+const base64Cache = new Map<string, string>();
 
 /**
- * Forces an image URL to be loaded as base64 from the server
- * This is useful for environments where normal URL loading fails (e.g., production)
+ * Convert any image URL to a base64 data URL for reliable display
+ * This function will use the server's base64 endpoint to convert images.
  * 
- * @param url The original image URL
- * @returns Promise that resolves to a base64 data URL
+ * @param imageUrl The original image URL
+ * @param fallbackToAny Whether to allow fallback to any available image if exact match not found
+ * @returns A Promise that resolves to a base64 data URL or null if conversion failed
  */
-export async function forceBase64Image(url: string): Promise<string> {
-  // Skip if already a data URL
-  if (url.startsWith('data:')) {
-    return url;
+export async function forceBase64Image(imageUrl: string, fallbackToAny = false): Promise<string | null> {
+  // Skip for already base64 images
+  if (imageUrl && imageUrl.startsWith('data:')) {
+    return imageUrl;
   }
-
+  
+  // Skip for non-existent images
+  if (!imageUrl) {
+    console.warn('Attempted to load null or empty image URL');
+    return null;
+  }
+  
+  // Check cache first
+  if (base64Cache.has(imageUrl)) {
+    return base64Cache.get(imageUrl) || null;
+  }
+  
+  console.log(`Attempting to fetch as base64: ${imageUrl}`);
+  
   try {
-    // Extract filename for endpoint
-    let filename = url;
-    
-    // Handle blob URLs by extracting UUID
-    if (url.startsWith('blob:')) {
-      const uuidMatch = url.match(/([a-f0-9-]{36})/i);
-      if (uuidMatch && uuidMatch[1]) {
-        filename = uuidMatch[1];
-      }
+    // Extract filename from path if needed
+    let filename = imageUrl;
+    if (imageUrl.includes('/')) {
+      filename = imageUrl.split('/').pop() || '';
     }
     
-    // Extract just the filename component
-    if (filename.includes('/')) {
-      filename = filename.split('/').pop() || filename;
-    }
-    
+    // Remove any query parameters
     if (filename.includes('?')) {
       filename = filename.split('?')[0];
     }
-
-    // Set parameters to help server identify the image
-    const params = new URLSearchParams();
-    params.append('originalUrl', url);
-    params.append('timestamp', Date.now().toString());
-    params.append('fallbackToAny', 'true');  // Allow fallback in production
     
-    // Request the image as base64
-    const response = await fetch(`/api/images/base64/${encodeURIComponent(filename)}?${params.toString()}`);
+    // Create URL with the original URL as a query parameter for better path resolution
+    const apiUrl = `/api/images/base64/${encodeURIComponent(filename)}?originalUrl=${encodeURIComponent(imageUrl)}&fallbackToAny=${fallbackToAny}`;
+    
+    // Fetch the base64 version
+    const response = await fetch(apiUrl);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch base64 image: ${response.status}`);
+      console.error(`Base64 fetch failed with status: ${response.status}`);
+      return null;
     }
     
-    const data = await response.json();
+    const result = await response.json();
     
-    if (data.success && data.data) {
-      console.log(`Successfully fetched ${filename} as base64 via ${data.source || 'server'}`);
-      return data.data;
+    if (result.success && result.data) {
+      console.log(`Successfully loaded image via base64 API`);
+      // Cache the result for future use
+      base64Cache.set(imageUrl, result.data);
+      return result.data;
     } else {
-      throw new Error(data.message || 'Failed to fetch base64 image');
+      console.error('Base64 conversion failed:', result.message || 'Unknown error');
+      return null;
     }
   } catch (error) {
-    console.error('Error forcing base64 image:', error);
-    throw error;
+    console.error('Error converting image to base64:', error);
+    return null;
   }
 }
 
 /**
- * Forces all image elements within a container to use base64 data URLs
- * Call this function on page load to ensure all images work in production
+ * Preload a batch of images as base64
+ * Useful for quiz questions to ensure images are available before displaying
  * 
- * @param container The container element (defaults to document.body)
+ * @param imageUrls Array of image URLs to preload
+ * @returns A Promise that resolves when all images are preloaded
  */
-export function forceAllImagesBase64(container: HTMLElement = document.body) {
-  const images = container.querySelectorAll('img');
+export async function preloadImagesAsBase64(imageUrls: string[]): Promise<void> {
+  // Filter out null/empty/undefined URLs and already cached ones
+  const urlsToFetch = imageUrls.filter(url => 
+    url && 
+    !url.startsWith('data:') && 
+    !base64Cache.has(url)
+  );
   
-  images.forEach(img => {
-    const originalSrc = img.getAttribute('src');
-    if (!originalSrc || originalSrc.startsWith('data:')) return;
-    
-    // Show loading state while we fetch the base64 version
-    img.setAttribute('data-original-src', originalSrc);
-    
-    // Apply loading styling
-    img.style.opacity = '0.5';
-    
-    // Fetch base64 version
-    forceBase64Image(originalSrc)
-      .then(base64Src => {
-        img.setAttribute('src', base64Src);
-        img.style.opacity = '1';
-      })
-      .catch(error => {
-        console.error(`Failed to load image ${originalSrc}:`, error);
-        // Leave original src in place on error
-        img.style.opacity = '1';
-      });
-  });
+  if (urlsToFetch.length === 0) {
+    return;
+  }
+  
+  console.log(`Preloading ${urlsToFetch.length} images as base64`);
+  
+  // Create promises for all images, but don't wait for completion
+  const promises = urlsToFetch.map(url => forceBase64Image(url));
+  
+  // Use Promise.allSettled to handle all promises regardless of success/failure
+  await Promise.allSettled(promises);
+  
+  console.log(`Preloaded ${urlsToFetch.length} images as base64`);
+}
+
+/**
+ * Check if an image is already cached as base64
+ */
+export function isImageCached(url: string): boolean {
+  return base64Cache.has(url);
+}
+
+/**
+ * Get the number of cached images
+ */
+export function getCachedImageCount(): number {
+  return base64Cache.size;
+}
+
+/**
+ * Clear the base64 image cache
+ */
+export function clearImageCache(): void {
+  base64Cache.clear();
 }

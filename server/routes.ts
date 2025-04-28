@@ -6366,6 +6366,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register our enhanced image handling routes
+  registerImageRoutes(app);
+  
   const httpServer = createServer(app);
   return httpServer;
 }
