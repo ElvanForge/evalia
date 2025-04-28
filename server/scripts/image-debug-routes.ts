@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
-import * as fs from 'fs';
-import * as path from 'path';
+import { Request, Response } from "express";
+import fs from "fs";
+import path from "path";
 
 /**
  * Image debug API endpoint to help find images with various fallbacks
@@ -44,6 +44,7 @@ export function handleImageDebugFindRequest(req: Request, res: Response) {
     try {
       const files = fs.readdirSync('./uploads/images');
       const basename = extractedName.toLowerCase();
+      
       const similarFiles = files.filter(file => file.toLowerCase() === basename);
       
       if (similarFiles.length > 0) {
@@ -88,53 +89,58 @@ export function handleImageDebugFindRequest(req: Request, res: Response) {
 }
 
 /**
- * Get a list of all images in the uploads directory
- * Useful for debugging image issues
+ * List all image files with path information
  */
 export function handleImageDebugListRequest(req: Request, res: Response) {
   try {
-    const directoryPath = './uploads/images';
+    const uploadsDir = './uploads/images';
     
-    if (!fs.existsSync(directoryPath)) {
+    if (!fs.existsSync(uploadsDir)) {
       return res.json({
         success: false,
-        error: "Images directory not found",
-        path: directoryPath
+        error: 'Uploads directory not found',
+        directory: uploadsDir
       });
     }
     
-    const files = fs.readdirSync(directoryPath);
+    // List all files in the directory
+    const files = fs.readdirSync(uploadsDir);
     
-    // Get file details
-    const fileDetails = files.map(file => {
-      const filePath = path.join(directoryPath, file);
+    // Get details for each file
+    const filesWithDetails = files.map(file => {
       try {
-        const stats = fs.statSync(filePath);
+        const fullPath = path.join(uploadsDir, file);
+        const stats = fs.statSync(fullPath);
+        
         return {
           name: file,
-          path: filePath,
+          path: `/uploads/images/${file}`,
           size: stats.size,
-          modified: stats.mtime,
-          isDirectory: stats.isDirectory(),
-          url: `/uploads/images/${file}`
+          lastModified: stats.mtime.toISOString(),
+          isImage: ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(
+            path.extname(file).toLowerCase()
+          )
         };
       } catch (err) {
+        console.error(`Error processing file ${file}:`, err);
         return {
           name: file,
-          path: filePath,
-          error: 'Unable to get file stats'
+          path: `/uploads/images/${file}`,
+          error: 'Error processing file'
         };
       }
     });
     
     return res.json({
       success: true,
-      directory: directoryPath,
-      count: files.length,
-      files: fileDetails
+      count: filesWithDetails.length,
+      files: filesWithDetails
     });
   } catch (error) {
-    console.error("[IMAGE DEBUG] Error listing images:", error);
-    res.status(500).json({ success: false, error: "Server error listing images" });
+    console.error('[IMAGE DEBUG] Error listing images:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error listing images'
+    });
   }
 }

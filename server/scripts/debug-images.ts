@@ -1,363 +1,86 @@
-/**
- * Debug utilities for image handling
- * Provides tools to diagnose image loading issues and retrieve images directly as base64
- */
-
 import fs from 'fs';
 import path from 'path';
 
-// Utility function to resolve various image path formats into real file system paths
-export function resolveImagePath(imagePath: string): string | null {
-  // Skip data URLs and blob URLs - they're not file paths
-  if (imagePath.startsWith('data:') || imagePath.startsWith('blob:')) {
-    return null;
-  }
-  
-  // Make sure path starts with a slash
-  if (!imagePath.startsWith('/')) {
-    imagePath = '/' + imagePath;
-  }
-  
-  // Convert /uploads/ to /uploads/images/ if needed
-  if (imagePath.startsWith('/uploads/') && !imagePath.startsWith('/uploads/images/')) {
-    imagePath = imagePath.replace('/uploads/', '/uploads/images/');
-  }
-  
-  // Handle case where path doesn't include /uploads/ prefix
-  if (!imagePath.startsWith('/uploads/')) {
-    // If it's a simple filename (no folders), add /uploads/images/
-    if (!imagePath.includes('/', 1)) {
-      imagePath = '/uploads/images' + imagePath;
-    }
-  }
-  
-  // Create full filesystem path
-  const fsPath = '.' + imagePath;
-  
-  // Check if file exists
-  if (fs.existsSync(fsPath)) {
-    return fsPath;
-  }
-  
-  return null;
-}
-
-// Possible image locations to check - expanded to include more paths
-const IMAGE_PATHS = [
-  path.join(process.cwd(), 'uploads/images'),
-  path.join('/home/runner/workspace/uploads/images'),
-  path.join('/home/runner/evaliabeta/uploads/images'),
-  path.join('/home/runner/app/uploads/images'),
-  './uploads/images',
-  '../uploads/images',
-  '/uploads/images'
-];
-
 /**
- * Get an image file as base64 string
- * This can be used to embed images directly in HTML/CSS when regular URLs fail
- * 
- * @param filename The name of the image file to retrieve (without path)
- * @returns Base64 encoded string of the image or null if not found
+ * Get an image as a base64 data URL
  */
 export async function getImageAsBase64(filename: string): Promise<string | null> {
   try {
-    console.log(`Original image request: "${filename}"`);
+    // Try multiple possible locations
+    const possiblePaths = [
+      `./uploads/${filename}`,
+      `./uploads/images/${filename}`,
+      filename.startsWith('./') ? filename : `./${filename}`,
+      filename
+    ];
     
-    // Clean up the filename - first handle the case of blob URLs stored directly
-    let cleanFilename = filename;
-    let originalFilename = filename;
-    
-    // If this is a data URL, just return it
-    if (originalFilename.startsWith('data:')) {
-      console.log('Image is already a data URL, returning as-is');
-      return originalFilename;
-    }
-    
-    // Try the direct image path resolution first using our new helper
-    if (!originalFilename.startsWith('blob:')) {
-      const resolvedPath = resolveImagePath(originalFilename);
-      if (resolvedPath) {
-        console.log(`✓ Direct path resolution succeeded: ${resolvedPath}`);
-        const data = fs.readFileSync(resolvedPath);
-        const mime = getMimeType(resolvedPath);
-        return `data:${mime};base64,${data.toString('base64')}`;
-      } else {
-        console.log(`✗ Direct path resolution failed for: ${originalFilename}`);
-      }
-    }
-    
-    // Handle the case where a full blob URL path is accidentally stored or passed
-    // Example: "blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb"
-    if (cleanFilename.includes('blob:')) {
-      console.log(`Detected blob URL: ${cleanFilename}`);
-      
-      // Extract just the UUID part
-      const uuidMatch = cleanFilename.match(/([a-f0-9-]{36})/i);
-      if (uuidMatch && uuidMatch[1]) {
-        console.log(`Extracted UUID ${uuidMatch[1]} from blob URL: ${cleanFilename}`);
-        cleanFilename = uuidMatch[1];
-      }
-    }
-    
-    // Remove any query parameters
-    if (cleanFilename.includes('?')) {
-      const beforeQuery = cleanFilename.split('?')[0];
-      console.log(`Removed query string: ${cleanFilename} -> ${beforeQuery}`);
-      cleanFilename = beforeQuery;
-    }
-    
-    // Get just the filename if a path was provided
-    if (cleanFilename.includes('/')) {
-      const justFilename = cleanFilename.split('/').pop() || cleanFilename;
-      console.log(`Extracted filename from path: ${cleanFilename} -> ${justFilename}`);
-      cleanFilename = justFilename;
-    }
-    
-    console.log(`Final cleaned filename: "${cleanFilename}"`);
-    
-    // First try direct access if the original filename looks like a full path
-    if (originalFilename.startsWith('/') || originalFilename.startsWith('./')) {
-      try {
-        if (fs.existsSync(originalFilename)) {
-          console.log(`Direct access to original path succeeded: ${originalFilename}`);
-          const data = fs.readFileSync(originalFilename);
-          const mime = getMimeType(originalFilename);
-          return `data:${mime};base64,${data.toString('base64')}`;
-        } else {
-          console.log(`Direct access to original path failed: ${originalFilename} - file does not exist`);
-        }
-      } catch (directError) {
-        console.log(`Error accessing direct path ${originalFilename}:`, directError);
-      }
-    }
-    
-    // Check various possible paths for the image with the cleaned filename
-    console.log(`Checking ${IMAGE_PATHS.length} potential directory paths for: ${cleanFilename}`);
-    for (const basePath of IMAGE_PATHS) {
-      const filePath = path.join(basePath, cleanFilename);
-      
+    for (const filePath of possiblePaths) {
       try {
         if (fs.existsSync(filePath)) {
-          console.log(`✓ Found image at ${filePath}`);
           const data = fs.readFileSync(filePath);
-          const mime = getMimeType(cleanFilename);
-          console.log(`Returning image as ${mime} data URL`);
+          const base64Data = data.toString('base64');
           
-          // Format as data URL with appropriate MIME type
-          return `data:${mime};base64,${data.toString('base64')}`;
-        } else {
-          console.log(`✗ Not found at ${filePath}`);
+          // Determine MIME type based on file extension
+          const ext = path.extname(filePath).toLowerCase();
+          const mimeTypes: Record<string, string> = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            '.webp': 'image/webp',
+            '.svg': 'image/svg+xml'
+          };
+          
+          const mimeType = mimeTypes[ext] || 'application/octet-stream';
+          
+          console.log(`Successfully converted ${filePath} to base64 (${base64Data.length} chars)`);
+          return `data:${mimeType};base64,${base64Data}`;
         }
-      } catch (pathError) {
-        console.log(`Error checking ${filePath}:`, pathError);
+      } catch (error) {
+        console.error(`Error reading file ${filePath}:`, error);
       }
     }
     
-    // If UUID extraction didn't work, also try a case-insensitive search 
-    // This is useful when filenames have inconsistent casing
-    console.log(`Trying case-insensitive and partial matching for: ${cleanFilename}`);
-    for (const basePath of IMAGE_PATHS) {
-      try {
-        if (fs.existsSync(basePath)) {
-          const files = fs.readdirSync(basePath);
-          console.log(`Directory ${basePath} exists with ${files.length} files`);
-          
-          const lowerFilename = cleanFilename.toLowerCase();
-          
-          // Look for a matching file ignoring case
-          const matchingFile = files.find(file => file.toLowerCase() === lowerFilename);
-          if (matchingFile) {
-            console.log(`✓ Found image via case-insensitive match: ${matchingFile}`);
-            const filePath = path.join(basePath, matchingFile);
-            const data = fs.readFileSync(filePath);
-            const mime = getMimeType(matchingFile);
-            
-            // Format as data URL with appropriate MIME type
-            return `data:${mime};base64,${data.toString('base64')}`;
-          }
-          
-          // Try to find files that start with the same name pattern (handle extension differences)
-          if (lowerFilename.includes('.')) {
-            const nameWithoutExt = lowerFilename.substring(0, lowerFilename.lastIndexOf('.'));
-            console.log(`Looking for files starting with: ${nameWithoutExt}`);
-            
-            const nameMatch = files.find(file => 
-              file.toLowerCase().startsWith(nameWithoutExt.toLowerCase())
-            );
-            
-            if (nameMatch) {
-              console.log(`✓ Found image via name prefix match: ${nameMatch}`);
-              const filePath = path.join(basePath, nameMatch);
-              const data = fs.readFileSync(filePath);
-              const mime = getMimeType(nameMatch);
-              
-              return `data:${mime};base64,${data.toString('base64')}`;
-            }
-          }
-          
-          // Try partial match for filenames that may have been renamed but contain the UUID or a unique portion
-          if (cleanFilename.length >= 8) { // Only try for reasonably long filenames
-            // Try to match at least the first part of the filename (for timestamps, etc.)
-            const partialMatch = files.find(file => 
-              file.toLowerCase().includes(lowerFilename.substring(0, Math.min(lowerFilename.length, 20)))
-            );
-            
-            if (partialMatch) {
-              console.log(`✓ Found image via partial content match: ${partialMatch}`);
-              const filePath = path.join(basePath, partialMatch);
-              const data = fs.readFileSync(filePath);
-              const mime = getMimeType(partialMatch);
-              
-              // Format as data URL with appropriate MIME type
-              return `data:${mime};base64,${data.toString('base64')}`;
-            }
-          }
-        } else {
-          console.log(`Directory does not exist: ${basePath}`);
-        }
-      } catch (dirError) {
-        console.log(`Error scanning directory ${basePath}:`, dirError);
-      }
-    }
-    
-    // Check if any image files look like the one we're looking for
-    // This is a last resort fallback that's more fuzzy
-    try {
-      const allImages = await listAvailableImages();
-      if (allImages.length > 0) {
-        console.log(`Performing fuzzy match against ${allImages.length} available images`);
-        
-        // Try to find image with similar timestamps or patterns
-        if (cleanFilename.includes('-')) {
-          const parts = cleanFilename.split('-');
-          if (parts.length >= 2) {
-            const timestamp = parts[0];
-            if (/^\d+$/.test(timestamp)) {
-              console.log(`Looking for images with timestamp: ${timestamp}`);
-              
-              const timeMatch = allImages.find(img => img.includes(timestamp));
-              if (timeMatch) {
-                console.log(`✓ Found image via timestamp match: ${timeMatch}`);
-                
-                // Since we used listAvailableImages, we need to find which path has this file
-                for (const basePath of IMAGE_PATHS) {
-                  const filePath = path.join(basePath, timeMatch);
-                  try {
-                    if (fs.existsSync(filePath)) {
-                      const data = fs.readFileSync(filePath);
-                      const mime = getMimeType(timeMatch);
-                      return `data:${mime};base64,${data.toString('base64')}`;
-                    }
-                  } catch (e) {
-                    // Ignore errors in this last resort check
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      console.log('Error during fuzzy matching:', e);
-    }
-    
-    console.log(`⨯ Image "${cleanFilename}" not found after all attempts`);
+    // If we reach here, we couldn't find the file
+    console.error(`Image file not found: ${filename}`);
     return null;
-  } catch (err: unknown) {
-    console.error('Error getting image as base64:', err);
+  } catch (error) {
+    console.error('Error getting image as base64:', error);
     return null;
   }
 }
 
 /**
- * Get MIME type based on file extension
- * 
- * @param filename File name to extract MIME type from
- * @returns MIME type string
- */
-function getMimeType(filename: string): string {
-  const ext = path.extname(filename).toLowerCase();
-  const mimeTypes: Record<string, string> = {
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.png': 'image/png',
-    '.gif': 'image/gif', 
-    '.svg': 'image/svg+xml',
-    '.webp': 'image/webp',
-    '.pdf': 'application/pdf'
-  };
-  
-  return mimeTypes[ext] || 'application/octet-stream';
-}
-
-/**
- * List all available images in all potential image directories
- * 
- * @returns Array of available image filenames
+ * List all available images
  */
 export async function listAvailableImages(): Promise<string[]> {
-  const allImages = new Set<string>();
-  const pathResults: Record<string, { exists: boolean, fileCount: number, error?: string }> = {};
-  
   try {
-    // Check each potential image path
-    for (const basePath of IMAGE_PATHS) {
-      try {
-        if (fs.existsSync(basePath)) {
-          console.log(`Checking directory: ${basePath} - exists`);
-          pathResults[basePath] = { exists: true, fileCount: 0 };
+    const imageFiles: string[] = [];
+    
+    // Check uploads/images directory
+    const uploadsPath = './uploads/images';
+    if (fs.existsSync(uploadsPath)) {
+      const files = fs.readdirSync(uploadsPath);
+      for (const file of files) {
+        try {
+          const filePath = path.join(uploadsPath, file);
+          const stats = fs.statSync(filePath);
           
-          const files = fs.readdirSync(basePath);
-          console.log(`Found ${files.length} total files in ${basePath}`);
-          
-          // Only include image files (ignore other files like .txt)
-          const imageFiles = files.filter(file => {
+          if (stats.isFile()) {
             const ext = path.extname(file).toLowerCase();
-            return ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'].includes(ext);
-          });
-          
-          pathResults[basePath].fileCount = imageFiles.length;
-          console.log(`Found ${imageFiles.length} image files in ${basePath}`);
-          
-          // Add to our set of unique filenames
-          imageFiles.forEach(file => allImages.add(file));
-        } else {
-          console.log(`Checking directory: ${basePath} - does not exist`);
-          pathResults[basePath] = { exists: false, fileCount: 0 };
+            if (['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext)) {
+              imageFiles.push(file);
+            }
+          }
+        } catch (err) {
+          console.error(`Error processing file ${file}:`, err);
         }
-      } catch (pathError) {
-        console.error(`Error checking path ${basePath}:`, pathError);
-        pathResults[basePath] = { 
-          exists: false, 
-          fileCount: 0, 
-          error: pathError instanceof Error ? pathError.message : String(pathError) 
-        };
       }
     }
     
-    // Log the directory scan results
-    console.log('Available image paths scan results:');
-    Object.entries(pathResults).forEach(([path, result]) => {
-      if (result.exists) {
-        console.log(`- ${path}: ${result.fileCount} images found`);
-      } else if (result.error) {
-        console.log(`- ${path}: ERROR - ${result.error}`);
-      } else {
-        console.log(`- ${path}: directory not found`);
-      }
-    });
-    
-    // Log all found images
-    const uniqueImages = Array.from(allImages);
-    console.log(`Total unique images found: ${uniqueImages.length}`);
-    if (uniqueImages.length > 0) {
-      console.log('First 10 image filenames:', uniqueImages.slice(0, 10));
-    }
-    
-    return uniqueImages;
-  } catch (err: unknown) {
-    console.error('Error listing available images:', err);
+    return imageFiles;
+  } catch (error) {
+    console.error('Error listing images:', error);
     return [];
   }
 }

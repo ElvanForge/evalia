@@ -7,6 +7,7 @@ import * as openAIService from "./openai-service";
 import { registerImageRoutes, serveImageFile } from './image-handler';
 import { getImageAsBase64, listAvailableImages } from './scripts/debug-images';
 import { handleImageDebugFindRequest, handleImageDebugListRequest } from './scripts/image-debug-routes';
+import { imageListHandler } from './scripts/image-list-handler';
 
 // Helper function to convert numerical score to letter grade
 function getLetterGrade(score: number): string {
@@ -3676,6 +3677,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // =====================
   // IMAGE DIAGNOSTICS API
+  
+  // List all images for debug purposes
+  app.get('/api/images-list', imageListHandler);
+  
+  // Debug endpoints for finding images with fallbacks
+  app.get('/api/image-debug/find', handleImageDebugFindRequest);
+  app.get('/api/image-debug/list', handleImageDebugListRequest);
   // =====================
 
   // API endpoint for fetching image statistics
