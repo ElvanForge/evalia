@@ -1,16 +1,67 @@
 /**
  * Enhanced image upload handler
  * Provides improved image upload capabilities with automatic caching
- * and better error handling
+ * and better error handling - with special handling for blob URLs
  */
 
 import fs from 'fs';
 import path from 'path';
 import { Request, Response } from 'express';
 import { imageCache } from './image-cache';
+import { v4 as uuidv4 } from 'uuid';
 
 // Directory where uploads are stored
 const uploadDir = path.join(process.cwd(), 'uploads/images');
+
+/**
+ * Process and sanitize image URLs, handling blob URLs specially
+ * @param imageUrl The raw URL to process
+ * @returns A clean URL that won't cause issues with the database
+ */
+export function sanitizeImageUrl(imageUrl: string): string {
+  // If it's not a blob URL, return as is (with minor sanitization)
+  if (!imageUrl.includes('blob:')) {
+    // Remove any query parameters
+    const cleanUrl = imageUrl.split('?')[0];
+    return cleanUrl;
+  }
+  
+  console.log('Converting blob URL to real file path:', imageUrl);
+  
+  // Check if we already have a mapping for this blob URL
+  const existingUrl = imageCache.getFileFromBlob(imageUrl);
+  if (existingUrl) {
+    console.log('Found existing mapping for blob URL:', existingUrl);
+    return existingUrl;
+  }
+  
+  // Generate a unique filename based on UUID to replace the blob URL
+  const fileExtension = guessFileExtension(imageUrl);
+  const newFilename = `image-${uuidv4()}${fileExtension}`;
+  const newPath = `/uploads/images/${newFilename}`;
+  
+  // Store the mapping for future reference
+  imageCache.mapBlobToFile(imageUrl, newPath);
+  
+  console.log(`Converted blob URL to new path: ${newPath}`);
+  return newPath;
+}
+
+/**
+ * Guess the file extension based on the URL or content
+ * @param url The URL to examine
+ * @returns A file extension including the dot (e.g., '.jpg')
+ */
+function guessFileExtension(url: string): string {
+  // Try to extract from URL
+  const matches = url.match(/\.(jpe?g|png|gif|webp|svg)($|\?)/i);
+  if (matches && matches[1]) {
+    return `.${matches[1].toLowerCase()}`;
+  }
+  
+  // Default to .png if we can't determine
+  return '.png';
+}
 
 /**
  * Handle an image upload request

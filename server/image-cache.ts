@@ -1,101 +1,148 @@
 /**
- * Image cache module
- * Simple in-memory image cache to improve performance and reliability
- * for serving and working with images in the application
+ * In-memory image cache system
+ * Provides caching for image base64 data and URL mappings
+ * to improve performance and reduce redundant image fetches
  */
 
-// Define a type for cache entries
 interface CacheEntry {
-  data: any;
+  base64Data: string;
   timestamp: number;
+  mimeType: string;
 }
 
 class ImageCache {
-  private cache: Map<string, CacheEntry>;
-  private ttl: number; // time to live in milliseconds
-  
-  constructor(ttl: number = 3600000) { // default 1 hour TTL
-    this.cache = new Map();
-    this.ttl = ttl;
-    console.log('Image cache initialized with TTL:', ttl);
-  }
+  private cache = new Map<string, CacheEntry>();
+  private blobMappings = new Map<string, string>();
+  private maxCacheSize = 100; // Maximum number of images to cache
+  private cacheTTL = 30 * 60 * 1000; // Cache time-to-live in ms (30 minutes)
   
   /**
    * Store an image in the cache
    */
-  set(key: string, data: any): void {
+  set(key: string, base64Data: string, mimeType: string = 'image/jpeg'): void {
+    // Clean up old entries if cache is full
+    if (this.cache.size >= this.maxCacheSize) {
+      this.cleanCache();
+    }
+    
+    // Add the new entry
     this.cache.set(key, {
-      data,
-      timestamp: Date.now()
+      base64Data,
+      timestamp: Date.now(),
+      mimeType
     });
-    console.log(`Image cache: stored ${key}`);
+    
+    console.log(`Image added to cache: ${key}`);
   }
   
   /**
-   * Get an image from the cache
-   * Returns null if not found or expired
+   * Retrieve an image from the cache
    */
-  get(key: string): any {
-    const item = this.cache.get(key);
-    if (!item) return null;
+  get(key: string): string | null {
+    const entry = this.cache.get(key);
     
-    // Check if item is expired
-    if (Date.now() - item.timestamp > this.ttl) {
-      this.cache.delete(key);
-      console.log(`Image cache: expired ${key}`);
+    if (!entry) {
       return null;
     }
     
-    console.log(`Image cache: hit for ${key}`);
-    return item.data;
+    // Check if the entry has expired
+    if (Date.now() - entry.timestamp > this.cacheTTL) {
+      console.log(`Cache entry expired for: ${key}`);
+      this.cache.delete(key);
+      return null;
+    }
+    
+    console.log(`Cache hit for: ${key}`);
+    return entry.base64Data;
   }
   
   /**
-   * Remove an item from the cache
+   * Map a blob URL to a file URL for future lookups
    */
-  delete(key: string): void {
-    this.cache.delete(key);
-    console.log(`Image cache: deleted ${key}`);
+  mapBlobToFile(blobUrl: string, fileUrl: string): void {
+    console.log(`Mapping blob URL ${blobUrl} to file URL ${fileUrl}`);
+    this.blobMappings.set(blobUrl, fileUrl);
+  }
+  
+  /**
+   * Look up a file URL from a blob URL
+   */
+  getFileFromBlob(blobUrl: string): string | null {
+    const fileUrl = this.blobMappings.get(blobUrl);
+    if (fileUrl) {
+      console.log(`Found mapping for blob URL ${blobUrl}: ${fileUrl}`);
+    }
+    return fileUrl || null;
+  }
+  
+  /**
+   * Get entry details including mime type and timestamp
+   */
+  getEntryDetails(key: string): CacheEntry | null {
+    return this.cache.get(key) || null;
   }
   
   /**
    * Clear the entire cache
    */
   clear(): void {
-    const size = this.cache.size;
     this.cache.clear();
-    console.log(`Image cache: cleared ${size} items`);
+    this.blobMappings.clear();
+    console.log('Image cache cleared');
   }
   
   /**
-   * Get the number of items in the cache
+   * Clear a specific entry from the cache
    */
-  get size(): number {
+  delete(key: string): boolean {
+    console.log(`Deleting cache entry: ${key}`);
+    return this.cache.delete(key);
+  }
+  
+  /**
+   * Get the number of entries in the cache
+   */
+  size(): number {
     return this.cache.size;
   }
   
   /**
-   * Purge expired items from the cache
-   * Returns the number of items removed
+   * List all cached images
    */
-  purgeExpired(): number {
+  list(): string[] {
+    return Array.from(this.cache.keys());
+  }
+  
+  /**
+   * Clean old entries from the cache
+   */
+  private cleanCache(): void {
+    console.log('Cleaning image cache...');
     const now = Date.now();
-    let purgedCount = 0;
     
-    for (const [key, item] of this.cache.entries()) {
-      if (now - item.timestamp > this.ttl) {
+    // Find and remove expired entries
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > this.cacheTTL) {
         this.cache.delete(key);
-        purgedCount++;
       }
     }
     
-    if (purgedCount > 0) {
-      console.log(`Image cache: purged ${purgedCount} expired items`);
+    // If still too many entries, remove oldest
+    if (this.cache.size >= this.maxCacheSize) {
+      // Sort entries by timestamp
+      const entries = Array.from(this.cache.entries())
+        .sort((a, b) => a[1].timestamp - b[1].timestamp);
+      
+      // Remove oldest entries until under threshold
+      const toRemove = entries.slice(0, this.cache.size - this.maxCacheSize + 10);
+      for (const [key] of toRemove) {
+        this.cache.delete(key);
+      }
     }
     
-    return purgedCount;
+    console.log(`Cache cleaned, new size: ${this.cache.size}`);
   }
 }
 
-// Create and export a singleton instance
+// Singleton instance
 export const imageCache = new ImageCache();

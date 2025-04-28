@@ -10,6 +10,7 @@ import { handleImageUpload } from './enhanced-image-upload';
 import { getImageAsBase64, listAvailableImages } from './scripts/debug-images';
 import { handleImageDebugFindRequest, handleImageDebugListRequest } from './scripts/image-debug-routes';
 import { imageListHandler } from './scripts/image-list-handler';
+import { sanitizeImageUrl } from './enhanced-image-upload';
 
 // Helper function to convert numerical score to letter grade
 function getLetterGrade(score: number): string {
