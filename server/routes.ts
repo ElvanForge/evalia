@@ -3052,9 +3052,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Image upload endpoint for quiz questions
+  // Image upload endpoint for quiz questions - using enhanced handler
   app.post('/api/upload/image', upload.single('image'), (req, res) => {
-    console.log('============= IMAGE UPLOAD REQUEST RECEIVED =============');
+    // Use the enhanced image upload handler with better error handling and caching
+    return handleImageUpload(req, res);
+  });
+  
+  // Backup image upload endpoint in case the main one fails
+  app.post('/api/upload/image-backup', upload.single('image'), (req, res) => {
+    console.log('============= BACKUP IMAGE UPLOAD HANDLER =============');
     try {
       // Log request details for debugging
       console.log('Request headers:', {
