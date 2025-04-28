@@ -3731,6 +3731,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // API endpoint to remove all image URLs from the database
+  app.post("/api/debug/clear-all-images", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    try {
+      // Get all questions with images
+      const questions = await dbStorage.getQuizQuestionsByImageUrl();
+      const totalCount = questions.length;
+      let clearedCount = 0;
+      
+      // Remove all image references
+      for (const question of questions) {
+        const updated = await dbStorage.updateQuizQuestionImageUrl(question.id, null);
+        if (updated) {
+          clearedCount++;
+        }
+      }
+      
+      return res.json({
+        success: true,
+        message: `Successfully cleared ${clearedCount} out of ${totalCount} image references`,
+        totalCount,
+        clearedCount
+      });
+    } catch (error) {
+      console.error("Error clearing image URLs:", error);
+      return res.status(500).json({ 
+        success: false,
+        error: "Failed to clear image URLs" 
+      });
+    }
+  });
+
   // API endpoint to fix problematic image URLs by converting to direct paths
   app.post("/api/debug/fix-image-urls", async (req, res) => {
     if (!req.isAuthenticated()) {

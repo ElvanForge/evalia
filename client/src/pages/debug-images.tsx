@@ -3,7 +3,7 @@ import { ImageDebugger } from '@/components/debug/image-viewer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, RefreshCw, ThumbsUp, Database, Wrench, AlertTriangle } from 'lucide-react';
+import { Loader2, RefreshCw, ThumbsUp, Database, Wrench, AlertTriangle, Trash2 } from 'lucide-react';
 import { clearImageCache } from '@/lib/force-base64-images';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -134,6 +134,38 @@ export default function DebugImagesPage() {
       });
     }
   });
+  
+  // Remove all images mutation
+  const removeAllImagesMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/debug/clear-all-images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove all images');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'All Images Removed',
+        description: `Successfully removed ${data.clearedCount} out of ${data.totalCount} image references from the database.`,
+      });
+      refetchStats();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove all images. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
 
   return (
     <Layout title="Image Diagnostics">
@@ -180,6 +212,23 @@ export default function DebugImagesPage() {
                   <Database className="h-4 w-4 mr-2" />
                 )}
                 Clean DB
+              </Button>
+              
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm('This will remove ALL images from quiz questions. Are you sure?')) {
+                    removeAllImagesMutation.mutate();
+                  }
+                }}
+                disabled={removeAllImagesMutation.isPending}
+              >
+                {removeAllImagesMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
+                Remove All Images
               </Button>
             </div>
           </div>
@@ -323,7 +372,29 @@ export default function DebugImagesPage() {
                         </div>
                       </div>
                       
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="destructive"
+                          onClick={() => {
+                            if (confirm('This will remove ALL images from quiz questions. Are you sure?')) {
+                              removeAllImagesMutation.mutate();
+                            }
+                          }}
+                          disabled={removeAllImagesMutation.isPending}
+                        >
+                          {removeAllImagesMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Removing...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Remove All
+                            </>
+                          )}
+                        </Button>
+                        
                         <Button
                           onClick={() => fixImageUrlsMutation.mutate()}
                           disabled={fixImageUrlsMutation.isPending}
@@ -346,10 +417,37 @@ export default function DebugImagesPage() {
                     <div className="flex flex-col items-center justify-center p-12 text-center">
                       <ThumbsUp className="h-12 w-12 text-green-500 mb-4" />
                       <h3 className="text-xl font-medium mb-2">All Images Are Healthy</h3>
-                      <p className="text-muted-foreground max-w-md">
+                      <p className="text-muted-foreground max-w-md mb-6">
                         No problematic image URLs were detected in the database.
                         All quiz questions use valid image paths or data URLs.
                       </p>
+                      
+                      {(imageStats?.total || 0) > 0 && (
+                        <div className="mt-4">
+                          <Button
+                            variant="destructive"
+                            onClick={() => {
+                              if (confirm('This will remove ALL images from quiz questions. Are you sure?')) {
+                                removeAllImagesMutation.mutate();
+                              }
+                            }}
+                            disabled={removeAllImagesMutation.isPending}
+                            size="sm"
+                          >
+                            {removeAllImagesMutation.isPending ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Removing...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remove All Images
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
