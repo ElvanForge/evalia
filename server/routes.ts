@@ -4139,6 +4139,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // First try - check if we can resolve the original URL directly
       if (originalUrl && !originalUrl.startsWith('blob:')) {
         console.log(`Attempting to resolve original URL directly: ${originalUrl}`);
+        
+        // Import the resolveImagePath function from debug-images.ts
+        const { resolveImagePath } = require('./scripts/debug-images');
+        
         const resolvedPath = resolveImagePath(originalUrl);
         if (resolvedPath) {
           console.log(`Successfully resolved original URL to path: ${resolvedPath}`);

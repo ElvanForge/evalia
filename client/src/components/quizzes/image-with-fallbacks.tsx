@@ -45,9 +45,31 @@ function ImageWithFallbacks({
     setError(false);
     setFallbackAttempted(false);
     
-    // First try with optimized URL
-    const optimizedUrl = optimizeImageUrl(src);
-    setImageSrc(optimizedUrl || src);
+    // ALWAYS try to load as base64 first for maximum reliability
+    // This guarantees images work consistently across all environments
+    if (!src.startsWith('data:')) {
+      // Force image to be base64 directly
+      tryFetchAsBase64(src)
+        .then(base64Data => {
+          if (base64Data) {
+            setImageSrc(base64Data);
+            setLoading(false);
+          } else {
+            // Fall back to optimized URL if base64 fails
+            const optimizedUrl = optimizeImageUrl(src);
+            setImageSrc(optimizedUrl || src);
+          }
+        })
+        .catch(() => {
+          // Fall back to optimized URL if base64 fails
+          const optimizedUrl = optimizeImageUrl(src);
+          setImageSrc(optimizedUrl || src);
+        });
+    } else {
+      // If it's already a data URL, use it directly
+      setImageSrc(src);
+      setLoading(false);
+    }
   }, [src, retries]);
   
   const handleImageLoad = () => {
