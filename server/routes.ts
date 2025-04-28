@@ -3893,6 +3893,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API endpoint for uploading a replacement image for a quiz question
+  app.post("/api/debug/upload-replacement-image", upload.single('image'), async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+      // Verify required fields
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      const questionId = req.body.questionId;
+      if (!questionId) {
+        return res.status(400).json({ error: "Question ID is required" });
+      }
+
+      // Verify the question exists
+      const question = await dbStorage.getQuizQuestion(parseInt(questionId, 10));
+      if (!question) {
+        return res.status(404).json({ error: `Question with ID ${questionId} not found` });
+      }
+
+      // Get the file path
+      const filePath = req.file.path;
+      const filename = req.file.filename;
+      
+      // Create proper URL for the image
+      const imageUrl = `/uploads/images/${filename}`;
+      
+      console.log(`Updating question ${questionId} with new image URL: ${imageUrl}`);
+
+      // Update the question with the new image URL
+      const updatedQuestion = await dbStorage.updateQuizQuestionImageUrl(
+        parseInt(questionId, 10), 
+        imageUrl
+      );
+
+      res.json({
+        success: true,
+        question: updatedQuestion,
+        imageUrl
+      });
+    } catch (error) {
+      console.error("Error uploading replacement image:", error);
+      res.status(500).json({ error: "Failed to upload replacement image" });
+    }
+  });
+
   // Track progress of image scanning
   let scanProgress = {
     percentage: 0,

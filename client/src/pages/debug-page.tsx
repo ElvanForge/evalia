@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import ImageWithFallbacks from "@/components/quizzes/image-with-fallbacks";
 import ImageRepairTool from "@/components/debug/image-repair-tool";
+import ImageImportTool from "@/components/debug/image-import-tool";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
 import { optimizeImageUrl, makeSafeImageUrl, isSafeImageUrl } from "@/lib/image-utils";
@@ -264,6 +265,11 @@ export default function DebugPage() {
             {/* New Advanced Image Repair Tool - this will handle all our needs */}
             <div className="mb-6">
               <ImageRepairTool />
+            </div>
+            
+            {/* Image Import Tool for adding missing images */}
+            <div className="mb-6">
+              <ImageImportTool />
             </div>
             
             {/* Legacy image tools kept for compatibility */}
