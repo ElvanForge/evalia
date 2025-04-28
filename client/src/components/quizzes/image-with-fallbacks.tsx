@@ -41,7 +41,9 @@ function ImageWithFallbacks({
   useEffect(() => {
     if (src) {
       const preloadImage = async () => {
-        await forceBase64Image(src, allowFallbacks);
+        // Always force reload when src changes to ensure we get the latest image
+        // This is critical for quiz editing when uploading new images
+        await forceBase64Image(src, allowFallbacks, true);
         setPreloadComplete(true);
       };
       

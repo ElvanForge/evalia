@@ -14,9 +14,14 @@ const base64Cache = new Map<string, string>();
  * 
  * @param imageUrl The original image URL
  * @param fallbackToAny Whether to allow fallback to any available image if exact match not found
+ * @param forceReload Whether to bypass cache and force a fresh load
  * @returns A Promise that resolves to a base64 data URL or null if conversion failed
  */
-export async function forceBase64Image(imageUrl: string, fallbackToAny = false): Promise<string | null> {
+export async function forceBase64Image(
+  imageUrl: string, 
+  fallbackToAny = false,
+  forceReload = false
+): Promise<string | null> {
   // Skip for already base64 images
   if (imageUrl && imageUrl.startsWith('data:')) {
     return imageUrl;
@@ -28,9 +33,12 @@ export async function forceBase64Image(imageUrl: string, fallbackToAny = false):
     return null;
   }
   
-  // Check cache first
-  if (base64Cache.has(imageUrl)) {
-    return base64Cache.get(imageUrl) || null;
+  // Create a cache key that respects query parameters for versioning
+  let cacheKey = imageUrl;
+  
+  // Check cache first (unless forceReload is true)
+  if (!forceReload && base64Cache.has(cacheKey)) {
+    return base64Cache.get(cacheKey) || null;
   }
   
   console.log(`Attempting to fetch as base64: ${imageUrl}`);
@@ -42,13 +50,25 @@ export async function forceBase64Image(imageUrl: string, fallbackToAny = false):
       filename = imageUrl.split('/').pop() || '';
     }
     
-    // Remove any query parameters
+    // Remove any query parameters but keep a version query if it exists
+    let versionQuery = '';
     if (filename.includes('?')) {
-      filename = filename.split('?')[0];
+      const parts = filename.split('?');
+      filename = parts[0];
+      
+      // Extract version parameter if it exists
+      const queryParams = new URLSearchParams(parts[1]);
+      const version = queryParams.get('v');
+      if (version) {
+        versionQuery = `&v=${version}`;
+      }
     }
     
+    // Add cache busting if requested
+    const cacheBuster = forceReload ? `&t=${Date.now()}` : '';
+    
     // Create URL with the original URL as a query parameter for better path resolution
-    const apiUrl = `/api/images/base64/${encodeURIComponent(filename)}?originalUrl=${encodeURIComponent(imageUrl)}&fallbackToAny=${fallbackToAny}`;
+    const apiUrl = `/api/images/base64/${encodeURIComponent(filename)}?originalUrl=${encodeURIComponent(imageUrl)}&fallbackToAny=${fallbackToAny}${versionQuery}${cacheBuster}`;
     
     // Fetch the base64 version
     const response = await fetch(apiUrl);
@@ -63,7 +83,7 @@ export async function forceBase64Image(imageUrl: string, fallbackToAny = false):
     if (result.success && result.data) {
       console.log(`Successfully loaded image via base64 API`);
       // Cache the result for future use
-      base64Cache.set(imageUrl, result.data);
+      base64Cache.set(cacheKey, result.data);
       return result.data;
     } else {
       console.error('Base64 conversion failed:', result.message || 'Unknown error');
@@ -124,4 +144,34 @@ export function getCachedImageCount(): number {
  */
 export function clearImageCache(): void {
   base64Cache.clear();
+}
+
+/**
+ * Clears the cache for a specific image URL pattern
+ * Useful when updating images to ensure the cache doesn't serve old versions
+ * 
+ * @param pattern A string or regex pattern to match against cache keys
+ */
+export function clearCacheForPattern(pattern: string | RegExp): void {
+  const keysToRemove: string[] = [];
+  
+  // Find all keys matching the pattern
+  base64Cache.forEach((_, key) => {
+    if (typeof pattern === 'string') {
+      if (key.includes(pattern)) {
+        keysToRemove.push(key);
+      }
+    } else if (pattern instanceof RegExp) {
+      if (pattern.test(key)) {
+        keysToRemove.push(key);
+      }
+    }
+  });
+  
+  // Remove the matched keys
+  keysToRemove.forEach(key => {
+    base64Cache.delete(key);
+  });
+  
+  console.log(`Cleared ${keysToRemove.length} cached images matching pattern`);
 }

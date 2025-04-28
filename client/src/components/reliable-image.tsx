@@ -51,7 +51,9 @@ export function ReliableImage({
     // Always load images as base64 for maximum compatibility
     const loadImage = async () => {
       try {
-        const base64Src = await forceBase64Image(src, withFallbacks);
+        // Force reload when retry is triggered
+        const forceReload = retryCount > 0;
+        const base64Src = await forceBase64Image(src, withFallbacks, forceReload);
         if (base64Src) {
           setImageSrc(base64Src);
           setError(false);
