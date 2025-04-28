@@ -119,11 +119,23 @@ function ImageWithFallbacks({
     if (fallbackAttempted) {
       setLoading(false);
       setError(true);
+      console.error(`Image failed to load after fallback attempts: ${src || 'null'}`, {
+        originalSrc: src,
+        currentSrc: imageSrc,
+        optimized: imageSrc !== src
+      });
       return;
     }
     
     // Mark that we're using fallback to prevent endless retry loops
     setFallbackAttempted(true);
+    
+    // Log the error for debugging
+    console.error(`Error loading image with src: ${imageSrc || 'null'}`, {
+      originalSrc: src,
+      currentSrc: imageSrc,
+      optimized: imageSrc !== src
+    });
     
     // If optimized URL failed and we haven't tried the original yet
     if (imageSrc !== src && src) {
@@ -145,6 +157,16 @@ function ImageWithFallbacks({
         }
       }
       
+      // Add debug info
+      if (src.startsWith('/uploads/')) {
+        console.log(`Checking existence of path: ${src}`);
+        // Try with additional optimization
+        const enhancedPath = src.replace('/uploads/', '/uploads/images/');
+        console.log(`Trying enhanced path: ${enhancedPath}`);
+        setImageSrc(`${enhancedPath}?v=${Date.now()}`);
+        return;
+      }
+      
       // As a last resort, try fetching via base64 API
       const base64Data = await tryFetchAsBase64(src);
       if (base64Data) {
@@ -156,7 +178,7 @@ function ImageWithFallbacks({
     // If we get here, all fallbacks have failed
     setLoading(false);
     setError(true);
-    console.error(`Image failed to load after all fallback attempts: ${src}`);
+    console.error(`Image failed to load after all fallback attempts: ${src || 'null'}`);
   };
   
   const handleRetry = () => {

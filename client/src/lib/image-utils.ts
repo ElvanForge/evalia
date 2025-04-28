@@ -102,12 +102,17 @@ export function optimizeImageUrl(url: string | null): string | null {
     optimizedUrl = '/' + optimizedUrl;
   }
   
+  // For /uploads paths, ensure they include /images/
+  if (optimizedUrl.startsWith('/uploads/') && !optimizedUrl.startsWith('/uploads/images/')) {
+    optimizedUrl = optimizedUrl.replace('/uploads/', '/uploads/images/');
+  }
+  
   // If path doesn't start with /uploads, add it
   if (!optimizedUrl.startsWith('/uploads/')) {
     if (optimizedUrl.includes('uploads/')) {
       // Fix path that has 'uploads/' but not at the beginning
       const parts = optimizedUrl.split('uploads/');
-      optimizedUrl = '/uploads/' + parts[parts.length - 1];
+      optimizedUrl = '/uploads/images/' + parts[parts.length - 1];
     } else {
       // Add /uploads/images/ if it's just a filename
       if (!optimizedUrl.includes('/')) {
@@ -118,7 +123,8 @@ export function optimizeImageUrl(url: string | null): string | null {
   
   // Add cache busting parameter
   const hasParams = optimizedUrl.includes('?');
-  return `${optimizedUrl}${hasParams ? '&' : '?'}v=${Date.now()}`;
+  const timestamp = Date.now();
+  return `${optimizedUrl}${hasParams ? '&' : '?'}v=${timestamp}`;
 }
 
 /**
