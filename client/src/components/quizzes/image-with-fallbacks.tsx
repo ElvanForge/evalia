@@ -81,7 +81,12 @@ function ImageWithFallbacks({
       
       console.log(`Attempting to fetch as base64: ${filename}`);
       
-      const response = await fetch(`/api/images/base64/${encodeURIComponent(filename)}`);
+      // Add original URL as query param to help server with debugging and path resolution
+      const params = new URLSearchParams();
+      params.append('originalUrl', imgSrc);
+      params.append('timestamp', Date.now().toString()); // Add cache-busting
+      
+      const response = await fetch(`/api/images/base64/${encodeURIComponent(filename)}?${params.toString()}`);
       
       if (!response.ok) {
         console.error(`Base64 fetch failed with status: ${response.status}`);

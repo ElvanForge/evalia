@@ -4128,6 +4128,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get filename from request - handle URL encoded chars
       let filename = decodeURIComponent(req.params.filename);
       
+      // Get the original URL if provided in query params
+      const originalUrl = req.query.originalUrl as string | undefined;
+      
+      console.log(`Base64 image request for: ${filename}`);
+      if (originalUrl) {
+        console.log(`Original URL provided: ${originalUrl}`);
+      }
+      
+      // First try - check if we can resolve the original URL directly
+      if (originalUrl && !originalUrl.startsWith('blob:')) {
+        console.log(`Attempting to resolve original URL directly: ${originalUrl}`);
+        const resolvedPath = resolveImagePath(originalUrl);
+        if (resolvedPath) {
+          console.log(`Successfully resolved original URL to path: ${resolvedPath}`);
+          const data = fs.readFileSync(resolvedPath);
+          const mime = getMimeType(resolvedPath);
+          const base64Data = `data:${mime};base64,${data.toString('base64')}`;
+          
+          console.log(`Successfully served image from resolved path`);
+          res.status(200).json({ 
+            success: true, 
+            data: base64Data,
+            source: 'resolved_path'
+          });
+          return;
+        } else {
+          console.log(`Could not resolve original URL to a valid path`);
+        }
+      }
+      
       // Remove any path elements that might have been included
       if (filename.includes('/')) {
         filename = filename.split('/').pop() || filename;
@@ -4138,16 +4168,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filename = filename.split('?')[0];
       }
       
-      console.log(`Base64 image request for: ${filename}`);
-      
-      // Try to get the image with enhanced search
+      // Second try - use the enhanced getImageAsBase64 function
       const base64Data = await getImageAsBase64(filename);
       
       if (base64Data) {
         console.log(`Successfully served ${filename} as base64`);
         res.status(200).json({ 
           success: true, 
-          data: base64Data 
+          data: base64Data,
+          source: 'direct_lookup'
         });
       } else {
         console.log(`Image not found, attempting fallback searches: ${filename}`);
@@ -4180,9 +4209,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Serving fallback image match for: ${filename}`);
           res.status(200).json({
             success: true,
-            data: fallbackImage
+            data: fallbackImage,
+            source: 'uuid_match'
           });
           return;
+        }
+        
+        // If no UUID match but we have an original URL that contains a timestamp, try matching by timestamp
+        if (originalUrl && originalUrl.includes('-') && !fallbackImage) {
+          const timestampMatch = originalUrl.match(/(\d{13})/); // Look for 13-digit timestamps
+          if (timestampMatch && timestampMatch[1]) {
+            const timestamp = timestampMatch[1];
+            console.log(`Extracted timestamp: ${timestamp}, searching for matching files`);
+            
+            const timeMatchingImage = availableImages.find(img => 
+              img.includes(timestamp)
+            );
+            
+            if (timeMatchingImage) {
+              console.log(`Found image matching timestamp: ${timeMatchingImage}`);
+              fallbackImage = await getImageAsBase64(timeMatchingImage);
+              
+              if (fallbackImage) {
+                console.log(`Serving timestamp-matched image for: ${filename}`);
+                res.status(200).json({
+                  success: true,
+                  data: fallbackImage,
+                  source: 'timestamp_match'
+                });
+                return;
+              }
+            }
+          }
         }
         
         // If no partial match, try looking for a similar filename by ignoring extensions
@@ -4202,10 +4260,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`Serving similar filename match for: ${filename}`);
               res.status(200).json({
                 success: true,
-                data: fallbackImage
+                data: fallbackImage,
+                source: 'extension_match'
               });
               return;
             }
+          }
+        }
+        
+        // Last resort - try the first available image that has a similar size/format
+        // Only do this for quiz questions where accuracy isn't critical
+        if (req.query.fallbackToAny === 'true' && availableImages.length > 0) {
+          console.log('Attempting to use any available image as last resort');
+          const lastResortImage = await getImageAsBase64(availableImages[0]);
+          if (lastResortImage) {
+            console.log(`Using alternative image as last resort: ${availableImages[0]}`);
+            res.status(200).json({
+              success: true,
+              data: lastResortImage,
+              source: 'last_resort_fallback'
+            });
+            return;
           }
         }
         
