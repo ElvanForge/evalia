@@ -306,21 +306,7 @@ export function registerImageRoutes(app: express.Express) {
           }
         }
         
-        // Last resort - try the first available image that has a similar size/format
-        // Only do this for quiz questions where accuracy isn't critical
-        if (req.query.fallbackToAny === 'true' && availableImages.length > 0) {
-          console.log('Attempting to use any available image as last resort');
-          const lastResortImage = await getImageAsBase64(availableImages[0]);
-          if (lastResortImage) {
-            console.log(`Using alternative image as last resort: ${availableImages[0]}`);
-            res.status(200).json({
-              success: true,
-              data: lastResortImage,
-              source: 'last_resort_fallback'
-            });
-            return;
-          }
-        }
+        // REMOVED: No more generic placeholder fallbacks
         
         // No matches at all
         console.log(`Image not found after all attempts: ${filename}`);

@@ -13,13 +13,13 @@ const base64Cache = new Map<string, string>();
  * This function will use the server's base64 endpoint to convert images.
  * 
  * @param imageUrl The original image URL
- * @param fallbackToAny Whether to allow fallback to any available image if exact match not found
+ * @param fallbackToAny DEPRECATED - no longer used as we've removed placeholder images
  * @param forceReload Whether to bypass cache and force a fresh load
  * @returns A Promise that resolves to a base64 data URL or null if conversion failed
  */
 export async function forceBase64Image(
   imageUrl: string, 
-  fallbackToAny = false,
+  fallbackToAny = false, // parameter kept for backwards compatibility
   forceReload = false
 ): Promise<string | null> {
   // Skip for already base64 images

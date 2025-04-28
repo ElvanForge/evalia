@@ -14,12 +14,12 @@ interface ImageWithFallbacksProps {
 }
 
 /**
- * Enhanced component that handles image loading with multiple fallbacks and retries:
+ * Enhanced component that handles image loading with strict requirements:
  * 
  * 1. Always converts images to base64 for consistent rendering in all environments
  * 2. Shows a loading state while fetching and processing the image
  * 3. Provides a retry button if image loading fails
- * 4. Looks much nicer with proper styling for all states
+ * 4. Never uses placeholder images - will only show the actual image or an error
  */
 function ImageWithFallbacks({
   src,
@@ -31,9 +31,9 @@ function ImageWithFallbacks({
   questionId,
   questionIndex
 }: ImageWithFallbacksProps) {
-  // Always default to allowing fallbacks for quiz questions
-  // since image accuracy is less critical than ensuring something displays
-  const allowFallbacks = true;
+  // Never use placeholder images for quiz questions
+  // Only show the exact image that is requested or an error state
+  const allowFallbacks = false;
 
   const [preloadComplete, setPreloadComplete] = useState(false);
 
