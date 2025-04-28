@@ -140,6 +140,8 @@ export interface IStorage {
   createQuizQuestion(question: InsertQuizQuestion): Promise<QuizQuestion>;
   updateQuizQuestion(id: number, question: Partial<InsertQuizQuestion>): Promise<QuizQuestion | undefined>;
   deleteQuizQuestion(id: number): Promise<boolean>;
+  getQuizQuestionsByImageUrl(): Promise<QuizQuestion[]>;
+  updateQuizQuestionImageUrl(id: number, imageUrl: string | null): Promise<QuizQuestion | undefined>;
   
   // Quiz Option operations
   getQuizOption(id: number): Promise<QuizOption | undefined>;
