@@ -3183,18 +3183,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filename: req.file.filename         // Just the filename: image-123456789.jpg
       });
       
-      // Return the response object with all URL variations and metadata
-      res.status(200).json({ 
-        message: 'File uploaded successfully',
-        imageUrl: imageUrl,                  // Standard format with leading slash
-        fullUrl: `${serverUrl}${imageUrl}`,  // Full URL for direct access
-        relativeUrl: imageUrl.substring(1),  // Without leading slash for some client scenarios
-        filename: req.file.filename,         // Just the filename
-        originalName: req.file.originalname, // Original file name
-        size: req.file.size,                 // File size in bytes
-        type: req.file.mimetype,             // MIME type
-        success: true
-      });
+      // Add base64 data directly in the response for immediate display
+      try {
+        const imageData = fs.readFileSync(filePath);
+        const base64Data = `data:${req.file.mimetype};base64,${imageData.toString('base64')}`;
+        
+        // Return the response object with all URL variations and metadata
+        res.status(200).json({ 
+          message: 'File uploaded successfully',
+          imageUrl: imageUrl,                  // Standard format with leading slash
+          fullUrl: `${serverUrl}${imageUrl}`,  // Full URL for direct access
+          relativeUrl: imageUrl.substring(1),  // Without leading slash for some client scenarios
+          filename: req.file.filename,         // Just the filename
+          originalName: req.file.originalname, // Original file name
+          size: req.file.size,                 // File size in bytes
+          type: req.file.mimetype,             // MIME type
+          base64Data: base64Data,              // Base64 encoded image data for immediate display
+          success: true
+        });
+      } catch (base64Error) {
+        console.error('Error generating base64 data for response:', base64Error);
+        
+        // Fallback to response without base64 data
+        res.status(200).json({ 
+          message: 'File uploaded successfully (without base64 data)',
+          imageUrl: imageUrl,
+          fullUrl: `${serverUrl}${imageUrl}`,
+          relativeUrl: imageUrl.substring(1),
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          size: req.file.size,
+          type: req.file.mimetype,
+          success: true
+        });
+      }
       
       console.log('============= IMAGE UPLOAD COMPLETED =============');
     } catch (error) {
@@ -4298,21 +4320,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Last resort - try the first available image that has a similar size/format
-        // Only do this for quiz questions where accuracy isn't critical
-        if (req.query.fallbackToAny === 'true' && availableImages.length > 0) {
-          console.log('Attempting to use any available image as last resort');
-          const lastResortImage = await getImageAsBase64(availableImages[0]);
-          if (lastResortImage) {
-            console.log(`Using alternative image as last resort: ${availableImages[0]}`);
-            res.status(200).json({
-              success: true,
-              data: lastResortImage,
-              source: 'last_resort_fallback'
-            });
-            return;
-          }
-        }
+        // Do not use fallback images - removed fallback functionality
+        // Instead, we'll just report that the image couldn't be found
+        console.log('No fallback images used as requested by client');
         
         // No matches at all
         console.log(`Image not found after all attempts: ${filename}`);

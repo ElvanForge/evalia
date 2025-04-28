@@ -36,8 +36,11 @@ export async function forceBase64Image(
   // Create a cache key that respects query parameters for versioning
   let cacheKey = imageUrl;
   
-  // Check cache first (unless forceReload is true)
-  if (!forceReload && base64Cache.has(cacheKey)) {
+  // For newly uploaded images, always bypass cache for the first hour
+  const isNewlyUploaded = imageUrl.includes(Date.now().toString().substring(0, 6));
+  
+  // Check cache first (unless forceReload is true or it's a newly uploaded image)
+  if (!forceReload && !isNewlyUploaded && base64Cache.has(cacheKey)) {
     return base64Cache.get(cacheKey) || null;
   }
   
