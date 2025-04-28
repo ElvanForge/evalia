@@ -3838,8 +3838,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get all questions with images
       const questions = await dbStorage.getQuizQuestionsByImageUrl();
+      
+      // Check if images exist on disk and enhance the response with additional info
+      const enhancedQuestions = await Promise.all(questions.map(async (question) => {
+        const imageData = { 
+          exists: false,
+          fullPath: '',
+          size: 0
+        };
+        
+        if (question.imageUrl) {
+          try {
+            let imagePath = question.imageUrl;
+            
+            // If path doesn't start with /uploads, add it
+            if (!imagePath.startsWith('/uploads/')) {
+              if (imagePath.includes('uploads/')) {
+                // Fix path that has 'uploads/' but not at the beginning
+                const parts = imagePath.split('uploads/');
+                imagePath = '/uploads/' + parts[parts.length - 1];
+              } else if (!imagePath.startsWith('/') && !imagePath.startsWith('blob:') && !imagePath.startsWith('data:')) {
+                // Add /uploads/images/ if it's just a filename
+                imagePath = '/uploads/images/' + imagePath;
+              }
+            }
+            
+            if (imagePath.startsWith('/')) {
+              // Remove leading slash for fs operations
+              const fsPath = '.' + imagePath;
+              
+              // Check if image exists
+              if (fs.existsSync(fsPath)) {
+                const stats = fs.statSync(fsPath);
+                imageData.exists = true;
+                imageData.fullPath = fsPath;
+                imageData.size = stats.size;
+              }
+            }
+          } catch (err) {
+            console.error(`Error checking image for question ${question.id}:`, err);
+          }
+        }
+        
+        return {
+          ...question,
+          imageData
+        };
+      }));
 
-      res.json(questions);
+      res.json(enhancedQuestions);
     } catch (error) {
       console.error("Error fetching question images:", error);
       res.status(500).json({ error: "Failed to fetch question images" });

@@ -431,6 +431,27 @@ export default function DebugPage() {
                               </span>
                             )}
                           </div>
+                          
+                          {/* File system status */}
+                          {item.imageData && (
+                            <div className="mt-2 text-xs">
+                              <div className="flex items-center">
+                                <span className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                                  item.imageData.exists ? 'bg-green-500' : 'bg-red-500'
+                                }`}></span>
+                                <span>
+                                  {item.imageData.exists ? 
+                                    `Found on disk (${Math.round(item.imageData.size / 1024)}KB)` : 
+                                    'Not found on disk'}
+                                </span>
+                              </div>
+                              {item.imageData.exists && (
+                                <div className="mt-1 text-xs text-muted-foreground truncate">
+                                  {item.imageData.fullPath}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

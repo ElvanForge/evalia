@@ -6,6 +6,42 @@
 import fs from 'fs';
 import path from 'path';
 
+// Utility function to resolve various image path formats into real file system paths
+export function resolveImagePath(imagePath: string): string | null {
+  // Skip data URLs and blob URLs - they're not file paths
+  if (imagePath.startsWith('data:') || imagePath.startsWith('blob:')) {
+    return null;
+  }
+  
+  // Make sure path starts with a slash
+  if (!imagePath.startsWith('/')) {
+    imagePath = '/' + imagePath;
+  }
+  
+  // Convert /uploads/ to /uploads/images/ if needed
+  if (imagePath.startsWith('/uploads/') && !imagePath.startsWith('/uploads/images/')) {
+    imagePath = imagePath.replace('/uploads/', '/uploads/images/');
+  }
+  
+  // Handle case where path doesn't include /uploads/ prefix
+  if (!imagePath.startsWith('/uploads/')) {
+    // If it's a simple filename (no folders), add /uploads/images/
+    if (!imagePath.includes('/', 1)) {
+      imagePath = '/uploads/images' + imagePath;
+    }
+  }
+  
+  // Create full filesystem path
+  const fsPath = '.' + imagePath;
+  
+  // Check if file exists
+  if (fs.existsSync(fsPath)) {
+    return fsPath;
+  }
+  
+  return null;
+}
+
 // Possible image locations to check - expanded to include more paths
 const IMAGE_PATHS = [
   path.join(process.cwd(), 'uploads/images'),
@@ -31,6 +67,25 @@ export async function getImageAsBase64(filename: string): Promise<string | null>
     // Clean up the filename - first handle the case of blob URLs stored directly
     let cleanFilename = filename;
     let originalFilename = filename;
+    
+    // If this is a data URL, just return it
+    if (originalFilename.startsWith('data:')) {
+      console.log('Image is already a data URL, returning as-is');
+      return originalFilename;
+    }
+    
+    // Try the direct image path resolution first using our new helper
+    if (!originalFilename.startsWith('blob:')) {
+      const resolvedPath = resolveImagePath(originalFilename);
+      if (resolvedPath) {
+        console.log(`✓ Direct path resolution succeeded: ${resolvedPath}`);
+        const data = fs.readFileSync(resolvedPath);
+        const mime = getMimeType(resolvedPath);
+        return `data:${mime};base64,${data.toString('base64')}`;
+      } else {
+        console.log(`✗ Direct path resolution failed for: ${originalFilename}`);
+      }
+    }
     
     // Handle the case where a full blob URL path is accidentally stored or passed
     // Example: "blob:https://evaliabeta.replit.app/180a7f0c-e48d-48b9-8dc3-39b38d253deb"
