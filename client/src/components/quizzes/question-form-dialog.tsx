@@ -561,7 +561,7 @@ export function QuestionFormDialog({
     const file = event.target.files?.[0];
     if (file) {
       // Store the file directly for later upload
-      form.setValue("imageFile", event.target.files);
+      form.setValue("imageFile", event.target.files || undefined);
       
       // Create a data URL for the preview instead of a blob URL
       const reader = new FileReader();
@@ -725,7 +725,7 @@ export function QuestionFormDialog({
                                 onChange={(e) => {
                                   console.log("Direct file selected:", e.target.files);
                                   handleImageChange(e);
-                                  onChange(e.target.files);
+                                  onChange(e.target.files || undefined);
                                 }}
                               />
                             </div>

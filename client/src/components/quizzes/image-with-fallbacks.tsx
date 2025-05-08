@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ReliableImage } from '@/components/reliable-image';
+import { DirectBase64Image } from './direct-base64-image';
 import { getBase64Image, getImageWithFallbacks } from '@/lib/force-base64-images';
 
 interface ImageWithFallbacksProps {
@@ -31,47 +31,28 @@ function ImageWithFallbacks({
   questionId,
   questionIndex
 }: ImageWithFallbacksProps) {
-  // Never use placeholder images for quiz questions
-  // Only show the exact image that is requested or an error state
-  const allowFallbacks = false;
-
-  const [preloadComplete, setPreloadComplete] = useState(false);
-
-  // Preload the image immediately on component mount to ensure it loads
-  useEffect(() => {
-    if (src) {
-      // If the source is already a base64 data URL, no need to preload
-      if (src.startsWith('data:')) {
-        setPreloadComplete(true);
-        return;
-      }
-      
-      const preloadImage = async () => {
-        // Always force reload when src changes to ensure we get the latest image
-        // This is critical for quiz editing when uploading new images
-        if (allowFallbacks) {
-          await getImageWithFallbacks(src);
-        } else {
-          await getBase64Image(src, true); // force reload
-        }
-        setPreloadComplete(true);
-      };
-      
-      preloadImage();
-    } else {
-      setPreloadComplete(true);
-    }
-  }, [src, allowFallbacks]);
-
+  // Skip client-side image processing if the image is already base64 data
+  if (src && src.startsWith('data:')) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        style={{ width: width ? `${width}px` : 'auto', height: height ? `${height}px` : 'auto' }}
+      />
+    );
+  }
+  
+  // Use the DirectBase64Image component which always fetches 
+  // the image as base64 directly from the server
   return (
-    <ReliableImage
+    <DirectBase64Image
       src={src}
       alt={alt}
       className={className}
       fallbackClassName={fallbackClassName}
       width={width}
       height={height}
-      withFallbacks={allowFallbacks}
     />
   );
 }
