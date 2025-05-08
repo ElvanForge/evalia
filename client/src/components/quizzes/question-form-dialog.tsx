@@ -173,12 +173,11 @@ export function QuestionFormDialog({
       }
 
       // Handle image upload if needed before creating the question
-      // If an image file was uploaded or selected (data URL in preview), we need to handle it
-      // Check both normal file select and data URL in the preview
+      // Check if there's an image file to upload
       let imageProcessed = false;
-      const needsImageUpload = 
-        (data.imageFile && data.imageFile.length > 0) || 
-        (imagePreview && imagePreview.startsWith('data:'));
+      // Simplified check for image upload needs
+      const needsImageUpload = data.imageFile && data.imageFile.length > 0 || 
+                              (imagePreview && imagePreview.startsWith('data:'));
 
       if (needsImageUpload) {
         imageProcessed = true;
@@ -190,8 +189,8 @@ export function QuestionFormDialog({
           file = data.imageFile[0];
           console.log("Using file from file input:", file.name);
         } else if (imagePreview && imagePreview.startsWith('data:')) {
-          // If we have a data URL, convert it to a file
-          // First, extract the MIME type and data
+          // If we have a data URL (from our FileReader conversion), convert it to a file
+          // Extract the MIME type and data
           const matches = imagePreview.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
           
           if (matches && matches.length === 3) {
@@ -561,12 +560,18 @@ export function QuestionFormDialog({
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Create a simple object URL instead of data URL to reduce processing
-      const objectUrl = URL.createObjectURL(file);
-      console.log("Created object URL for preview:", objectUrl);
-      setImagePreview(objectUrl);
+      // Store the file directly for later upload
+      form.setValue("imageFile", event.target.files);
       
-      // We'll handle the actual upload in onSubmit
+      // Create a data URL for the preview instead of a blob URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        console.log("Created data URL for preview");
+        setImagePreview(dataUrl);
+      };
+      reader.readAsDataURL(file);
+      
       console.log("Image selected:", file.name);
     }
   };
