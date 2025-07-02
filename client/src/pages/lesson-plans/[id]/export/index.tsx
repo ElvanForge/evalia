@@ -46,6 +46,9 @@ export default function ExportLessonPlanPage() {
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportFormat, setExportFormat] = useState<"docx" | "pdf">("docx");
   
+  // Auth hook must be called before any conditional returns
+  const { user, isLoading: authLoading } = useAuth();
+  
   const lessonPlanId = params?.id ? parseInt(params.id) : 0;
 
   // Fetch lesson plan data
@@ -342,8 +345,6 @@ export default function ExportLessonPlanPage() {
     // Set page title
     document.title = `Evalia - Export ${lessonPlan?.title || 'Lesson Plan'}`;
   }, [lessonPlan]);
-
-  const { user, isLoading: authLoading } = useAuth();
 
   if (!user && !authLoading) {
     return (
