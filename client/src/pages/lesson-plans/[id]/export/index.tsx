@@ -201,20 +201,50 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting PDF download for lesson plan ${lessonPlanId}`);
       
-      // Use a form submission to ensure cookies are sent properly
-      const form = document.createElement('form');
-      form.method = 'GET';
-      form.action = `/api/lesson-plans/${lessonPlanId}/download/pdf`;
-      form.style.display = 'none';
+      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/pdf',
+        },
+        body: JSON.stringify({ format: 'pdf' }),
+      });
       
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      console.log(`PDF export response status: ${response.status}`);
       
-      console.log('PDF download initiated via form submission');
+      if (!response.ok) {
+        throw new Error(`PDF export failed: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
+      link.style.display = 'none';
+      link.target = '_blank';
+      
+      // Force click with user gesture
+      document.body.appendChild(link);
+      
+      // Add a small delay to ensure the link is in the DOM
+      setTimeout(() => {
+        link.click();
+        
+        // Clean up after a delay
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
+      }, 10);
+      
+      console.log('PDF download completed successfully');
       toast({
-        title: "PDF Download Started",
-        description: "Check your browser's Downloads folder for the PDF file",
+        title: "Download started",
+        description: "Your lesson plan is being downloaded as a PDF file.",
       });
       
     } catch (error: any) {
