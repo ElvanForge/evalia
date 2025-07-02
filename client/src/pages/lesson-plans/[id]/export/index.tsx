@@ -423,7 +423,6 @@ export default function ExportLessonPlanPageFixed() {
                       >
                         <FileText className="h-8 w-8 mb-2" />
                         <span className="font-semibold">DOCX</span>
-                        <span className="text-xs text-muted-foreground">Word Document</span>
                       </Button>
 
                       <Button
@@ -433,7 +432,6 @@ export default function ExportLessonPlanPageFixed() {
                       >
                         <FileDown className="h-8 w-8 mb-2" />
                         <span className="font-semibold">PDF</span>
-                        <span className="text-xs text-muted-foreground">Portable Document</span>
                       </Button>
                     </div>
 
