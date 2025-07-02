@@ -212,6 +212,7 @@ export default function ExportLessonPlanPageFixed() {
       });
       
       console.log(`PDF export response status: ${response.status}`);
+      console.log('PDF response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         if (response.status === 401) {
@@ -223,11 +224,23 @@ export default function ExportLessonPlanPageFixed() {
           setLocation("/auth");
           return;
         }
+        const errorText = await response.text();
+        console.error('PDF export error response:', errorText);
         throw new Error('Failed to generate PDF file');
       }
       
       const blob = await response.blob();
       console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
+      console.log(`PDF blob type: ${blob.type}`);
+      
+      // Validate blob content
+      if (blob.size === 0) {
+        throw new Error('PDF blob is empty');
+      }
+      
+      if (blob.type && !blob.type.includes('pdf')) {
+        console.warn(`Unexpected blob type: ${blob.type}, expected PDF`);
+      }
       
       // Create download link with debugging
       const filename = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;

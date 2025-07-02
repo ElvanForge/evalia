@@ -6524,59 +6524,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const PDFDocument = PDFKit.default;
           const doc = new PDFDocument();
           
-          // Set up the PDF buffer
-          const chunks: Buffer[] = [];
-          doc.on('data', (chunk: Buffer) => chunks.push(chunk));
-          doc.on('end', () => {
-            const result = Buffer.concat(chunks);
-            console.log(`PDF buffer generated successfully, size: ${result.length} bytes`);
+          // Set up the PDF buffer with proper promise handling
+          const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+            const chunks: Buffer[] = [];
             
-            // Set appropriate headers
-            const filename = `${encodeURIComponent(lessonPlan.title)}.pdf`;
-            console.log(`Setting headers for download: ${filename}`);
-            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Length', result.length.toString());
+            doc.on('data', (chunk: Buffer) => {
+              chunks.push(chunk);
+            });
             
-            // Send the buffer
-            console.log('Sending PDF buffer to client...');
-            res.send(result);
-            console.log('PDF export completed successfully');
-          });
-          
-          // Add content to PDF
-          doc.fontSize(20).text(lessonPlan.title, { align: 'center' });
-          doc.moveDown();
-          
-          // Parse and add the markdown content
-          const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
-          
-          sections.forEach(section => {
-            if (section.startsWith('# ')) {
-              // Main title - skip as we already added it
-              return;
-            } else if (section.startsWith('## ')) {
-              // Section heading
-              const headingText = section.replace('## ', '').trim();
-              doc.fontSize(16).text(headingText, { underline: true });
-              doc.moveDown(0.5);
-            } else if (section.trim().startsWith('- ')) {
-              // Bullet points
-              const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
-              bulletPoints.forEach(point => {
-                const text = point.replace('- ', '').trim();
-                doc.fontSize(12).text(`• ${text}`, { indent: 20 });
+            doc.on('end', () => {
+              try {
+                const result = Buffer.concat(chunks);
+                console.log(`PDF buffer generated successfully, size: ${result.length} bytes`);
+                resolve(result);
+              } catch (error) {
+                console.error('Error concatenating PDF chunks:', error);
+                reject(error);
+              }
+            });
+            
+            doc.on('error', (error: any) => {
+              console.error('PDF generation error:', error);
+              reject(error);
+            });
+            
+            // Add content to PDF
+            try {
+              doc.fontSize(20).text(lessonPlan.title, { align: 'center' });
+              doc.moveDown();
+              
+              // Parse and add the markdown content
+              const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
+              
+              sections.forEach(section => {
+                if (section.startsWith('# ')) {
+                  // Main title - skip as we already added it
+                  return;
+                } else if (section.startsWith('## ')) {
+                  // Section heading
+                  const headingText = section.replace('## ', '').trim();
+                  doc.fontSize(16).text(headingText, { underline: true });
+                  doc.moveDown(0.5);
+                } else if (section.trim().startsWith('- ')) {
+                  // Bullet points
+                  const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
+                  bulletPoints.forEach(point => {
+                    const text = point.replace('- ', '').trim();
+                    doc.fontSize(12).text(`• ${text}`, { indent: 20 });
+                  });
+                  doc.moveDown();
+                } else {
+                  // Regular paragraph
+                  doc.fontSize(12).text(section.trim());
+                  doc.moveDown();
+                }
               });
-              doc.moveDown();
-            } else {
-              // Regular paragraph
-              doc.fontSize(12).text(section.trim());
-              doc.moveDown();
+              
+              // Finalize the PDF
+              doc.end();
+            } catch (contentError) {
+              console.error('Error adding content to PDF:', contentError);
+              reject(contentError);
             }
           });
           
-          // Finalize the PDF
-          doc.end();
+          // Set appropriate headers
+          const filename = `${encodeURIComponent(lessonPlan.title)}.pdf`;
+          console.log(`Setting headers for download: ${filename}`);
+          res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Length', pdfBuffer.length.toString());
+          res.setHeader('Cache-Control', 'no-cache');
+          
+          // Send the buffer
+          console.log('Sending PDF buffer to client...');
+          res.send(pdfBuffer);
+          console.log('PDF export completed successfully');
           
         } catch (pdfError) {
           console.error('Error generating PDF:', pdfError);
