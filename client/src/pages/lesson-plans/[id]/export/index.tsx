@@ -249,11 +249,17 @@ export default function ExportLessonPlanPageFixed() {
       const url = URL.createObjectURL(blob);
       console.log(`Blob URL created: ${url}`);
       
-      // Try native download if supported
+      // Try multiple download approaches for maximum compatibility
+      let downloadSuccess = false;
+      
+      // Method 1: Native browser download (IE/Edge)
       if (window.navigator && (window.navigator as any).msSaveOrOpenBlob) {
         console.log('Using IE/Edge native download');
         (window.navigator as any).msSaveOrOpenBlob(blob, filename);
-      } else {
+        downloadSuccess = true;
+      } 
+      // Method 2: Standard download link with various fallbacks
+      else {
         console.log('Using standard download link approach');
         const link = document.createElement('a');
         link.href = url;
@@ -263,15 +269,24 @@ export default function ExportLessonPlanPageFixed() {
         document.body.appendChild(link);
         console.log('Link added to DOM, triggering click');
         
-        // Use modern click event with trusted user gesture
-        const clickEvent = new MouseEvent('click', {
-          view: window,
-          bubbles: true,
-          cancelable: true
-        });
-        
-        link.dispatchEvent(clickEvent);
-        console.log('Click event dispatched');
+        try {
+          // Try direct click first
+          link.click();
+          console.log('Direct click attempted');
+          downloadSuccess = true;
+        } catch (clickError) {
+          console.log('Direct click failed, trying event dispatch');
+          // Fallback to event dispatch
+          const clickEvent = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
+          
+          link.dispatchEvent(clickEvent);
+          console.log('Click event dispatched');
+          downloadSuccess = true;
+        }
         
         // Clean up
         setTimeout(() => {
@@ -281,10 +296,16 @@ export default function ExportLessonPlanPageFixed() {
         }, 100);
       }
       
+      // Method 3: Fallback - open in new window if download didn't work
+      if (!downloadSuccess) {
+        console.log('Download methods failed, opening in new window');
+        window.open(url, '_blank');
+      }
+      
       console.log('PDF download completed successfully');
       toast({
-        title: "Download started",
-        description: "Your lesson plan is being downloaded as a PDF file.",
+        title: "PDF Download Started",
+        description: "Check your browser's Downloads folder or download notification for English.pdf",
       });
       
     } catch (error: any) {
