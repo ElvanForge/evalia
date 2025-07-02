@@ -128,17 +128,16 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting DOCX download for lesson plan ${lessonPlanId}`);
       
-      // Use window.open for direct download - this bypasses blob issues
-      const downloadUrl = `/api/lesson-plans/${lessonPlanId}/export?format=docx&download=true`;
+      // Create a form to submit with credentials
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = `/api/lesson-plans/${lessonPlanId}/export?format=docx`;
+      form.target = '_blank';
+      form.style.display = 'none';
       
-      // Open in new window/tab for download
-      const downloadWindow = window.open(downloadUrl, '_blank');
-      
-      // Check if popup was blocked
-      if (!downloadWindow) {
-        // Fallback: try direct navigation
-        window.location.href = downloadUrl;
-      }
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
       
       console.log('DOCX download initiated successfully');
       toast({
@@ -163,17 +162,16 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting PDF download for lesson plan ${lessonPlanId}`);
       
-      // Use window.open for direct download - this bypasses blob issues
-      const downloadUrl = `/api/lesson-plans/${lessonPlanId}/export?format=pdf&download=true`;
+      // Create a form to submit with credentials
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = `/api/lesson-plans/${lessonPlanId}/export?format=pdf`;
+      form.target = '_blank';
+      form.style.display = 'none';
       
-      // Open in new window/tab for download
-      const downloadWindow = window.open(downloadUrl, '_blank');
-      
-      // Check if popup was blocked
-      if (!downloadWindow) {
-        // Fallback: try direct navigation
-        window.location.href = downloadUrl;
-      }
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
       
       console.log('PDF download initiated successfully');
       toast({
