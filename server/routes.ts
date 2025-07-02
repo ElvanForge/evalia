@@ -6318,139 +6318,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Starting DOCX generation...');
         try {
           const docx = await import('docx');
-          const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType, BorderStyle } = docx;
+          const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, Packer } = docx;
           console.log('DOCX library loaded successfully');
         
-        // Parse the markdown content into sections
-        const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
-        
-        // Create document
-        const doc = new Document({
-          title: lessonPlan.title,
-          description: lessonPlan.description || 'Lesson Plan',
-          styles: {
-            paragraphStyles: [
-              {
-                id: 'Heading1',
-                name: 'Heading 1',
-                basedOn: 'Normal',
-                next: 'Normal',
-                quickFormat: true,
-                run: {
-                  size: 36,
-                  bold: true,
-                  color: '0ba2b0', // Primary color
-                },
-                paragraph: {
-                  spacing: {
-                    after: 240,
-                  },
-                },
-              },
-              {
-                id: 'Heading2',
-                name: 'Heading 2',
-                basedOn: 'Normal',
-                next: 'Normal',
-                quickFormat: true,
-                run: {
-                  size: 28,
-                  bold: true,
-                  color: '0ba2b0', // Primary color
-                },
-                paragraph: {
+          // Parse the markdown content into sections
+          const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
+          
+          // Process the content first to create paragraphs
+          const children = [];
+          
+          // Title
+          children.push(new Paragraph({
+            text: lessonPlan.title,
+            heading: HeadingLevel.HEADING_1,
+            alignment: AlignmentType.CENTER,
+            thematicBreak: true,
+          }));
+          
+          // Process markdown into docx elements
+          const processSection = (section: string) => {
+            if (section.startsWith('# ')) {
+              // Main title - already added
+              return;
+            } else if (section.startsWith('## ')) {
+              // Section heading
+              const headingText = section.replace('## ', '').trim();
+              children.push(
+                new Paragraph({
+                  text: headingText,
+                  heading: HeadingLevel.HEADING_2,
+                  thematicBreak: false,
                   spacing: {
                     before: 240,
                     after: 120,
                   },
-                },
-              },
-            ],
-          },
-        });
-        
-        // Process each section and add to the document
-        const children = [];
-        
-        // Title
-        children.push(new Paragraph({
-          text: lessonPlan.title,
-          heading: HeadingLevel.HEADING_1,
-          alignment: AlignmentType.CENTER,
-          thematicBreak: true,
-        }));
-        
-        // Process markdown into docx elements
-        let currentHeading = '';
-        
-        // Function to process each line of the markdown
-        const processSection = (section) => {
-          if (section.startsWith('# ')) {
-            // Main title - already added
-            return;
-          } else if (section.startsWith('## ')) {
-            // Section heading
-            currentHeading = section.replace('## ', '').trim();
-            children.push(
-              new Paragraph({
-                text: currentHeading,
-                heading: HeadingLevel.HEADING_2,
-                thematicBreak: false,
-                spacing: {
-                  before: 240,
-                  after: 120,
-                },
-              })
-            );
-          } else if (section.trim().startsWith('- ')) {
-            // Bullet points
-            const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
-            
-            for (const point of bulletPoints) {
-              const text = point.replace('- ', '').trim();
-              // Check if it's bold (surrounded by ** or __)
-              if (text.startsWith('**') && text.endsWith('**')) {
-                const boldText = text.slice(2, -2);
-                children.push(
-                  new Paragraph({
-                    bullet: {
-                      level: 0,
-                    },
-                    children: [
-                      new TextRun({
-                        text: boldText,
-                        bold: true,
-                      }),
-                    ],
-                  })
-                );
-              } else {
-                children.push(
-                  new Paragraph({
-                    bullet: {
-                      level: 0,
-                    },
-                    text: text,
-                  })
-                );
+                })
+              );
+            } else if (section.trim().startsWith('- ')) {
+              // Bullet points
+              const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
+              
+              for (const point of bulletPoints) {
+                const text = point.replace('- ', '').trim();
+                // Check if it's bold (surrounded by ** or __)
+                if (text.startsWith('**') && text.endsWith('**')) {
+                  const boldText = text.slice(2, -2);
+                  children.push(
+                    new Paragraph({
+                      bullet: {
+                        level: 0,
+                      },
+                      children: [
+                        new TextRun({
+                          text: boldText,
+                          bold: true,
+                        }),
+                      ],
+                    })
+                  );
+                } else {
+                  children.push(
+                    new Paragraph({
+                      bullet: {
+                        level: 0,
+                      },
+                      text: text,
+                    })
+                  );
+                }
               }
+            } else {
+              // Regular paragraph
+              children.push(new Paragraph({ text: section.trim() }));
             }
-          } else {
-            // Regular paragraph
-            children.push(new Paragraph({ text: section.trim() }));
-          }
-        };
-        
-        sections.forEach(processSection);
-        
-          // Add the sections to the document
-          doc.addSection({
-            children,
+          };
+          
+          sections.forEach(processSection);
+          
+          // Create document with sections
+          const doc = new Document({
+            sections: [{
+              children,
+            }],
           });
           
           // Create a buffer from the document
           console.log('Generating DOCX buffer...');
-          const buffer = await doc.save();
+          const buffer = await Packer.toBuffer(doc);
           console.log(`DOCX buffer generated successfully, size: ${buffer.length} bytes`);
           
           // Set appropriate headers
@@ -6472,12 +6426,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else if (format === 'pdf') {
-        // For PDF generation, we'd typically use a library like PDFKit
-        // For simplicity in this example, we'll return the markdown content
-        res.status(200).json({
-          message: "Lesson plan formatted for export successfully",
-          content: exportContent
-        });
+        console.log('Starting PDF generation...');
+        try {
+          // Use PDFKit to generate a proper PDF
+          const PDFKit = await import('pdfkit');
+          const PDFDocument = PDFKit.default;
+          const doc = new PDFDocument();
+          
+          // Set up the PDF buffer
+          const chunks: Buffer[] = [];
+          doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+          doc.on('end', () => {
+            const result = Buffer.concat(chunks);
+            console.log(`PDF buffer generated successfully, size: ${result.length} bytes`);
+            
+            // Set appropriate headers
+            const filename = `${encodeURIComponent(lessonPlan.title)}.pdf`;
+            console.log(`Setting headers for download: ${filename}`);
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Length', result.length.toString());
+            
+            // Send the buffer
+            console.log('Sending PDF buffer to client...');
+            res.send(result);
+            console.log('PDF export completed successfully');
+          });
+          
+          // Add content to PDF
+          doc.fontSize(20).text(lessonPlan.title, { align: 'center' });
+          doc.moveDown();
+          
+          // Parse and add the markdown content
+          const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
+          
+          sections.forEach(section => {
+            if (section.startsWith('# ')) {
+              // Main title - skip as we already added it
+              return;
+            } else if (section.startsWith('## ')) {
+              // Section heading
+              const headingText = section.replace('## ', '').trim();
+              doc.fontSize(16).text(headingText, { underline: true });
+              doc.moveDown(0.5);
+            } else if (section.trim().startsWith('- ')) {
+              // Bullet points
+              const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
+              bulletPoints.forEach(point => {
+                const text = point.replace('- ', '').trim();
+                doc.fontSize(12).text(`• ${text}`, { indent: 20 });
+              });
+              doc.moveDown();
+            } else {
+              // Regular paragraph
+              doc.fontSize(12).text(section.trim());
+              doc.moveDown();
+            }
+          });
+          
+          // Finalize the PDF
+          doc.end();
+          
+        } catch (pdfError) {
+          console.error('Error generating PDF:', pdfError);
+          return res.status(500).json({ 
+            message: "Failed to generate PDF file",
+            details: "There was an error creating the PDF document. Please try again or contact support."
+          });
+        }
       } else {
         // Return markdown format by default
         res.status(200).json({
