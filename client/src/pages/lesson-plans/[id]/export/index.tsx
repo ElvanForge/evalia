@@ -128,12 +128,14 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting DOCX download for lesson plan ${lessonPlanId}`);
       
-      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=docx`, {
-        method: 'GET',
+      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export`, {
+        method: 'POST',
         credentials: 'include',
         headers: {
+          'Content-Type': 'application/json',
           'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         },
+        body: JSON.stringify({ format: 'docx' }),
       });
       
       console.log(`DOCX export response status: ${response.status}`);
