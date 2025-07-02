@@ -6657,7 +6657,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Lesson plan not found or access denied" });
       }
       
-      const exportContent = await formatLessonPlanForExport(lessonPlan, dbStorage);
+      let exportContent;
+      try {
+        console.log('Calling formatLessonPlanForExport...');
+        exportContent = await openAIService.formatLessonPlanForExport(lessonPlanId);
+        console.log(`Export content generated: ${!!exportContent}, length: ${exportContent?.length || 0}`);
+        
+        if (!exportContent) {
+          console.log('ERROR: Failed to format lesson plan for export - no content returned');
+          return res.status(500).json({ message: "Failed to format lesson plan for export" });
+        }
+      } catch (error: any) {
+        console.error("Direct download error:", error);
+        return res.status(500).json({ message: "Download failed" });
+      }
       
       if (format === 'pdf') {
         const PDFKit = await import('pdfkit');
