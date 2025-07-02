@@ -90,20 +90,74 @@ export default function ExportLessonPlanPage() {
   const downloadDocx = async () => {
     try {
       setIsExporting(true);
+      console.log(`Starting DOCX download for lesson plan ${lessonPlanId}`);
       
-      // Request the DOCX file from the server
+      // Request the DOCX file from the server with credentials
       const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=docx`, {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
         headers: {
-          Accept: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'Content-Type': 'application/json',
         },
       });
       
+      console.log(`Export response status: ${response.status}`);
+      
       if (!response.ok) {
-        throw new Error('Failed to generate DOCX file');
+        let errorMessage = 'Failed to generate DOCX file';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+          console.error('Export error details:', errorData);
+        } catch (parseError) {
+          console.error('Could not parse error response:', parseError);
+        }
+        
+        if (response.status === 401) {
+          toast({
+            title: "Authentication required",
+            description: "Please log in to export this lesson plan.",
+            variant: "destructive",
+          });
+          setLocation("/auth");
+          return;
+        }
+        
+        if (response.status === 429) {
+          toast({
+            title: "API limit reached",
+            description: "Please try again later. The OpenAI API quota has been exceeded.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
+      // Check if the response is actually a binary file
+      const contentType = response.headers.get('content-type');
+      console.log(`Response content type: ${contentType}`);
+      
+      if (!contentType?.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+        // If it's not a DOCX file, it might be an error response in JSON
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Server returned unexpected response');
+        } catch (parseError) {
+          throw new Error('Server returned unexpected response format');
+        }
       }
       
       // Get the blob from the response
       const blob = await response.blob();
+      console.log(`Downloaded blob size: ${blob.size} bytes`);
+      
+      if (blob.size === 0) {
+        throw new Error('Downloaded file is empty');
+      }
       
       // Create and click a download link
       const url = URL.createObjectURL(blob);
@@ -117,6 +171,7 @@ export default function ExportLessonPlanPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
+      console.log('DOCX download completed successfully');
       toast({
         title: "Download started",
         description: "Your lesson plan is being downloaded as a DOCX file.",
@@ -125,7 +180,7 @@ export default function ExportLessonPlanPage() {
       console.error('Error downloading DOCX file:', error);
       toast({
         title: "Download failed",
-        description: "Failed to generate DOCX file. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate DOCX file. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -136,23 +191,65 @@ export default function ExportLessonPlanPage() {
   const downloadPdf = async () => {
     try {
       setIsExporting(true);
+      console.log(`Starting PDF download for lesson plan ${lessonPlanId}`);
       
-      // Request the PDF file from the server
+      // Request the PDF file from the server with credentials
       const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=pdf`, {
+        method: 'GET',
+        credentials: 'include', // Include cookies for authentication
         headers: {
-          Accept: 'application/pdf',
+          'Accept': 'application/pdf',
+          'Content-Type': 'application/json',
         },
       });
       
+      console.log(`PDF export response status: ${response.status}`);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate PDF file');
+        let errorMessage = 'Failed to generate PDF file';
+        
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+          console.error('PDF export error details:', errorData);
+        } catch (parseError) {
+          console.error('Could not parse PDF error response:', parseError);
+        }
+        
+        if (response.status === 401) {
+          toast({
+            title: "Authentication required",
+            description: "Please log in to export this lesson plan.",
+            variant: "destructive",
+          });
+          setLocation("/auth");
+          return;
+        }
+        
+        if (response.status === 429) {
+          toast({
+            title: "API limit reached",
+            description: "Please try again later. The OpenAI API quota has been exceeded.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        throw new Error(errorMessage);
       }
       
-      // If the server returns JSON (fallback), create a text file with the content
+      // Check content type to determine how to handle the response
       const contentType = response.headers.get('content-type');
+      console.log(`PDF response content type: ${contentType}`);
+      
+      // If the server returns JSON (fallback), create a text file with the content
       if (contentType && contentType.includes('application/json')) {
         const data = await response.json();
+        console.log('PDF export returned JSON fallback, creating markdown file');
+        
+        if (!data.content) {
+          throw new Error('No content received from server');
+        }
         
         // Create a blob with the content
         const blob = new Blob([data.content], { type: 'text/markdown' });
@@ -176,7 +273,7 @@ export default function ExportLessonPlanPage() {
         return;
       }
       
-      // Get the blob from the response
+      // Get the blob from the response for actual PDF
       const blob = await response.blob();
       
       // Create and click a download link

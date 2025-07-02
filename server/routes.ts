@@ -6243,31 +6243,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Export lesson plan to DOCX/PDF format
   app.get("/api/lesson-plans/:id/export", requireAuth, async (req, res) => {
+    console.log('=== LESSON PLAN EXPORT REQUEST START ===');
+    console.log(`Request: ${req.method} ${req.url}`);
+    console.log(`User ID: ${req.user?.id}`);
+    console.log(`Format: ${req.query.format}`);
+    
     try {
       const lessonPlanId = Number(req.params.id);
       const teacherId = req.user?.id;
       const format = req.query.format || 'md'; // Default to markdown if not specified
       
+      console.log(`Processing export for lesson plan ${lessonPlanId}, teacher ${teacherId}, format ${format}`);
+      
       if (!teacherId) {
+        console.log('ERROR: User not authenticated');
         return res.status(401).json({ message: "User not authenticated" });
       }
       
       const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      console.log(`Lesson plan found: ${!!lessonPlan}`);
       
       if (!lessonPlan) {
+        console.log('ERROR: Lesson plan not found');
         return res.status(404).json({ message: "Lesson plan not found" });
       }
       
       if (lessonPlan.teacherId !== teacherId) {
+        console.log(`ERROR: Authorization failed. Lesson plan teacher: ${lessonPlan.teacherId}, requesting teacher: ${teacherId}`);
         return res.status(403).json({ message: "Not authorized to export this lesson plan" });
       }
+      
+      console.log(`Lesson plan details: ${lessonPlan.title} (${lessonPlan.subject})`);
       
       let exportContent;
       
       try {
+        console.log('Calling formatLessonPlanForExport...');
         exportContent = await openAIService.formatLessonPlanForExport(lessonPlanId);
+        console.log(`Export content generated: ${!!exportContent}, length: ${exportContent?.length || 0}`);
         
         if (!exportContent) {
+          console.log('ERROR: Failed to format lesson plan for export - no content returned');
           return res.status(500).json({ message: "Failed to format lesson plan for export" });
         }
       } catch (error: any) {
@@ -6275,6 +6291,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Check for OpenAI specific errors
         if (error.code === 'insufficient_quota' || error.status === 429) {
+          console.log('ERROR: OpenAI API quota exceeded');
           return res.status(429).json({ 
             message: "OpenAI API quota exceeded",
             details: "Your account has reached its API request quota. Please try again later or check your OpenAI account."
@@ -6282,12 +6299,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         if (error.status === 401) {
+          console.log('ERROR: OpenAI API authentication error');
           return res.status(401).json({ 
             message: "OpenAI API authentication error",
             details: "There was an issue with the OpenAI API key. Please contact the administrator."
           });
         }
         
+        console.log(`ERROR: General export formatting error: ${error.message}`);
         return res.status(500).json({ 
           message: "Failed to format lesson plan for export",
           details: error.message || "An unexpected error occurred"
@@ -6296,8 +6315,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // If docx or pdf format is requested, generate the appropriate file
       if (format === 'docx') {
-        const docx = require('docx');
-        const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType, BorderStyle } = docx;
+        console.log('Starting DOCX generation...');
+        try {
+          const docx = require('docx');
+          const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType, BorderStyle } = docx;
+          console.log('DOCX library loaded successfully');
         
         // Parse the markdown content into sections
         const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
@@ -6421,20 +6443,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         sections.forEach(processSection);
         
-        // Add the sections to the document
-        doc.addSection({
-          children,
-        });
-        
-        // Create a buffer from the document
-        const buffer = await doc.save();
-        
-        // Set appropriate headers
-        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(lessonPlan.title)}.docx"`);
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        
-        // Send the buffer
-        res.send(buffer);
+          // Add the sections to the document
+          doc.addSection({
+            children,
+          });
+          
+          // Create a buffer from the document
+          console.log('Generating DOCX buffer...');
+          const buffer = await doc.save();
+          console.log(`DOCX buffer generated successfully, size: ${buffer.length} bytes`);
+          
+          // Set appropriate headers
+          const filename = `${encodeURIComponent(lessonPlan.title)}.docx`;
+          console.log(`Setting headers for download: ${filename}`);
+          res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+          res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+          res.setHeader('Content-Length', buffer.length.toString());
+          
+          // Send the buffer
+          console.log('Sending DOCX buffer to client...');
+          res.send(buffer);
+          console.log('DOCX export completed successfully');
+        } catch (docxError) {
+          console.error('Error generating DOCX:', docxError);
+          return res.status(500).json({ 
+            message: "Failed to generate DOCX file",
+            details: "There was an error creating the Word document. Please try again or contact support."
+          });
+        }
       } else if (format === 'pdf') {
         // For PDF generation, we'd typically use a library like PDFKit
         // For simplicity in this example, we'll return the markdown content
@@ -6450,8 +6486,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
     } catch (error) {
+      console.error("=== LESSON PLAN EXPORT ERROR ===");
       console.error("Error exporting lesson plan:", error);
-      res.status(500).json({ message: "Server error exporting lesson plan" });
+      console.error("Stack trace:", error instanceof Error ? error.stack : 'No stack trace available');
+      console.log('=== LESSON PLAN EXPORT REQUEST END (ERROR) ===');
+      
+      res.status(500).json({ 
+        message: "Server error exporting lesson plan",
+        details: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    } finally {
+      console.log('=== LESSON PLAN EXPORT REQUEST END ===');
     }
   });
 
