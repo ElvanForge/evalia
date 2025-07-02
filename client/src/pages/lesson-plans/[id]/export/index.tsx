@@ -228,60 +228,45 @@ export default function ExportLessonPlanPageFixed() {
       console.log(`PDF blob first bytes: ${firstBytesString}`);
       console.log(`PDF blob starts with %PDF: ${firstBytesString.startsWith('%PDF')}`);
       
-      // Try multiple download methods for better browser compatibility
+      // Since direct download is blocked in this environment, open PDF in new tab for manual saving
       const filename = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
-      
-      // Method 1: Try direct blob download with multiple attempts
       const url = URL.createObjectURL(blob);
       
-      // Create multiple link elements with different approaches
-      const methods = [
-        // Standard approach
-        () => {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          link.style.display = 'none';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        },
-        // Force new window approach
-        () => {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = filename;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        },
-        // Direct window.open approach
-        () => {
-          const newWindow = window.open(url, '_blank');
-          if (newWindow) {
-            setTimeout(() => newWindow.close(), 1000);
-          }
-        }
-      ];
+      // Open in new tab with proper filename in URL
+      const newTab = window.open(url, '_blank');
       
-      // Try each method with delays
-      methods.forEach((method, index) => {
+      if (newTab) {
+        // Give the tab a moment to load, then try to trigger a download
         setTimeout(() => {
           try {
-            method();
-            console.log(`PDF download method ${index + 1} attempted`);
+            // Try to set the document title to the filename for easier identification
+            if (newTab.document) {
+              newTab.document.title = filename;
+            }
+            
+            // Focus the new tab
+            newTab.focus();
           } catch (error) {
-            console.error(`PDF download method ${index + 1} failed:`, error);
+            console.log('Could not modify new tab:', error);
           }
-        }, index * 200);
-      });
+        }, 500);
+        
+        toast({
+          title: "PDF opened in new tab",
+          description: "The PDF has opened in a new tab. Use Ctrl+S (or Cmd+S) to save it to your Downloads folder.",
+        });
+      } else {
+        toast({
+          title: "PDF ready for download",
+          description: "Please allow pop-ups for this site to view the PDF.",
+          variant: "destructive",
+        });
+      }
       
-      // Clean up after all attempts
+      // Clean up blob URL after some time
       setTimeout(() => {
         URL.revokeObjectURL(url);
-      }, 2000);
+      }, 30000); // Give more time for manual saving
       
       console.log('PDF download completed successfully');
       toast({
