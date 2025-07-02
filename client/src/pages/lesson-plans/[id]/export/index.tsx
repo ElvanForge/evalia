@@ -163,7 +163,10 @@ export default function ExportLessonPlanPageFixed() {
         throw new Error(errorMessage);
       }
       
-      const blob = await response.blob();
+      const arrayBuffer = await response.arrayBuffer();
+      console.log(`DOCX array buffer received, size: ${arrayBuffer.byteLength} bytes`);
+      
+      const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
       console.log(`DOCX blob created successfully, size: ${blob.size} bytes`);
       
       const url = window.URL.createObjectURL(blob);
@@ -171,12 +174,16 @@ export default function ExportLessonPlanPageFixed() {
       a.style.display = 'none';
       a.href = url;
       a.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.docx`;
+      a.target = '_blank';
       
       document.body.appendChild(a);
       a.click();
       
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Clean up with a slight delay to ensure download starts
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
       
       console.log('DOCX download completed successfully');
       toast({
@@ -236,7 +243,10 @@ export default function ExportLessonPlanPageFixed() {
         throw new Error(errorMessage);
       }
       
-      const blob = await response.blob();
+      const arrayBuffer = await response.arrayBuffer();
+      console.log(`PDF array buffer received, size: ${arrayBuffer.byteLength} bytes`);
+      
+      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
       console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
       
       const url = window.URL.createObjectURL(blob);
@@ -244,12 +254,16 @@ export default function ExportLessonPlanPageFixed() {
       a.style.display = 'none';
       a.href = url;
       a.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
+      a.target = '_blank';
       
       document.body.appendChild(a);
       a.click();
       
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Clean up with a slight delay to ensure download starts
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
       
       console.log('PDF download completed successfully');
       toast({
