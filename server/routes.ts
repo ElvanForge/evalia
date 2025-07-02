@@ -6241,12 +6241,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Export lesson plan preview (GET for markdown/text format)
+  app.get("/api/lesson-plans/:id/export", requireAuth, async (req, res) => {
+    console.log('=== LESSON PLAN EXPORT REQUEST START (PREVIEW) ===');
+    console.log(`Request: ${req.method} ${req.url}`);
+    console.log(`User ID: ${req.user?.id}`);
+    
+    try {
+      const lessonPlanId = Number(req.params.id);
+      const teacherId = req.user?.id;
+      
+      console.log(`Processing preview export for lesson plan ${lessonPlanId}, teacher ${teacherId}`);
+      
+      if (!teacherId) {
+        console.log('ERROR: User not authenticated');
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      console.log(`Lesson plan found: ${!!lessonPlan}`);
+      
+      if (!lessonPlan) {
+        console.log('ERROR: Lesson plan not found');
+        return res.status(404).json({ message: "Lesson plan not found" });
+      }
+      
+      if (lessonPlan.teacherId !== teacherId) {
+        console.log(`ERROR: Authorization failed. Lesson plan teacher: ${lessonPlan.teacherId}, requesting teacher: ${teacherId}`);
+        return res.status(403).json({ message: "Not authorized to export this lesson plan" });
+      }
+      
+      console.log(`Lesson plan details: ${lessonPlan.title} (${lessonPlan.subject})`);
+      
+      let exportContent;
+      
+      try {
+        console.log('Calling formatLessonPlanForExport...');
+        exportContent = await openAIService.formatLessonPlanForExport(lessonPlanId);
+        console.log(`Export content generated: ${!!exportContent}, length: ${exportContent?.length || 0}`);
+        
+        if (!exportContent) {
+          console.log('ERROR: Failed to format lesson plan for export - no content returned');
+          return res.status(500).json({ message: "Failed to format lesson plan for export" });
+        }
+      } catch (error: any) {
+        console.error("Error in lesson plan export formatting:", error);
+        
+        // Check for OpenAI specific errors
+        if (error.code === 'insufficient_quota' || error.status === 429) {
+          console.log('ERROR: OpenAI API quota exceeded');
+          return res.status(429).json({ 
+            message: "OpenAI API quota exceeded",
+            details: "Your account has reached its API request quota. Please try again later or check your OpenAI account."
+          });
+        }
+        
+        if (error.status === 401) {
+          console.log('ERROR: OpenAI API authentication error');
+          return res.status(401).json({ 
+            message: "OpenAI API authentication error",
+            details: "There was an issue with the OpenAI API key. Please contact the administrator."
+          });
+        }
+        
+        console.log(`ERROR: General export formatting error: ${error.message}`);
+        return res.status(500).json({ 
+          message: "Failed to format lesson plan for export",
+          details: error.message || "An unexpected error occurred"
+        });
+      }
+      
+      // Return markdown format for preview
+      res.status(200).json({
+        message: "Lesson plan formatted for export successfully",
+        content: exportContent
+      });
+      
+    } catch (error) {
+      console.error("=== LESSON PLAN EXPORT ERROR ===");
+      console.error("Error exporting lesson plan:", error);
+      console.error("Stack trace:", error instanceof Error ? error.stack : 'No stack trace available');
+      console.log('=== LESSON PLAN EXPORT REQUEST END (ERROR) ===');
+      
+      res.status(500).json({ 
+        message: "Server error exporting lesson plan",
+        details: error instanceof Error ? error.message : "An unexpected error occurred"
+      });
+    } finally {
+      console.log('=== LESSON PLAN EXPORT REQUEST END (PREVIEW) ===');
+    }
+  });
+
   // Export lesson plan to DOCX/PDF format - POST request for better session handling
   app.post("/api/lesson-plans/:id/export", requireAuth, async (req, res) => {
     console.log('=== LESSON PLAN EXPORT REQUEST START ===');
     console.log(`Request: ${req.method} ${req.url}`);
     console.log(`User ID: ${req.user?.id}`);
-    console.log(`Format: ${req.query.format}`);
+    console.log(`Format: ${req.body?.format}`);
     
     try {
       const lessonPlanId = Number(req.params.id);
@@ -6495,10 +6586,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // Return markdown format by default
-        res.status(200).json({
-          message: "Lesson plan formatted for export successfully",
-          content: exportContent
+        // Only support docx and pdf formats for download
+        console.log(`ERROR: Unsupported format requested: ${format}`);
+        return res.status(400).json({
+          message: "Unsupported export format",
+          details: "Only 'docx' and 'pdf' formats are supported for download exports."
         });
       }
     } catch (error) {
