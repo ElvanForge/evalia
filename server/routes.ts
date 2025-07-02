@@ -6637,8 +6637,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id, format } = req.params;
       const lessonPlanId = parseInt(id);
       const teacherId = (req.session as any).teacherId;
+      const user = req.user;
       
-      if (!req.isAuthenticated() || !teacherId) {
+      console.log('Download auth check:', {
+        hasUser: !!user,
+        hasTeacherId: !!teacherId,
+        sessionId: req.sessionID,
+        isAuthenticated: req.isAuthenticated()
+      });
+      
+      if (!user || !teacherId) {
+        console.log('Authentication failed for download');
         return res.status(401).json({ message: "Authentication required" });
       }
       

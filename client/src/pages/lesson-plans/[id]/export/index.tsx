@@ -201,14 +201,17 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting PDF download for lesson plan ${lessonPlanId}`);
       
-      // Method 1: Try direct download URL first (most reliable)
-      const directDownloadUrl = `/api/lesson-plans/${lessonPlanId}/download/pdf`;
-      console.log(`Trying direct download URL: ${directDownloadUrl}`);
+      // Use a form submission to ensure cookies are sent properly
+      const form = document.createElement('form');
+      form.method = 'GET';
+      form.action = `/api/lesson-plans/${lessonPlanId}/download/pdf`;
+      form.style.display = 'none';
       
-      // Use window.location to force download
-      window.location.href = directDownloadUrl;
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
       
-      console.log('PDF download initiated via direct URL');
+      console.log('PDF download initiated via form submission');
       toast({
         title: "PDF Download Started",
         description: "Check your browser's Downloads folder for the PDF file",
