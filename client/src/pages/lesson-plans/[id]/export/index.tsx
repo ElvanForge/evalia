@@ -219,6 +219,14 @@ export default function ExportLessonPlanPageFixed() {
       
       const blob = await response.blob();
       console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
+      console.log(`PDF blob type: ${blob.type}`);
+      
+      // Debug: Check if blob contains PDF data
+      const firstBytes = await blob.slice(0, 10).arrayBuffer();
+      const firstBytesArray = new Uint8Array(firstBytes);
+      const firstBytesString = Array.from(firstBytesArray).map(b => String.fromCharCode(b)).join('');
+      console.log(`PDF blob first bytes: ${firstBytesString}`);
+      console.log(`PDF blob starts with %PDF: ${firstBytesString.startsWith('%PDF')}`);
       
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
