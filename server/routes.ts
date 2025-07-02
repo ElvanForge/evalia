@@ -6252,8 +6252,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lessonPlanId = Number(req.params.id);
       const teacherId = req.user?.id;
       const format = req.query.format || 'md'; // Default to markdown if not specified
+      const download = req.query.download === 'true'; // Check if direct download is requested
       
-      console.log(`Processing export for lesson plan ${lessonPlanId}, teacher ${teacherId}, format ${format}`);
+      console.log(`Processing export for lesson plan ${lessonPlanId}, teacher ${teacherId}, format ${format}, download: ${download}`);
       
       if (!teacherId) {
         console.log('ERROR: User not authenticated');

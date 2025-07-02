@@ -128,64 +128,19 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting DOCX download for lesson plan ${lessonPlanId}`);
       
-      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=docx`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'Content-Type': 'application/json',
-        },
-      });
+      // Use window.open for direct download - this bypasses blob issues
+      const downloadUrl = `/api/lesson-plans/${lessonPlanId}/export?format=docx&download=true`;
       
-      console.log(`DOCX export response status: ${response.status}`);
+      // Open in new window/tab for download
+      const downloadWindow = window.open(downloadUrl, '_blank');
       
-      if (!response.ok) {
-        let errorMessage = 'Failed to generate DOCX file';
-        
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-          console.error('DOCX export error details:', errorData);
-        } catch (parseError) {
-          console.error('Could not parse DOCX error response:', parseError);
-        }
-        
-        if (response.status === 401) {
-          toast({
-            title: "Authentication required",
-            description: "Please log in to export this lesson plan.",
-            variant: "destructive",
-          });
-          setLocation("/auth");
-          return;
-        }
-        
-        throw new Error(errorMessage);
+      // Check if popup was blocked
+      if (!downloadWindow) {
+        // Fallback: try direct navigation
+        window.location.href = downloadUrl;
       }
       
-      const arrayBuffer = await response.arrayBuffer();
-      console.log(`DOCX array buffer received, size: ${arrayBuffer.byteLength} bytes`);
-      
-      const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-      console.log(`DOCX blob created successfully, size: ${blob.size} bytes`);
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.docx`;
-      a.target = '_blank';
-      
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up with a slight delay to ensure download starts
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }, 100);
-      
-      console.log('DOCX download completed successfully');
+      console.log('DOCX download initiated successfully');
       toast({
         title: "Download started",
         description: "Your lesson plan is being downloaded as a DOCX file.",
@@ -208,64 +163,19 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting PDF download for lesson plan ${lessonPlanId}`);
       
-      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=pdf`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/pdf',
-          'Content-Type': 'application/json',
-        },
-      });
+      // Use window.open for direct download - this bypasses blob issues
+      const downloadUrl = `/api/lesson-plans/${lessonPlanId}/export?format=pdf&download=true`;
       
-      console.log(`PDF export response status: ${response.status}`);
+      // Open in new window/tab for download
+      const downloadWindow = window.open(downloadUrl, '_blank');
       
-      if (!response.ok) {
-        let errorMessage = 'Failed to generate PDF file';
-        
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-          console.error('PDF export error details:', errorData);
-        } catch (parseError) {
-          console.error('Could not parse PDF error response:', parseError);
-        }
-        
-        if (response.status === 401) {
-          toast({
-            title: "Authentication required",
-            description: "Please log in to export this lesson plan.",
-            variant: "destructive",
-          });
-          setLocation("/auth");
-          return;
-        }
-        
-        throw new Error(errorMessage);
+      // Check if popup was blocked
+      if (!downloadWindow) {
+        // Fallback: try direct navigation
+        window.location.href = downloadUrl;
       }
       
-      const arrayBuffer = await response.arrayBuffer();
-      console.log(`PDF array buffer received, size: ${arrayBuffer.byteLength} bytes`);
-      
-      const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-      console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
-      a.target = '_blank';
-      
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up with a slight delay to ensure download starts
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }, 100);
-      
-      console.log('PDF download completed successfully');
+      console.log('PDF download initiated successfully');
       toast({
         title: "Download started",
         description: "Your lesson plan is being downloaded as a PDF file.",
