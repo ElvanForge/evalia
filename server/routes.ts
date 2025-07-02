@@ -6426,65 +6426,189 @@ export async function registerRoutes(app: Express): Promise<Server> {
             thematicBreak: true,
           }));
           
-          // Process markdown into docx elements
-          const processSection = (section: string) => {
-            if (section.startsWith('# ')) {
-              // Main title - already added
-              return;
-            } else if (section.startsWith('## ')) {
-              // Section heading
-              const headingText = section.replace('## ', '').trim();
-              children.push(
-                new Paragraph({
-                  text: headingText,
-                  heading: HeadingLevel.HEADING_2,
-                  thematicBreak: false,
-                  spacing: {
-                    before: 240,
-                    after: 120,
-                  },
-                })
-              );
-            } else if (section.trim().startsWith('- ')) {
-              // Bullet points
-              const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
+          // Enhanced markdown parsing for DOCX
+          function parseMarkdownToDOCX(content: string): any[] {
+            const elements: any[] = [];
+            const lines = content.split('\n');
+            let inList = false;
+            
+            lines.forEach((line) => {
+              const trimmedLine = line.trim();
               
-              for (const point of bulletPoints) {
-                const text = point.replace('- ', '').trim();
-                // Check if it's bold (surrounded by ** or __)
-                if (text.startsWith('**') && text.endsWith('**')) {
-                  const boldText = text.slice(2, -2);
-                  children.push(
-                    new Paragraph({
-                      bullet: {
-                        level: 0,
-                      },
-                      children: [
-                        new TextRun({
-                          text: boldText,
-                          bold: true,
-                        }),
-                      ],
-                    })
-                  );
-                } else {
-                  children.push(
-                    new Paragraph({
-                      bullet: {
-                        level: 0,
-                      },
-                      text: text,
-                    })
-                  );
+              if (trimmedLine === '') {
+                if (!inList) {
+                  elements.push(new Paragraph({ text: '' })); // Empty paragraph for spacing
+                }
+                return;
+              }
+              
+              // Main heading (# )
+              if (trimmedLine.startsWith('# ')) {
+                if (trimmedLine !== `# ${lessonPlan.title}`) {
+                  const text = trimmedLine.replace('# ', '');
+                  elements.push(new Paragraph({
+                    children: [new TextRun({ text, bold: true, size: 32 })],
+                    spacing: { before: 240, after: 120 }
+                  }));
+                }
+                inList = false;
+              }
+              // Section heading (## )
+              else if (trimmedLine.startsWith('## ')) {
+                const text = trimmedLine.replace('## ', '');
+                elements.push(new Paragraph({
+                  text,
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { before: 240, after: 120 }
+                }));
+                inList = false;
+              }
+              // Sub-heading (### )
+              else if (trimmedLine.startsWith('### ')) {
+                const text = trimmedLine.replace('### ', '');
+                elements.push(new Paragraph({
+                  text,
+                  heading: HeadingLevel.HEADING_3,
+                  spacing: { before: 200, after: 100 }
+                }));
+                inList = false;
+              }
+              // Bullet points (- or * )
+              else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+                const bulletText = trimmedLine.replace(/^[*-] /, '');
+                const textRuns = processInlineMarkdownDOCX(bulletText);
+                
+                elements.push(new Paragraph({
+                  bullet: { level: 0 },
+                  children: textRuns,
+                  spacing: { before: inList ? 0 : 120, after: 60 }
+                }));
+                inList = true;
+              }
+              // Numbered lists (1. )
+              else if (/^\d+\. /.test(trimmedLine)) {
+                const listText = trimmedLine.replace(/^\d+\. /, '');
+                const textRuns = processInlineMarkdownDOCX(listText);
+                const number = trimmedLine.match(/^(\d+)\./)?.[1] || '1';
+                
+                elements.push(new Paragraph({
+                  numbering: { reference: 'default-numbering', level: 0 },
+                  children: textRuns,
+                  spacing: { before: inList ? 0 : 120, after: 60 }
+                }));
+                inList = true;
+              }
+              // Code blocks (``` )
+              else if (trimmedLine.startsWith('```')) {
+                // Skip for now, could be enhanced later
+                inList = false;
+              }
+              // Regular paragraph
+              else {
+                const textRuns = processInlineMarkdownDOCX(trimmedLine);
+                elements.push(new Paragraph({
+                  children: textRuns,
+                  spacing: { before: inList ? 120 : 0, after: 120 }
+                }));
+                inList = false;
+              }
+            });
+            
+            return elements;
+          }
+          
+          // Process inline markdown for DOCX
+          function processInlineMarkdownDOCX(text: string): any[] {
+            const textRuns: any[] = [];
+            let remainingText = text;
+            
+            // Enhanced regex patterns for nested formatting
+            const patterns = [
+              { regex: /\*\*\*(.*?)\*\*\*/g, type: 'bold-italic' },
+              { regex: /\*\*(.*?)\*\*/g, type: 'bold' },
+              { regex: /\*(.*?)\*/g, type: 'italic' },
+              { regex: /`(.*?)`/g, type: 'code' },
+            ];
+            
+            let lastIndex = 0;
+            const matches: Array<{index: number, text: string, type: string}> = [];
+            
+            // Find all matches
+            patterns.forEach(pattern => {
+              let match;
+              while ((match = pattern.regex.exec(text)) !== null) {
+                matches.push({
+                  index: match.index,
+                  text: match[1],
+                  type: pattern.type
+                });
+              }
+            });
+            
+            // Sort matches by position
+            matches.sort((a, b) => a.index - b.index);
+            
+            // If no formatting found, return simple text
+            if (matches.length === 0) {
+              return [new TextRun({ text })];
+            }
+            
+            // Process matches
+            let currentIndex = 0;
+            matches.forEach(match => {
+              // Add text before match
+              if (match.index > currentIndex) {
+                const beforeText = text.substring(currentIndex, match.index);
+                if (beforeText) {
+                  textRuns.push(new TextRun({ text: beforeText }));
                 }
               }
-            } else {
-              // Regular paragraph
-              children.push(new Paragraph({ text: section.trim() }));
+              
+              // Add formatted text
+              const runOptions: any = { text: match.text };
+              
+              switch (match.type) {
+                case 'bold':
+                  runOptions.bold = true;
+                  break;
+                case 'italic':
+                  runOptions.italics = true;
+                  break;
+                case 'bold-italic':
+                  runOptions.bold = true;
+                  runOptions.italics = true;
+                  break;
+                case 'code':
+                  runOptions.font = 'Courier New';
+                  runOptions.color = 'D73527';
+                  runOptions.highlight = 'F5F5F5';
+                  break;
+              }
+              
+              textRuns.push(new TextRun(runOptions));
+              
+              // Update current index (account for markdown syntax)
+              const syntaxLength = match.type === 'bold-italic' ? 6 : 
+                                  match.type === 'bold' ? 4 : 
+                                  match.type === 'code' ? 2 : 2;
+              currentIndex = match.index + match.text.length + syntaxLength;
+            });
+            
+            // Add remaining text
+            if (currentIndex < text.length) {
+              const remainingText = text.substring(currentIndex);
+              if (remainingText) {
+                textRuns.push(new TextRun({ text: remainingText }));
+              }
             }
-          };
+            
+            return textRuns.length > 0 ? textRuns : [new TextRun({ text })];
+          }
           
-          sections.forEach(processSection);
+          // Parse content and get elements
+          const contentElements = parseMarkdownToDOCX(exportContent);
+          children.push(...contentElements);
+
           
           // Create document with sections
           const doc = new Document({
@@ -6553,32 +6677,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
               doc.fontSize(20).text(lessonPlan.title, { align: 'center' });
               doc.moveDown();
               
-              // Parse and add the markdown content
-              const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
-              
-              sections.forEach(section => {
-                if (section.startsWith('# ')) {
-                  // Main title - skip as we already added it
-                  return;
-                } else if (section.startsWith('## ')) {
-                  // Section heading
-                  const headingText = section.replace('## ', '').trim();
-                  doc.fontSize(16).text(headingText, { underline: true });
-                  doc.moveDown(0.5);
-                } else if (section.trim().startsWith('- ')) {
-                  // Bullet points
-                  const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
-                  bulletPoints.forEach(point => {
-                    const text = point.replace('- ', '').trim();
-                    doc.fontSize(12).text(`• ${text}`, { indent: 20 });
-                  });
-                  doc.moveDown();
-                } else {
+              // Enhanced markdown parsing for PDF
+              function parseMarkdownToPDF(content: string, doc: any) {
+                const lines = content.split('\n');
+                let currentSection = '';
+                let inList = false;
+                
+                lines.forEach((line, index) => {
+                  const trimmedLine = line.trim();
+                  
+                  if (trimmedLine === '') {
+                    if (currentSection && !inList) {
+                      doc.moveDown(0.5);
+                    }
+                    return;
+                  }
+                  
+                  // Main heading (# )
+                  if (trimmedLine.startsWith('# ')) {
+                    if (trimmedLine !== `# ${lessonPlan.title}`) {
+                      const text = trimmedLine.replace('# ', '');
+                      doc.fontSize(18).fillColor('black').text(text, { underline: true });
+                      doc.moveDown();
+                    }
+                    inList = false;
+                  }
+                  // Section heading (## )
+                  else if (trimmedLine.startsWith('## ')) {
+                    const text = trimmedLine.replace('## ', '');
+                    doc.fontSize(16).fillColor('black').text(text, { underline: true });
+                    doc.moveDown(0.5);
+                    inList = false;
+                  }
+                  // Sub-heading (### )
+                  else if (trimmedLine.startsWith('### ')) {
+                    const text = trimmedLine.replace('### ', '');
+                    doc.fontSize(14).fillColor('black').text(text, { underline: false });
+                    doc.moveDown(0.3);
+                    inList = false;
+                  }
+                  // Bullet points (- or * )
+                  else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+                    const bulletText = trimmedLine.replace(/^[*-] /, '');
+                    const processedText = processInlineMarkdown(bulletText);
+                    
+                    if (!inList) {
+                      doc.moveDown(0.2);
+                    }
+                    
+                    // Add bullet point with proper formatting
+                    doc.fontSize(12).fillColor('black').text('• ', { continued: true, indent: 20 });
+                    addFormattedText(doc, processedText);
+                    doc.text(''); // New line
+                    inList = true;
+                  }
+                  // Numbered lists (1. )
+                  else if (/^\d+\. /.test(trimmedLine)) {
+                    const listText = trimmedLine.replace(/^\d+\. /, '');
+                    const processedText = processInlineMarkdown(listText);
+                    const number = trimmedLine.match(/^(\d+)\./)?.[1] || '1';
+                    
+                    if (!inList) {
+                      doc.moveDown(0.2);
+                    }
+                    
+                    doc.fontSize(12).fillColor('black').text(`${number}. `, { continued: true, indent: 20 });
+                    addFormattedText(doc, processedText);
+                    doc.text(''); // New line
+                    inList = true;
+                  }
+                  // Code blocks (``` )
+                  else if (trimmedLine.startsWith('```')) {
+                    // Skip code block markers for now
+                    inList = false;
+                  }
                   // Regular paragraph
-                  doc.fontSize(12).text(section.trim());
-                  doc.moveDown();
-                }
-              });
+                  else {
+                    if (inList) {
+                      doc.moveDown(0.3);
+                      inList = false;
+                    }
+                    
+                    const processedText = processInlineMarkdown(trimmedLine);
+                    addFormattedText(doc, processedText);
+                    doc.text(''); // New line
+                    doc.moveDown(0.3);
+                  }
+                });
+              }
+              
+              // Process inline markdown (bold, italic, code)
+              function processInlineMarkdown(text: string): Array<{text: string, style?: string}> {
+                const parts: Array<{text: string, style?: string}> = [];
+                let currentText = text;
+                
+                // Process bold (**text**)
+                currentText = currentText.replace(/\*\*(.*?)\*\*/g, '|BOLD|$1|/BOLD|');
+                // Process italic (*text*)
+                currentText = currentText.replace(/\*(.*?)\*/g, '|ITALIC|$1|/ITALIC|');
+                // Process code (`text`)
+                currentText = currentText.replace(/`(.*?)`/g, '|CODE|$1|/CODE|');
+                
+                const segments = currentText.split(/(\|BOLD\||\/BOLD\||\|ITALIC\||\/ITALIC\||\|CODE\||\/CODE\|)/);
+                let currentStyle = '';
+                
+                segments.forEach(segment => {
+                  if (segment === '|BOLD|') currentStyle = 'bold';
+                  else if (segment === '/BOLD|') currentStyle = '';
+                  else if (segment === '|ITALIC|') currentStyle = 'italic';
+                  else if (segment === '/ITALIC|') currentStyle = '';
+                  else if (segment === '|CODE|') currentStyle = 'code';
+                  else if (segment === '/CODE|') currentStyle = '';
+                  else if (segment && segment.trim()) {
+                    parts.push({ text: segment, style: currentStyle });
+                  }
+                });
+                
+                return parts.length > 0 ? parts : [{ text: text }];
+              }
+              
+              // Add formatted text with different styles
+              function addFormattedText(doc: any, parts: Array<{text: string, style?: string}>) {
+                parts.forEach((part, index) => {
+                  const isLast = index === parts.length - 1;
+                  
+                  if (part.style === 'bold') {
+                    doc.fontSize(12).font('Helvetica-Bold').fillColor('black').text(part.text, { continued: !isLast });
+                  } else if (part.style === 'italic') {
+                    doc.fontSize(12).font('Helvetica-Oblique').fillColor('black').text(part.text, { continued: !isLast });
+                  } else if (part.style === 'code') {
+                    doc.fontSize(11).font('Courier').fillColor('#d73527').text(part.text, { continued: !isLast });
+                  } else {
+                    doc.fontSize(12).font('Helvetica').fillColor('black').text(part.text, { continued: !isLast });
+                  }
+                  
+                  // Reset font for next part
+                  if (!isLast) {
+                    doc.font('Helvetica');
+                  }
+                });
+              }
+              
+              // Parse the content
+              parseMarkdownToPDF(exportContent, doc);
               
               // Finalize the PDF
               doc.end();
