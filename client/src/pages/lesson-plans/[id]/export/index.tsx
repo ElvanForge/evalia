@@ -58,6 +58,13 @@ export default function ExportLessonPlanPage() {
     refetchOnWindowFocus: false,
   });
 
+  // Fetch user's lesson plans for redirection
+  const { data: userLessonPlans } = useQuery<LessonPlan[]>({
+    queryKey: ['/api/lesson-plans'],
+    enabled: !!user,
+    refetchOnWindowFocus: false,
+  });
+
   // Export content mutation for preview
   const exportMutation = useMutation({
     mutationFn: async () => {
@@ -74,6 +81,18 @@ export default function ExportLessonPlanPage() {
       setIsExporting(false);
     },
     onError: (error: any) => {
+      // If it's a 403 error (not authorized), try to redirect to user's first lesson plan
+      if (error.message?.includes('403') || error.message?.includes('not authorized') || error.message?.includes('Not authorized')) {
+        if (userLessonPlans && userLessonPlans.length > 0) {
+          toast({
+            title: "Redirecting to your lesson plan",
+            description: "You can only export your own lesson plans. Taking you to one of yours.",
+          });
+          setLocation(`/lesson-plans/${userLessonPlans[0].id}/export`);
+          return;
+        }
+      }
+      
       toast({
         title: "Export failed",
         description: error.message || "An error occurred while formatting the lesson plan for export.",
@@ -89,6 +108,28 @@ export default function ExportLessonPlanPage() {
       exportMutation.mutate();
     }
   }, [lessonPlanId]);
+
+  // Auto-redirect when user tries to access a lesson plan they don't own
+  useEffect(() => {
+    if (lessonPlanError && userLessonPlans && userLessonPlans.length > 0) {
+      // Check if the error is due to unauthorized access
+      const errorMessage = (lessonPlanError as any)?.message || '';
+      if (errorMessage.includes('401') || errorMessage.includes('403') || 
+          errorMessage.includes('Unauthorized') || errorMessage.includes('Not authorized')) {
+        
+        // Give a brief moment for the error to be visible, then redirect
+        const timer = setTimeout(() => {
+          toast({
+            title: "Redirected to your lesson plan",
+            description: `Taking you to "${userLessonPlans[0].title}" instead.`,
+          });
+          setLocation(`/lesson-plans/${userLessonPlans[0].id}/export`);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [lessonPlanError, userLessonPlans, setLocation, toast]);
 
   const downloadDocx = async () => {
     try {
@@ -321,20 +362,37 @@ export default function ExportLessonPlanPage() {
   if (lessonPlanError || !lessonPlan) {
     return (
       <div className="container py-8">
-        <SectionHeader title="Error" subtitle="Failed to load lesson plan" />
+        <SectionHeader title="Lesson Plan Not Found" subtitle="This lesson plan doesn't exist or you don't have access to it" />
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Error</CardTitle>
-            <CardDescription>Failed to load lesson plan.</CardDescription>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              You can only export lesson plans that belong to you. Let's take you back to your lesson plans.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p>There was an error loading the lesson plan. Please try again later.</p>
+            <p className="text-muted-foreground">
+              This might happen if:
+            </p>
+            <ul className="list-disc list-inside mt-2 text-muted-foreground space-y-1">
+              <li>The lesson plan doesn't exist</li>
+              <li>The lesson plan belongs to another teacher</li>
+              <li>You don't have permission to access this content</li>
+            </ul>
           </CardContent>
-          <CardFooter>
-            <Button onClick={() => setLocation("/lesson-plans")}>
+          <CardFooter className="flex gap-3">
+            <Button onClick={() => setLocation("/lesson-plans")} className="bg-[#0ba2b0] hover:bg-[#0ba2b0]/90">
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to Lesson Plans
+              Go to My Lesson Plans
             </Button>
+            {userLessonPlans && userLessonPlans.length > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation(`/lesson-plans/${userLessonPlans[0].id}/export`)}
+              >
+                Export "{userLessonPlans[0].title}"
+              </Button>
+            )}
           </CardFooter>
         </Card>
       </div>
