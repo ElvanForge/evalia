@@ -6317,7 +6317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (format === 'docx') {
         console.log('Starting DOCX generation...');
         try {
-          const docx = require('docx');
+          const docx = await import('docx');
           const { Document, Paragraph, TextRun, HeadingLevel, AlignmentType, UnderlineType, BorderStyle } = docx;
           console.log('DOCX library loaded successfully');
         
