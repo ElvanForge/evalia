@@ -228,26 +228,60 @@ export default function ExportLessonPlanPageFixed() {
       console.log(`PDF blob first bytes: ${firstBytesString}`);
       console.log(`PDF blob starts with %PDF: ${firstBytesString.startsWith('%PDF')}`);
       
+      // Try multiple download methods for better browser compatibility
+      const filename = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
+      
+      // Method 1: Try direct blob download with multiple attempts
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
-      link.style.display = 'none';
-      link.target = '_blank';
       
-      // Force click with user gesture
-      document.body.appendChild(link);
-      
-      // Add a small delay to ensure the link is in the DOM
-      setTimeout(() => {
-        link.click();
-        
-        // Clean up after a delay
-        setTimeout(() => {
+      // Create multiple link elements with different approaches
+      const methods = [
+        // Standard approach
+        () => {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
           document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }, 100);
-      }, 10);
+        },
+        // Force new window approach
+        () => {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = filename;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        },
+        // Direct window.open approach
+        () => {
+          const newWindow = window.open(url, '_blank');
+          if (newWindow) {
+            setTimeout(() => newWindow.close(), 1000);
+          }
+        }
+      ];
+      
+      // Try each method with delays
+      methods.forEach((method, index) => {
+        setTimeout(() => {
+          try {
+            method();
+            console.log(`PDF download method ${index + 1} attempted`);
+          } catch (error) {
+            console.error(`PDF download method ${index + 1} failed:`, error);
+          }
+        }, index * 200);
+      });
+      
+      // Clean up after all attempts
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 2000);
       
       console.log('PDF download completed successfully');
       toast({
