@@ -156,15 +156,27 @@ export default function ExportLessonPlanPageFixed() {
       const blob = await response.blob();
       console.log(`DOCX blob created successfully, size: ${blob.size} bytes`);
       
-      // Create download link
+      // Create download link with additional attributes for better browser support
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.docx`;
+      link.style.display = 'none';
+      link.target = '_blank';
+      
+      // Force click with user gesture
       document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      
+      // Add a small delay to ensure the link is in the DOM
+      setTimeout(() => {
+        link.click();
+        
+        // Clean up after a delay
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }, 100);
+      }, 10);
       
       console.log('DOCX download completed successfully');
       toast({
@@ -217,15 +229,44 @@ export default function ExportLessonPlanPageFixed() {
       const blob = await response.blob();
       console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
       
-      // Create download link
+      // Create download link with debugging
+      const filename = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
+      console.log(`Creating download for filename: ${filename}`);
+      
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      console.log(`Blob URL created: ${url}`);
+      
+      // Try native download if supported
+      if (window.navigator && (window.navigator as any).msSaveOrOpenBlob) {
+        console.log('Using IE/Edge native download');
+        (window.navigator as any).msSaveOrOpenBlob(blob, filename);
+      } else {
+        console.log('Using standard download link approach');
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        console.log('Link added to DOM, triggering click');
+        
+        // Use modern click event with trusted user gesture
+        const clickEvent = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        
+        link.dispatchEvent(clickEvent);
+        console.log('Click event dispatched');
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          console.log('Link cleaned up');
+        }, 100);
+      }
       
       console.log('PDF download completed successfully');
       toast({
