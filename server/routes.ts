@@ -6241,8 +6241,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Export lesson plan to DOCX/PDF format
-  app.get("/api/lesson-plans/:id/export", requireAuth, async (req, res) => {
+  // Export lesson plan to DOCX/PDF format - POST request for better session handling
+  app.post("/api/lesson-plans/:id/export", requireAuth, async (req, res) => {
     console.log('=== LESSON PLAN EXPORT REQUEST START ===');
     console.log(`Request: ${req.method} ${req.url}`);
     console.log(`User ID: ${req.user?.id}`);
@@ -6251,10 +6251,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const lessonPlanId = Number(req.params.id);
       const teacherId = req.user?.id;
-      const format = req.query.format || 'md'; // Default to markdown if not specified
-      const download = req.query.download === 'true'; // Check if direct download is requested
+      const format = req.body.format || 'md'; // Default to markdown if not specified
       
-      console.log(`Processing export for lesson plan ${lessonPlanId}, teacher ${teacherId}, format ${format}, download: ${download}`);
+      console.log(`Processing export for lesson plan ${lessonPlanId}, teacher ${teacherId}, format ${format}`);
       
       if (!teacherId) {
         console.log('ERROR: User not authenticated');

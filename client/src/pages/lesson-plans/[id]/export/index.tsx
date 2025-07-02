@@ -128,18 +128,43 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting DOCX download for lesson plan ${lessonPlanId}`);
       
-      // Create a form to submit with credentials
-      const form = document.createElement('form');
-      form.method = 'GET';
-      form.action = `/api/lesson-plans/${lessonPlanId}/export?format=docx`;
-      form.target = '_blank';
-      form.style.display = 'none';
+      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export?format=docx`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        },
+      });
       
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      console.log(`DOCX export response status: ${response.status}`);
       
-      console.log('DOCX download initiated successfully');
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast({
+            title: "Authentication required",
+            description: "Please log in to export this lesson plan.",
+            variant: "destructive",
+          });
+          setLocation("/auth");
+          return;
+        }
+        throw new Error('Failed to generate DOCX file');
+      }
+      
+      const blob = await response.blob();
+      console.log(`DOCX blob created successfully, size: ${blob.size} bytes`);
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log('DOCX download completed successfully');
       toast({
         title: "Download started",
         description: "Your lesson plan is being downloaded as a DOCX file.",
@@ -162,18 +187,45 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting PDF download for lesson plan ${lessonPlanId}`);
       
-      // Create a form to submit with credentials
-      const form = document.createElement('form');
-      form.method = 'GET';
-      form.action = `/api/lesson-plans/${lessonPlanId}/export?format=pdf`;
-      form.target = '_blank';
-      form.style.display = 'none';
+      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/pdf',
+        },
+        body: JSON.stringify({ format: 'pdf' }),
+      });
       
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      console.log(`PDF export response status: ${response.status}`);
       
-      console.log('PDF download initiated successfully');
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast({
+            title: "Authentication required",
+            description: "Please log in to export this lesson plan.",
+            variant: "destructive",
+          });
+          setLocation("/auth");
+          return;
+        }
+        throw new Error('Failed to generate PDF file');
+      }
+      
+      const blob = await response.blob();
+      console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log('PDF download completed successfully');
       toast({
         title: "Download started",
         description: "Your lesson plan is being downloaded as a PDF file.",
