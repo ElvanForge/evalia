@@ -201,111 +201,17 @@ export default function ExportLessonPlanPageFixed() {
       setIsExporting(true);
       console.log(`Starting PDF download for lesson plan ${lessonPlanId}`);
       
-      const response = await fetch(`/api/lesson-plans/${lessonPlanId}/export`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/pdf',
-        },
-        body: JSON.stringify({ format: 'pdf' }),
-      });
+      // Method 1: Try direct download URL first (most reliable)
+      const directDownloadUrl = `/api/lesson-plans/${lessonPlanId}/download/pdf`;
+      console.log(`Trying direct download URL: ${directDownloadUrl}`);
       
-      console.log(`PDF export response status: ${response.status}`);
-      console.log('PDF response headers:', Object.fromEntries(response.headers.entries()));
+      // Use window.location to force download
+      window.location.href = directDownloadUrl;
       
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast({
-            title: "Authentication required",
-            description: "Please log in to export this lesson plan.",
-            variant: "destructive",
-          });
-          setLocation("/auth");
-          return;
-        }
-        const errorText = await response.text();
-        console.error('PDF export error response:', errorText);
-        throw new Error('Failed to generate PDF file');
-      }
-      
-      const blob = await response.blob();
-      console.log(`PDF blob created successfully, size: ${blob.size} bytes`);
-      console.log(`PDF blob type: ${blob.type}`);
-      
-      // Validate blob content
-      if (blob.size === 0) {
-        throw new Error('PDF blob is empty');
-      }
-      
-      if (blob.type && !blob.type.includes('pdf')) {
-        console.warn(`Unexpected blob type: ${blob.type}, expected PDF`);
-      }
-      
-      // Create download link with debugging
-      const filename = `${lessonPlanQuery.data?.title || 'lesson-plan'}.pdf`;
-      console.log(`Creating download for filename: ${filename}`);
-      
-      const url = URL.createObjectURL(blob);
-      console.log(`Blob URL created: ${url}`);
-      
-      // Try multiple download approaches for maximum compatibility
-      let downloadSuccess = false;
-      
-      // Method 1: Native browser download (IE/Edge)
-      if (window.navigator && (window.navigator as any).msSaveOrOpenBlob) {
-        console.log('Using IE/Edge native download');
-        (window.navigator as any).msSaveOrOpenBlob(blob, filename);
-        downloadSuccess = true;
-      } 
-      // Method 2: Standard download link with various fallbacks
-      else {
-        console.log('Using standard download link approach');
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        console.log('Link added to DOM, triggering click');
-        
-        try {
-          // Try direct click first
-          link.click();
-          console.log('Direct click attempted');
-          downloadSuccess = true;
-        } catch (clickError) {
-          console.log('Direct click failed, trying event dispatch');
-          // Fallback to event dispatch
-          const clickEvent = new MouseEvent('click', {
-            view: window,
-            bubbles: true,
-            cancelable: true
-          });
-          
-          link.dispatchEvent(clickEvent);
-          console.log('Click event dispatched');
-          downloadSuccess = true;
-        }
-        
-        // Clean up
-        setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          console.log('Link cleaned up');
-        }, 100);
-      }
-      
-      // Method 3: Fallback - open in new window if download didn't work
-      if (!downloadSuccess) {
-        console.log('Download methods failed, opening in new window');
-        window.open(url, '_blank');
-      }
-      
-      console.log('PDF download completed successfully');
+      console.log('PDF download initiated via direct URL');
       toast({
         title: "PDF Download Started",
-        description: "Check your browser's Downloads folder or download notification for English.pdf",
+        description: "Check your browser's Downloads folder for the PDF file",
       });
       
     } catch (error: any) {

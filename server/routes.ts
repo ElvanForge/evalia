@@ -6631,6 +6631,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Direct download endpoints that force browser download
+  app.get('/api/lesson-plans/:id/download/:format', async (req, res) => {
+    try {
+      const { id, format } = req.params;
+      const lessonPlanId = parseInt(id);
+      const teacherId = (req.session as any).teacherId;
+      
+      if (!req.isAuthenticated() || !teacherId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const lessonPlan = await dbStorage.getLessonPlan(lessonPlanId);
+      if (!lessonPlan || lessonPlan.teacherId !== teacherId) {
+        return res.status(404).json({ message: "Lesson plan not found or access denied" });
+      }
+      
+      const exportContent = await formatLessonPlanForExport(lessonPlan, dbStorage);
+      
+      if (format === 'pdf') {
+        const PDFKit = await import('pdfkit');
+        const PDFDocument = PDFKit.default;
+        const doc = new PDFDocument();
+        
+        const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
+          const chunks: Buffer[] = [];
+          doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+          doc.on('end', () => resolve(Buffer.concat(chunks)));
+          doc.on('error', reject);
+          
+          // Add content
+          doc.fontSize(20).text(lessonPlan.title, { align: 'center' });
+          doc.moveDown();
+          
+          const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
+          sections.forEach(section => {
+            if (section.startsWith('## ')) {
+              doc.fontSize(16).text(section.replace('## ', '').trim(), { underline: true });
+              doc.moveDown(0.5);
+            } else if (section.trim().startsWith('- ')) {
+              const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
+              bulletPoints.forEach(point => {
+                doc.fontSize(12).text(`• ${point.replace('- ', '').trim()}`, { indent: 20 });
+              });
+              doc.moveDown();
+            } else if (!section.startsWith('# ')) {
+              doc.fontSize(12).text(section.trim());
+              doc.moveDown();
+            }
+          });
+          
+          doc.end();
+        });
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(lessonPlan.title)}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.length.toString());
+        res.send(pdfBuffer);
+        
+      } else if (format === 'docx') {
+        const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
+        
+        const children: any[] = [];
+        children.push(
+          new Paragraph({
+            text: lessonPlan.title,
+            heading: HeadingLevel.TITLE,
+            alignment: 'center',
+            spacing: { after: 240 }
+          })
+        );
+        
+        const sections = exportContent.split('\n\n').filter(section => section.trim() !== '');
+        sections.forEach(section => {
+          if (section.startsWith('## ')) {
+            children.push(
+              new Paragraph({
+                text: section.replace('## ', '').trim(),
+                heading: HeadingLevel.HEADING_2,
+                spacing: { before: 240, after: 120 }
+              })
+            );
+          } else if (section.trim().startsWith('- ')) {
+            const bulletPoints = section.split('\n').filter(line => line.trim().startsWith('- '));
+            bulletPoints.forEach(point => {
+              children.push(
+                new Paragraph({
+                  bullet: { level: 0 },
+                  text: point.replace('- ', '').trim()
+                })
+              );
+            });
+          } else if (!section.startsWith('# ')) {
+            children.push(
+              new Paragraph({
+                text: section.trim(),
+                spacing: { after: 120 }
+              })
+            );
+          }
+        });
+        
+        const doc = new Document({
+          sections: [{ children }]
+        });
+        
+        const docxBuffer = await Packer.toBuffer(doc);
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(lessonPlan.title)}.docx"`);
+        res.setHeader('Content-Length', docxBuffer.length.toString());
+        res.send(docxBuffer);
+        
+      } else {
+        return res.status(400).json({ message: "Unsupported format" });
+      }
+      
+    } catch (error) {
+      console.error('Direct download error:', error);
+      res.status(500).json({ message: "Download failed" });
+    }
+  });
+
   // Register our enhanced image handling routes
   registerImageRoutes(app);
   
