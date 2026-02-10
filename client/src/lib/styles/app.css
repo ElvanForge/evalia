@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Using our branding palette via @theme blocks if needed, 
+   but for now, the config file will handle the hex codes. */
+body {
+    background-color: #faf6ea; /* vanilla-50 */
+    color: #041f2f; /* ink-900 */
+}
