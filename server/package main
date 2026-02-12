@@ -1,0 +1,29 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+)
+
+func main() {
+	// Simple route for the health of your app
+	http.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Evalia Backend: Operating at 100%%")
+	})
+
+	// Get port from environment (for later deployment) or default to 8080
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Evalia server starting in Tbilisi on port %s...", port)
+	
+	// Start the server
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+}

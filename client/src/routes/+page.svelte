@@ -1,8 +1,14 @@
 <script lang="ts">
 	/* --- CONFIGURATION --- */
 	const LAUNCH_DATE = "August 15, 2026";
+	const SEED_GOAL = 15000; 
 	
-	// Replace these placeholder strings with your Stripe Payment Links later
+	// MANUAL UPDATE: Update this number as sales come in to drive the UI.
+	let current_raised = 0; 
+
+	// Reactive calculation for the UI
+	$: progress_percent = Math.min(Math.round((current_raised / SEED_GOAL) * 100), 100);
+
 	const STRIPE_LINKS = {
 		supporter: "https://buy.stripe.com/placeholder_supporter",
 		pioneer: "https://buy.stripe.com/placeholder_pioneer",
@@ -29,14 +35,22 @@
 	];
 
 	const faqs = [
-		{ q: "Is the Pioneer tier really a one-time payment?", a: "Yes. Seed Pioneers receive a permanent license. When Evalia moves to a $19/mo subscription at launch, your account remains active forever with no further billing." },
-		{ q: "What does Advisory Status mean?", a: "Advisors get direct access to our development team via a 1-on-1 call to discuss specific classroom needs and influence which features we prioritize next." },
-		{ q: "When do I get access?", a: "Early Supporters and Pioneers get Alpha/Beta access starting 30 days before the official August launch." }
+		{ 
+			q: "Is the Pioneer tier really a one-time payment?", 
+			a: "Yes. Seed Pioneers receive a permanent license. When Evalia moves to a $19/mo subscription at launch, your account remains active forever with no further billing." 
+		},
+		{ 
+			q: "What does Advisory Status mean?", 
+			a: "Advisors get direct access to our development team via a 1-on-1 call to discuss specific classroom needs and influence which features we prioritize next." 
+		},
+		{ 
+			q: "When do I get access?", 
+			a: "Early Supporters and Pioneers get Alpha/Beta access starting 30 days before the official August launch." 
+		}
 	];
 </script>
 
 <div class="min-h-screen bg-vanilla-50 font-sans text-ink-950 relative overflow-hidden">
-	
 	<nav class="relative z-30 max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
 		<div class="flex items-center gap-4 group cursor-pointer">
 			<div class="relative w-10 h-10 flex items-center justify-center">
@@ -65,11 +79,12 @@
 					<span class="text-teal-600 underline decoration-ink-950/10">modern educators.</span>
 				</h1>
 				<p class="text-xl text-ink-800 leading-relaxed max-w-lg font-medium mx-auto lg:mx-0">
-					High-performance tools for grades, lesson planning, and reporting. 
+					High-performance tools for grades, lesson planning, and reporting.
 					Harness <span class="text-teal-700 font-bold italic">Educational AI</span> to reclaim your time.
 				</p>
 				<div class="pt-4">
-					<a href="#pricing" style="color: #faf6ea !important;" class="inline-flex items-center justify-center gap-3 bg-teal-800 px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-teal-900/30 transition-all hover:bg-teal-900 hover:scale-[1.02]">
+					<a href="#pricing" style="color: #faf6ea !important;"
+						class="inline-flex items-center justify-center gap-3 bg-teal-800 px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-teal-900/30 transition-all hover:bg-teal-900 hover:scale-[1.02]">
 						Support the Seeding Phase <span>→</span>
 					</a>
 				</div>
@@ -108,17 +123,23 @@
 			<div class="max-w-2xl mb-16 space-y-6 text-left">
 				<h2 class="text-5xl font-black text-ink-950 tracking-tighter italic uppercase leading-none">Support the <br/>Seeding Phase.</h2>
 				<p class="text-lg text-ink-700 font-medium leading-relaxed">
-					We are raising seed capital to finalize development. 
+					We are raising seed capital to finalize development.
 					Supporters receive permanent license status before our <span class="text-ink-950 font-bold">$19/mo</span> launch.
 				</p>
-				<div class="pt-4">
+				<div class="pt-4 max-w-md">
 					<div class="flex justify-between items-end mb-2">
-						<span class="text-[10px] font-black tracking-widest text-ink-400 uppercase">Development to Alpha Launch</span>
-						<span class="text-sm font-black text-teal-600">65% Complete</span>
+						<span class="text-[10px] font-black tracking-widest text-ink-400 uppercase">Strategic Funding: Phase 1</span>
+						<span class="text-sm font-black text-teal-600">{progress_percent}% Funded</span>
 					</div>
-					<div class="w-full h-4 bg-ink-100 rounded-full p-1 border border-ink-200">
-						<div class="w-[65%] h-full bg-teal-500 rounded-full shadow-[0_0_10px_rgba(20,184,166,0.3)]"></div>
+					<div class="w-full h-4 bg-ink-100 rounded-full p-1 border border-ink-200 overflow-hidden">
+						<div 
+							class="h-full bg-teal-500 rounded-full transition-all duration-1000 ease-out" 
+							style="width: {progress_percent}%"
+						></div>
 					</div>
+					<p class="mt-2 text-[9px] font-bold text-ink-500 uppercase tracking-tighter">
+						Target: ${SEED_GOAL.toLocaleString()} USD | Infrastructure & Engineering Runway
+					</p>
 				</div>
 			</div>
 
@@ -146,7 +167,8 @@
 							<li class="flex items-start gap-2"><span>•</span> No Subscriptions Ever</li>
 						</ul>
 					</div>
-					<a href={STRIPE_LINKS.pioneer} style="color: #faf6ea !important;" class="mt-8 block text-center py-4 bg-teal-800 rounded-xl font-black shadow-xl uppercase tracking-widest text-xs">Secure Lifetime</a>
+					<a href={STRIPE_LINKS.pioneer} style="color: #faf6ea !important;"
+						class="mt-8 block text-center py-4 bg-teal-800 rounded-xl font-black shadow-xl uppercase tracking-widest text-xs">Secure Lifetime</a>
 				</div>
 
 				<div class="bg-teal-900 p-10 rounded-[2.5rem] shadow-2xl flex flex-col justify-between border-2 border-teal-400">
@@ -159,10 +181,12 @@
 							<li class="flex items-start gap-2"><span class="text-teal-400">•</span> Roadmap Advisory Access</li>
 						</ul>
 						<p class="text-[9px] uppercase font-bold text-teal-400/50 leading-tight pt-4 italic">
-							*Commercial pre-order for premium services. Does not confer equity or financial interest.
+							*Commercial pre-order for premium services.
+							Does not confer equity or financial interest.
 						</p>
 					</div>
-					<a href={STRIPE_LINKS.advisor} style="color: #0d1117 !important;" class="mt-10 block text-center py-5 bg-teal-400 rounded-2xl font-black shadow-xl uppercase tracking-widest text-xs">Join as Advisor</a>
+					<a href={STRIPE_LINKS.advisor} style="color: #0d1117 !important;"
+						class="mt-10 block text-center py-5 bg-teal-400 rounded-2xl font-black shadow-xl uppercase tracking-widest text-xs">Join as Advisor</a>
 				</div>
 			</div>
 		</div>
@@ -183,8 +207,8 @@
 	</section>
 
 	<footer class="py-16 text-center opacity-40">
-		<p class="text-ink-950 font-black text-[10px] tracking-[0.2em] uppercase mb-2">&copy; 2026 EVALIA STUDIO | HIGH PERFORMANCE ACADEMICS</p>
-		<p class="text-[9px] font-bold text-ink-950 uppercase">Purchases during Seeding Phase are early-access software pre-orders.</p>
+		<p class="text-ink-950 font-black text-[10px] tracking-[0.2em] uppercase mb-2">&copy; 2026 ELVAN FORGE | HIGH PERFORMANCE ACADEMICS</p>
+		<p class="text-[9px] font-bold text-ink-950 uppercase tracking-tighter">Evalia is a product of Elvan Forge. Purchases during Seeding Phase are early-access software pre-orders.</p>
 	</footer>
 </div>
 
