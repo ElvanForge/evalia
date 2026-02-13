@@ -1,21 +1,16 @@
 <script lang="ts">
-	/* --- CONFIGURATION --- */
-	const LAUNCH_DATE = "August 15, 2026";
-	const SEED_GOAL = 15000; 
-	
-	// MANUAL UPDATE: Update this number as sales come in to drive the UI.
-	let current_raised = 0; 
-
-	// Reactive calculation for the UI
-	$: progress_percent = Math.min(Math.round((current_raised / SEED_GOAL) * 100), 100);
-
-	const STRIPE_LINKS = {
-		supporter: "https://buy.stripe.com/placeholder_supporter",
-		pioneer: "https://buy.stripe.com/placeholder_pioneer",
-		advisor: "https://buy.stripe.com/placeholder_advisor"
+	const launchTiers = {
+		starter: "https://buy.stripe.com/aFa9AV2w78hdevadsabjW00",
+		pioneer: "https://buy.stripe.com/14AcN74Ef9lh72I3RAbjW01",
+		advisor: "https://buy.stripe.com/aFa7sN3AbgNJ72I73MbjW02"
 	};
 
-	/* --- CONTENT DATA --- */
+	const LAUNCH_DATE = "August 15, 2026";
+	const SEED_GOAL = 15000;
+	let current_raised = 0;
+
+	$: progress_percent = Math.min(Math.round((current_raised / SEED_GOAL) * 100), 100);
+
 	const features = [
 		{
 			title: "Grade Stewardship",
@@ -37,15 +32,15 @@
 	const faqs = [
 		{ 
 			q: "Is the Pioneer tier really a one-time payment?", 
-			a: "Yes. Seed Pioneers receive a permanent license. When Evalia moves to a $19/mo subscription at launch, your account remains active forever with no further billing." 
+			a: "Yes. Seed Pioneers receive a permanent license. When Evalia moves to a $19/mo subscription at launch, your account remains active forever with no further billing."
 		},
 		{ 
 			q: "What does Advisory Status mean?", 
-			a: "Advisors get direct access to our development team via a 1-on-1 call to discuss specific classroom needs and influence which features we prioritize next." 
+			a: "Advisors get direct access to our development team via a 1-on-1 call to discuss specific classroom needs and influence which features we prioritize next."
 		},
 		{ 
 			q: "When do I get access?", 
-			a: "Early Supporters and Pioneers get Alpha/Beta access starting 30 days before the official August launch." 
+			a: "Early Supporters and Pioneers get Alpha/Beta access starting 30 days before the official August launch."
 		}
 	];
 </script>
@@ -56,13 +51,11 @@
 			<div class="relative w-10 h-10 flex items-center justify-center">
 				<div class="absolute inset-0 bg-teal-800 rounded-lg shadow-lg"></div>
 				<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  					<rect width="40" height="40" rx="8" fill="#115e59"/> 
-  
-  					<path d="M12 14H28" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
-  					<path d="M12 20H22" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
-  					<path d="M12 26H28" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
-  
-  					<path d="M12 14V26" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
+					<rect width="40" height="40" rx="8" fill="#115e59"/> 
+					<path d="M12 14H28" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
+					<path d="M12 20H22" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
+					<path d="M12 26H28" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
+					<path d="M12 14V26" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
 				</svg>
 			</div>
 			<span class="text-2xl font-black tracking-tighter text-ink-950 uppercase italic leading-none">Evalia</span>
@@ -89,13 +82,11 @@
 					Harness <span class="text-teal-700 font-bold italic">Educational AI</span> to reclaim your time.
 				</p>
 				<div class="pt-4">
-					<a href="#pricing" style="color: #faf6ea !important;"
-						class="inline-flex items-center justify-center gap-3 bg-teal-800 px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-teal-900/30 transition-all hover:bg-teal-900 hover:scale-[1.02]">
+					<a href="#pricing" style="color: #faf6ea !important;" class="inline-flex items-center justify-center gap-3 bg-teal-800 px-10 py-5 rounded-2xl font-black text-lg shadow-2xl shadow-teal-900/30 transition-all hover:bg-teal-900 hover:scale-[1.02]">
 						Support the Seeding Phase <span>→</span>
 					</a>
 				</div>
 			</div>
-
 			<div class="relative">
 				<div class="absolute -inset-10 bg-teal-400/15 blur-3xl rounded-full"></div>
 				<div class="relative bg-white/40 backdrop-blur-2xl p-3 rounded-[2.5rem] shadow-2xl border border-white/60">
@@ -138,10 +129,7 @@
 						<span class="text-sm font-black text-teal-600">{progress_percent}% Funded</span>
 					</div>
 					<div class="w-full h-4 bg-ink-100 rounded-full p-1 border border-ink-200 overflow-hidden">
-						<div 
-							class="h-full bg-teal-500 rounded-full transition-all duration-1000 ease-out" 
-							style="width: {progress_percent}%"
-						></div>
+						<div class="h-full bg-teal-500 rounded-full transition-all duration-1000 ease-out" style="width: {progress_percent}%"></div>
 					</div>
 					<p class="mt-2 text-[9px] font-bold text-ink-500 uppercase tracking-tighter">
 						Target: ${SEED_GOAL.toLocaleString()} USD | Infrastructure & Engineering Runway
@@ -159,7 +147,7 @@
 							<li class="flex items-start gap-2"><span>•</span> 2 Months Pro Access Post-Launch</li>
 						</ul>
 					</div>
-					<a href={STRIPE_LINKS.supporter} class="mt-8 block text-center py-4 border-2 border-teal-800 text-teal-800 rounded-xl font-black hover:bg-teal-50 transition-all uppercase tracking-widest text-xs">Support Evalia</a>
+					<a href={launchTiers.starter} class="mt-8 block text-center py-4 border-2 border-teal-800 text-teal-800 rounded-xl font-black hover:bg-teal-50 transition-all uppercase tracking-widest text-xs">Support Evalia</a>
 				</div>
 
 				<div class="bg-white p-10 rounded-[2.5rem] border-2 border-teal-600 shadow-xl flex flex-col justify-between relative transform lg:-translate-y-4">
@@ -173,8 +161,7 @@
 							<li class="flex items-start gap-2"><span>•</span> No Subscriptions Ever</li>
 						</ul>
 					</div>
-					<a href={STRIPE_LINKS.pioneer} style="color: #faf6ea !important;"
-						class="mt-8 block text-center py-4 bg-teal-800 rounded-xl font-black shadow-xl uppercase tracking-widest text-xs">Secure Lifetime</a>
+					<a href={launchTiers.pioneer} style="color: #faf6ea !important;" class="mt-8 block text-center py-4 bg-teal-800 rounded-xl font-black shadow-xl uppercase tracking-widest text-xs">Secure Lifetime</a>
 				</div>
 
 				<div class="bg-teal-900 p-10 rounded-[2.5rem] shadow-2xl flex flex-col justify-between border-2 border-teal-400">
@@ -191,8 +178,7 @@
 							Does not confer equity or financial interest.
 						</p>
 					</div>
-					<a href={STRIPE_LINKS.advisor} style="color: #0d1117 !important;"
-						class="mt-10 block text-center py-5 bg-teal-400 rounded-2xl font-black shadow-xl uppercase tracking-widest text-xs">Join as Advisor</a>
+					<a href={launchTiers.advisor} style="color: #0d1117 !important;" class="mt-10 block text-center py-5 bg-teal-400 rounded-2xl font-black shadow-xl uppercase tracking-widest text-xs">Join as Advisor</a>
 				</div>
 			</div>
 		</div>
