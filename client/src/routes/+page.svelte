@@ -55,8 +55,14 @@
 		<div class="flex items-center gap-4 group cursor-pointer">
 			<div class="relative w-10 h-10 flex items-center justify-center">
 				<div class="absolute inset-0 bg-teal-800 rounded-lg shadow-lg"></div>
-				<svg class="relative w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-					<path d="M4 6H20M4 12H15M4 18H20" stroke="#faf6ea" stroke-width="3.5" stroke-linecap="round" />
+				<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  					<rect width="40" height="40" rx="8" fill="#115e59"/> 
+  
+  					<path d="M12 14H28" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
+  					<path d="M12 20H22" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
+  					<path d="M12 26H28" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
+  
+  					<path d="M12 14V26" stroke="#faf6ea" stroke-width="4" stroke-linecap="butt"/>
 				</svg>
 			</div>
 			<span class="text-2xl font-black tracking-tighter text-ink-950 uppercase italic leading-none">Evalia</span>
